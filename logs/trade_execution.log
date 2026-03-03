@@ -1,8 +1,1 @@
-2026-03-03 16:31:46 | INFO     |                 |        |      |                      | services.trade_executor:start_monitoring:49 | Monitoramento de trades ativos iniciado (WebSocket events + fallback polling)
-2026-03-03 16:32:47 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:268 | Sem conexões ativas para monitorar trades expirados
-2026-03-03 16:33:47 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:268 | Sem conexões ativas para monitorar trades expirados
-2026-03-03 16:34:47 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:268 | Sem conexões ativas para monitorar trades expirados
-2026-03-03 16:35:47 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:268 | Sem conexões ativas para monitorar trades expirados
-2026-03-03 16:36:47 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:268 | Sem conexões ativas para monitorar trades expirados
-2026-03-03 16:37:47 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:268 | Sem conexões ativas para monitorar trades expirados
-2026-03-03 16:38:47 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:268 | Sem conexões ativas para monitorar trades expirados
+2026-03-03 19:50:42 | INFO     |                 |        |      |                      | services.trade_executor:start_monitoring:49 | Monitoramento de trades ativos iniciado (WebSocket events + fallback polling)

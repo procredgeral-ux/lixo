@@ -1,0 +1,35 @@
+================================================================================
+WebSocket Connection Log
+Connection ID: ativos_0dfe1755f9d2
+Connection Type: ativos
+User: ATIVOS Client 1
+Created: 2026-03-03T19:51:02.117848
+Log File: ATIVOS_Client_1_ativos_ativos_0dfe1755f9d2_20260303_195102.log
+================================================================================
+
+[2026-03-03T19:51:02.119842] [INIT] Iniciando ATIVOS Client #1
+  Data: {"account_idx": 0, "user_name": "ATIVOS Client 1", "stable_id": "0dfe1755f9d2"}
+[2026-03-03T19:51:04.015236] [CONNECT] Cliente conectado com sucesso
+[2026-03-03T19:51:04.023650] [AUTH] Autenticação bem-sucedida
+  Data: {"account_idx": 0, "data_keys": []}
+[2026-03-03T19:51:04.139822] [CALLBACK:json_data] | keys: ['id']
+[2026-03-03T19:51:04.140819] [CALLBACK:json_data] | event: successupdatePending
+[2026-03-03T19:51:04.140819] [CALLBACK:json_data]
+[2026-03-03T19:51:04.141816] [CALLBACK:json_data] | event: updateOpenedDeals
+[2026-03-03T19:51:04.141816] [CALLBACK:json_data]
+[2026-03-03T19:51:04.143811] [CALLBACK:json_data] | event: updateCharts
+[2026-03-03T19:51:04.143811] [CALLBACK:json_data]
+[2026-03-03T19:51:04.145353] [CALLBACK:json_data]
+[2026-03-03T19:51:05.758433] [CALLBACK:stream_update] | symbols: ['AUDUSD_otc']
+[2026-03-03T19:51:05.967950] [CALLBACK:stream_update] | symbols: ['EURUSD_otc']
+[2026-03-03T19:51:06.138891] [CALLBACK:stream_update] | symbols: ['AUDUSD_otc']
+[2026-03-03T19:51:06.139888] [CALLBACK:stream_update] | symbols: ['CADJPY_otc']
+[2026-03-03T19:51:06.147522] [CALLBACK:stream_update] | symbols: ['EURUSD_otc']
+[2026-03-03T19:51:06.149135] [CALLBACK:stream_update] | symbols: ['NZDUSD_otc']
+[2026-03-03T19:51:07.094534] [CALLBACK:stream_update] | symbols: ['AUDUSD_otc']
+[2026-03-03T19:51:07.096730] [CALLBACK:stream_update] | symbols: ['CADJPY_otc']
+[2026-03-03T19:51:07.097728] [CALLBACK:stream_update] | symbols: ['EURGBP_otc']
+[2026-03-03T19:51:07.099085] [CALLBACK:stream_update] | symbols: ['EURUSD_otc']
+[2026-03-03T19:51:07.100081] [CALLBACK:stream_update] | symbols: ['NZDUSD_otc']
+[2026-03-03T19:51:07.101078] [CALLBACK:stream_update] | symbols: ['EURRUB_otc']
+[2026-03-03T19:51:07.103185] [CALLBACK:stream_update] | symbols: ['ADA-USD_otc']
