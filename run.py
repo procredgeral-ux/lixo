@@ -17,19 +17,18 @@ if __name__ == "__main__":
     print("Iniciando Backend AutoTrade")
     print("=" * 60)
     print(f"API Host: {settings.API_HOST}")
-    print(f"API Port: {settings.API_PORT}")
+    
+    # Usar PORT do Railway se disponível, senão usar API_PORT
+    port = int(os.getenv("PORT", settings.API_PORT))
+    print(f"API Port: {port}")
     print(f"Debug Mode: {settings.DEBUG}")
-    print(f"Data Collector: {'[X] Ativado' if settings.DATA_COLLECTOR_ENABLED else '[ ] Desativado'}")
     
     print("=" * 60)
     
-    # Disable uvicorn access logs for GET requests
-    # access_log=False disables all access logs
-    # log_level="warning" only shows warnings and errors
     uvicorn.run(
         app,
         host=settings.API_HOST,
-        port=settings.API_PORT,
+        port=port,
         reload=settings.DEBUG,
         access_log=False,
         log_level="warning"

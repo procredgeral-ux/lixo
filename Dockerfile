@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
-# Build timestamp: 2024-03-03-02-15
-# Force rebuild: 1
+# Build timestamp: 2024-03-03-02-41
+# Force rebuild: 2
 
 # Set working directory
 WORKDIR /app
@@ -29,4 +29,4 @@ RUN mkdir -p logs
 EXPOSE 8000
 
 # Run init database and start application
-CMD python init_database.py && uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1
+CMD python start.py
