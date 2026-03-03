@@ -2243,19 +2243,19 @@ class DataCollectorService:
                 # Verificar se o ativo está em cooldown para esta conta/estratégia
                 if account_id and strategy_id:
                     if self._is_asset_in_cooldown(account_id, symbol, strategy_id):
-                        # Adicionar logs detalhados sobre o cooldown
+                            # Adicionar logs detalhados sobre o cooldown
                         try:
                             if hasattr(self, '_asset_cooldowns'):
                                 if (account_id in self._asset_cooldowns and
                                     symbol in self._asset_cooldowns[account_id] and
                                     strategy_id in self._asset_cooldowns[account_id][symbol]):
                                     import time
-                                    from datetime import datetime
                                     current_time = time.time()
                                     cooldown_end = self._asset_cooldowns[account_id][symbol][strategy_id]
                                     remaining_time = cooldown_end - current_time
                                     cooldown_end_str = datetime.fromtimestamp(cooldown_end).strftime('%Y-%m-%d %H:%M:%S')
                                     account_name_cooldown = self._get_account_name_by_id(account_id)
+                                    logger.info(f" [{symbol}] Ativo em cooldown para {account_name_cooldown}, ignorando. Tempo restante: {remaining_time:.1f}s (expira em: {cooldown_end_str})")
                                     logger.info(f"⏳ [{symbol}] Ativo em cooldown para {account_name_cooldown}, ignorando. Tempo restante: {remaining_time:.1f}s (expira em: {cooldown_end_str})")
                                     # Log no arquivo do usuário
                                     user_logger.log_cooldown(
