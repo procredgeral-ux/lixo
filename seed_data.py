@@ -27,12 +27,11 @@ async def seed_admin_user():
         # Criar admin
         admin = User(
             email="admin@gmail.com",
-            username="admin",
+            name="Administrador",
             hashed_password=get_password_hash("@Leandro1228"),
-            full_name="Administrador",
-            role="admin",  # String literal em vez de enum
+            role="admin",
             is_active=True,
-            is_verified=True,
+            is_superuser=True,
             created_at=datetime.utcnow()
         )
         
