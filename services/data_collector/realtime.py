@@ -750,16 +750,18 @@ class DataCollectorService:
             logger.error(f"Erro ao carregar configurações de autotrade: {e}")
             return {}
 
-    def invalidate_autotrade_configs_cache(self):
+    async def invalidate_autotrade_configs_cache(self):
         """Invalidar o cache das configurações de autotrade"""
         self._autotrade_configs = None
         self._configs_cache_last_updated = 0
         self._configured_timeframes = None
         self._configured_timeframe = None
         self._config_last_updated = 0
-        # Invalidar L1 cache também
-        import asyncio
-        asyncio.create_task(autotrade_config_l1_cache.delete("all_autotrade_configs"))
+        # Invalidar L1 cache também - aguardar a operação completar
+        try:
+            await autotrade_config_l1_cache.delete("all_autotrade_configs")
+        except Exception as e:
+            logger.debug(f"[CACHE] Erro ao invalidar L1 cache (não crítico): {e}")
         logger.info("[OK] Cache de configurações de autotrade invalidado")
 
     async def _get_configured_timeframe(self) -> Optional[int]:
@@ -3074,10 +3076,13 @@ class DataCollectorService:
                         health['reconnect_count'] = 0
                         
                         # Iniciar reconexão imediata
-                        asyncio.create_task(self._reconnect_client_with_retry(account_idx))
-                    
-                    health['last_check'] = current_time
-                    
+                        try:
+                            await self._reconnect_client_with_retry(account_idx)
+                        except Exception as e:
+                            logger.error(f"[WATCHDOG] Erro ao reconectar cliente {account_idx}: {e}")
+                        
+                        health['last_check'] = current_time
+                        
             except asyncio.CancelledError:
                 logger.info("[WATCHDOG] Watchdog de conexões cancelado")
                 break
@@ -3157,8 +3162,12 @@ class DataCollectorService:
                     health['reconnect_count'] = retry_count + 1
                     health['is_connected'] = False
                     
-                    # Agendar nova tentativa
-                    asyncio.create_task(self._reconnect_client_with_retry(account_idx))
+                    # Agendar nova tentativa após delay
+                    await asyncio.sleep(5)
+                    try:
+                        await self._reconnect_client_with_retry(account_idx)
+                    except Exception as e:
+                        logger.error(f"[RECONNECT] Erro na tentativa subsequente: {e}")
                     
             except Exception as e:
                 logger.error(f"[RECONNECT] ❌ {account_name}: Erro durante reconexão: {e}")
