@@ -25,6 +25,7 @@ slowapi==0.1.9
 # Cache
 redis==5.0.1
 hiredis==3.3.0
+cachetools==5.5.0
 
 # Logging
 loguru==0.7.2
