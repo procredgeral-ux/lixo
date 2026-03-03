@@ -285,53 +285,131 @@ export default function AutoTradeConfigScreen() {
       setLoading(true);
       setError(null);
 
-      console.log('[AutoTradeConfig] Salvando configuração...');
-      console.log('[AutoTradeConfig] config.amount:', config.amount);
-      console.log('[AutoTradeConfig] existingConfigId:', existingConfigId);
-      console.log('[AutoTradeConfig] config:', config);
-      console.log('[AutoTradeConfig] stop_amount_win:', config.stop_amount_win);
-      console.log('[AutoTradeConfig] stop_amount_loss:', config.stop_amount_loss);
-      console.log('[AutoTradeConfig] typeof stop_amount_win:', typeof config.stop_amount_win);
-      console.log('[AutoTradeConfig] typeof stop_amount_loss:', typeof config.stop_amount_loss);
+      // Sincronizar todos os campos de texto antes de salvar
+      let finalAmount = config.amount;
+      let finalStop1 = config.stop1;
+      let finalStop2 = config.stop2;
+      let finalStopAmountWin = config.stop_amount_win;
+      let finalStopAmountLoss = config.stop_amount_loss;
+      let finalSoros = config.soros;
+      let finalMartingale = config.martingale;
+      let finalConfidence = config.min_confidence;
 
-      const parsedConfidence = parseFloat(confidenceText);
-      const normalizedConfidence = !Number.isNaN(parsedConfidence)
-        ? Math.max(0, Math.min(1, parsedConfidence))
-        : config.min_confidence;
-      const payload = { ...config, min_confidence: normalizedConfidence };
-      const savePayload = strategyId ? { ...payload, strategy_id: strategyId } : payload;
+      // Sincronizar amount
+      if (amountText !== '' && amountText !== '.') {
+        const value = parseFloat(amountText);
+        if (!isNaN(value) && value >= 0) {
+          finalAmount = value;
+        }
+      }
+
+      // Sincronizar stop1
+      if (stop1Text !== '') {
+        const value = parseInt(stop1Text);
+        if (!isNaN(value) && value >= 0) {
+          finalStop1 = value;
+        }
+      }
+
+      // Sincronizar stop2
+      if (stop2Text !== '') {
+        const value = parseInt(stop2Text);
+        if (!isNaN(value) && value >= 0) {
+          finalStop2 = value;
+        }
+      }
+
+      // Sincronizar stop_amount_win
+      if (stopAmountWinText !== '' && stopAmountWinText !== '.') {
+        const value = parseFloat(stopAmountWinText);
+        if (!isNaN(value) && value >= 0) {
+          finalStopAmountWin = value;
+        }
+      }
+
+      // Sincronizar stop_amount_loss
+      if (stopAmountLossText !== '' && stopAmountLossText !== '.') {
+        const value = parseFloat(stopAmountLossText);
+        if (!isNaN(value) && value >= 0) {
+          finalStopAmountLoss = value;
+        }
+      }
+
+      // Sincronizar soros
+      if (sorosText !== '') {
+        const value = parseInt(sorosText);
+        if (!isNaN(value) && value >= 0) {
+          finalSoros = value;
+        }
+      }
+
+      // Sincronizar martingale
+      if (martingaleText !== '') {
+        const value = parseInt(martingaleText);
+        if (!isNaN(value) && value >= 0) {
+          finalMartingale = value;
+        }
+      }
+
+      // Sincronizar confidence
+      if (confidenceText !== '' && confidenceText !== '.') {
+        const value = parseFloat(confidenceText);
+        if (!isNaN(value)) {
+          finalConfidence = Math.max(0, Math.min(1, value));
+        }
+      }
+
+      // Criar config atualizada com todos os valores sincronizados
+      const updatedConfig = {
+        ...config,
+        amount: finalAmount,
+        stop1: finalStop1,
+        stop2: finalStop2,
+        stop_amount_win: finalStopAmountWin,
+        stop_amount_loss: finalStopAmountLoss,
+        soros: finalSoros,
+        martingale: finalMartingale,
+        min_confidence: finalConfidence,
+      };
+
+      console.log('[AutoTradeConfig] Salvando configuração...');
+      console.log('[AutoTradeConfig] config.amount:', updatedConfig.amount);
+      console.log('[AutoTradeConfig] existingConfigId:', existingConfigId);
+      console.log('[AutoTradeConfig] config:', updatedConfig);
+
+      const savePayload = strategyId ? { ...updatedConfig, strategy_id: strategyId } : updatedConfig;
       
       console.log('[AutoTradeConfig] Payload completo:', JSON.stringify(savePayload, null, 2));
       console.log('[AutoTradeConfig] execute_all_signals no payload:', savePayload.execute_all_signals);
 
       // Validar configuração antes de salvar
-      if (!payload.account_id) {
+      if (!updatedConfig.account_id) {
         setError('Selecione uma conta');
         return;
       }
 
-      if (payload.amount <= 0) {
+      if (updatedConfig.amount <= 0) {
         setError('Valor da operação deve ser maior que 0');
         return;
       }
 
-      if (payload.stop_amount_win < 0 || payload.stop_amount_loss < 0) {
+      if (updatedConfig.stop_amount_win < 0 || updatedConfig.stop_amount_loss < 0) {
         setError('Stop gain e stop loss não podem ser negativos');
         return;
       }
 
       // Se "Não hibernar" está ativado e stop gain/stop loss são 0, impedir salvar
-      if (payload.no_hibernate_on_consecutive_stop && payload.stop1 === 0 && payload.stop2 === 0) {
-        console.log('[AutoTradeConfig] no_hibernate_on_consecutive_stop:', payload.no_hibernate_on_consecutive_stop);
-        console.log('[AutoTradeConfig] stop1 === 0:', payload.stop1 === 0);
-        console.log('[AutoTradeConfig] stop2 === 0:', payload.stop2 === 0);
+      if (updatedConfig.no_hibernate_on_consecutive_stop && updatedConfig.stop1 === 0 && updatedConfig.stop2 === 0) {
+        console.log('[AutoTradeConfig] no_hibernate_on_consecutive_stop:', updatedConfig.no_hibernate_on_consecutive_stop);
+        console.log('[AutoTradeConfig] stop1 === 0:', updatedConfig.stop1 === 0);
+        console.log('[AutoTradeConfig] stop2 === 0:', updatedConfig.stop2 === 0);
         setError('Não é possível salvar com "Não hibernar" ativado e stop gain/stop loss em 0. O "Não hibernar" não pode ficar ligado se stop gain e stop loss forem 0. Defina valores maiores que 0 para ambos ou desative "Não hibernar".');
         return;
       }
 
-      setConfig(payload);
-      if (!Number.isNaN(parsedConfidence)) {
-        setConfidenceText(normalizedConfidence.toString());
+      setConfig(updatedConfig);
+      if (!Number.isNaN(finalConfidence)) {
+        setConfidenceText(finalConfidence.toString());
       }
 
       if (existingConfigId) {
