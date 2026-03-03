@@ -3,10 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from loguru import logger
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel
-from pathlib import Path
-import re
 
 from core.database import get_db
 from models import User
@@ -22,97 +20,6 @@ class UserPlanResponse(BaseModel):
     vip_start_date: datetime | None
     vip_end_date: datetime | None
     message: str
-
-
-class DashboardMetrics(BaseModel):
-    """Dashboard performance metrics"""
-    updated_at: str
-    uptime: str
-    memory_current: str
-    memory_avg: str
-    cpu_current: str
-    cpu_avg: str
-    disk_usage: str
-    api_requests: int
-    api_success_rate: str
-    api_latency_avg: str
-    ws_connections: int
-    trades_executed: int
-    trades_pending: int
-    db_queries: int
-    db_errors: int
-    cache_hit_rate: str
-    assets_available: int
-    assets_with_data: int
-
-
-def parse_dashboard_log() -> Optional[DashboardMetrics]:
-    """Parse dashboard.log file and extract metrics"""
-    try:
-        log_path = Path("logs/performance/dashboard.log")
-        if not log_path.exists():
-            return None
-        
-        content = log_path.read_text(encoding='utf-8')
-        
-        # Helper to extract value using regex
-        def extract(pattern: str, text: str, default: str = "N/A") -> str:
-            match = re.search(pattern, text)
-            return match.group(1).strip() if match else default
-        
-        def extract_int(pattern: str, text: str, default: int = 0) -> int:
-            match = re.search(pattern, text)
-            return int(match.group(1)) if match else default
-        
-        # Parse metrics
-        updated_at = extract(r"Atualizado:\s+(.+?)\s+UTC", content, "N/A")
-        uptime = extract(r"Uptime:\s+(.+)", content, "N/A")
-        memory_current = extract(r"Memória Atual:\s+(.+?)\s+", content, "N/A")
-        memory_avg = extract(r"Memória Média:\s+(.+?)\s+", content, "N/A")
-        cpu_current = extract(r"CPU Atual:\s+(.+?)%", content, "0")
-        cpu_avg = extract(r"CPU Média:\s+(.+?)%", content, "0")
-        disk_usage = extract(r"Disco Uso:\s+(.+?)%", content, "0")
-        
-        api_requests = extract_int(r"Total Requisições:\s+(\d+)", content, 0)
-        api_success_rate = extract(r"Sucessos:\s+\d+\s+\(([\d.]+)%\)", content, "0%")
-        api_latency_avg = extract(r"Latência Média:\s+([\d.]+)\s+ms", content, "0")
-        
-        ws_connections = extract_int(r"Total Conexões WS:\s+(\d+)", content, 0)
-        
-        trades_executed = extract_int(r"Trades Executados:\s+(\d+)", content, 0)
-        trades_pending = extract_int(r"Trades Pendentes:\s+(\d+)", content, 0)
-        
-        db_queries = extract_int(r"Queries Executadas:\s+(\d+)", content, 0)
-        db_errors = extract_int(r"Erros DB:\s+(\d+)", content, 0)
-        
-        cache_hit_rate = extract(r"Cache Hit Rate:\s+([\d.]+)%", content, "0%")
-        
-        assets_available = extract_int(r"Ativos Disponíveis:\s+(\d+)", content, 0)
-        assets_with_data = extract_int(r"Ativos com Dados:\s+(\d+)", content, 0)
-        
-        return DashboardMetrics(
-            updated_at=updated_at,
-            uptime=uptime,
-            memory_current=memory_current,
-            memory_avg=memory_avg,
-            cpu_current=f"{cpu_current}%",
-            cpu_avg=f"{cpu_avg}%",
-            disk_usage=f"{disk_usage}%",
-            api_requests=api_requests,
-            api_success_rate=api_success_rate,
-            api_latency_avg=f"{api_latency_avg} ms",
-            ws_connections=ws_connections,
-            trades_executed=trades_executed,
-            trades_pending=trades_pending,
-            db_queries=db_queries,
-            db_errors=db_errors,
-            cache_hit_rate=f"{cache_hit_rate}%",
-            assets_available=assets_available,
-            assets_with_data=assets_with_data
-        )
-    except Exception as e:
-        logger.error(f"Error parsing dashboard.log: {e}")
-        return None
 
 
 @router.get("/users")
@@ -242,19 +149,3 @@ async def update_user_plan_admin(
         vip_end_date=user.vip_end_date,
         message=f"Plano atualizado para {role.upper()}"
     )
-
-
-@router.get("/dashboard", response_model=DashboardMetrics)
-async def get_dashboard_metrics(
-    current_user: User = Depends(get_current_superuser)
-):
-    """Obter métricas de performance do dashboard (apenas superusuários)"""
-    metrics = parse_dashboard_log()
-    
-    if not metrics:
-        raise HTTPException(
-            status_code=503,
-            detail="Dashboard metrics not available. Check if dashboard.log exists."
-        )
-    
-    return metrics

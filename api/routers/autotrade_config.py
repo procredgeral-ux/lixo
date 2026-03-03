@@ -98,6 +98,7 @@ async def create_autotrade_config(
 ):
     """Create auto trade configuration"""
     logger.info(f"📥 Recebendo config_data: {config_data}")
+    logger.info(f"📥 execute_all_signals recebido: {getattr(config_data, 'execute_all_signals', 'NÃO ENCONTRADO')}")
     logger.info(f"📥 config_data.model_dump(): {config_data.model_dump()}")
     logger.info(f"📥 config_data.model_dump(exclude_unset=True): {config_data.model_dump(exclude_unset=True)}")
 

@@ -25,27 +25,6 @@ interface User {
   vip_end_date: string | null;
 }
 
-interface DashboardMetrics {
-  updated_at: string;
-  uptime: string;
-  memory_current: string;
-  memory_avg: string;
-  cpu_current: string;
-  cpu_avg: string;
-  disk_usage: string;
-  api_requests: number;
-  api_success_rate: string;
-  api_latency_avg: string;
-  ws_connections: number;
-  trades_executed: number;
-  trades_pending: number;
-  db_queries: number;
-  db_errors: number;
-  cache_hit_rate: string;
-  assets_available: number;
-  assets_with_data: number;
-}
-
 const menuItems: MenuItem[] = [
   { id: 'dashboard', icon: 'bar-chart-outline', label: 'Dashboard' },
   { id: 'estrategias', icon: 'trending-up-outline', label: 'Estratégias' },
@@ -72,11 +51,6 @@ export default function AdminScreen() {
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  
-  // Dashboard metrics state
-  const [dashboardMetrics, setDashboardMetrics] = useState<DashboardMetrics | null>(null);
-  const [loadingMetrics, setLoadingMetrics] = useState(false);
-  const [metricsError, setMetricsError] = useState<string | null>(null);
 
   // Atualizar duração automaticamente ao selecionar plano
   const handlePlanSelect = (plan: 'free' | 'vip' | 'vip_plus') => {
@@ -90,27 +64,15 @@ export default function AdminScreen() {
     }
   };
 
-  // Carregar usuários e métricas ao montar o componente
+  // Carregar usuários ao montar o componente
   useEffect(() => {
     if (currentUser) {
       // Pequeno delay para garantir que o token esteja configurado
       setTimeout(() => {
         loadAllUsers();
-        loadDashboardMetrics();
       }, 100);
     }
-  }, [currentUser]);
-
-  // Polling de métricas a cada 30 segundos
-  useEffect(() => {
-    if (!currentUser) return;
-    
-    const interval = setInterval(() => {
-      loadDashboardMetrics();
-    }, 30000); // 30 segundos
-    
-    return () => clearInterval(interval);
-  }, [currentUser]);
+  }, [currentUser]); // Re-carregar quando o usuário mudar
 
   const handleLogout = async () => {
     await logout();
@@ -154,22 +116,6 @@ export default function AdminScreen() {
       setError('Erro ao carregar usuários. Tente fazer logout e login novamente.');
     } finally {
       setLoadingUsers(false);
-    }
-  };
-
-  const loadDashboardMetrics = async () => {
-    setLoadingMetrics(true);
-    setMetricsError(null);
-    try {
-      console.log('[AdminScreen] Carregando métricas do dashboard...');
-      const response = await apiClient.get<DashboardMetrics>('/admin/dashboard');
-      console.log('[AdminScreen] Métricas carregadas:', response);
-      setDashboardMetrics(response);
-    } catch (err: any) {
-      console.error('[AdminScreen] Erro ao carregar métricas:', err.message);
-      setMetricsError('Falha ao carregar métricas do sistema');
-    } finally {
-      setLoadingMetrics(false);
     }
   };
 
@@ -340,117 +286,6 @@ export default function AdminScreen() {
             </TouchableOpacity>
           </View>
           {error && <Text style={styles.errorText}>{error}</Text>}
-        </View>
-
-        {/* Dashboard Metrics */}
-        <View style={styles.metricsSection}>
-          <View style={styles.metricsHeader}>
-            <Text style={styles.sectionTitle}>Métricas do Sistema</Text>
-            {loadingMetrics && <ActivityIndicator size="small" color="#3B82F6" style={{ marginLeft: 8 }} />}
-          </View>
-          {metricsError && <Text style={styles.errorText}>{metricsError}</Text>}
-          {dashboardMetrics && (
-            <View style={styles.metricsGrid}>
-              {/* Card: Uptime & Sistema */}
-              <View style={[styles.metricCard, { borderLeftColor: '#10B981' }]}>
-                <View style={styles.metricIconContainer}>
-                  <Ionicons name="time-outline" size={20} color="#10B981" />
-                </View>
-                <View style={styles.metricContent}>
-                  <Text style={styles.metricLabel}>Uptime</Text>
-                  <Text style={styles.metricValue}>{dashboardMetrics.uptime}</Text>
-                  <Text style={styles.metricSubtext}>Mem: {dashboardMetrics.memory_current}</Text>
-                </View>
-              </View>
-
-              {/* Card: CPU & Disco */}
-              <View style={[styles.metricCard, { borderLeftColor: '#3B82F6' }]}>
-                <View style={styles.metricIconContainer}>
-                  <Ionicons name="hardware-chip-outline" size={20} color="#3B82F6" />
-                </View>
-                <View style={styles.metricContent}>
-                  <Text style={styles.metricLabel}>CPU / Disco</Text>
-                  <Text style={styles.metricValue}>{dashboardMetrics.cpu_current}</Text>
-                  <Text style={styles.metricSubtext}>Disco: {dashboardMetrics.disk_usage}</Text>
-                </View>
-              </View>
-
-              {/* Card: API Requests */}
-              <View style={[styles.metricCard, { borderLeftColor: '#F59E0B' }]}>
-                <View style={styles.metricIconContainer}>
-                  <Ionicons name="cloud-done-outline" size={20} color="#F59E0B" />
-                </View>
-                <View style={styles.metricContent}>
-                  <Text style={styles.metricLabel}>API Requests</Text>
-                  <Text style={styles.metricValue}>{dashboardMetrics.api_requests.toLocaleString()}</Text>
-                  <Text style={styles.metricSubtext}>Sucesso: {dashboardMetrics.api_success_rate}</Text>
-                </View>
-              </View>
-
-              {/* Card: Latência */}
-              <View style={[styles.metricCard, { borderLeftColor: '#8B5CF6' }]}>
-                <View style={styles.metricIconContainer}>
-                  <Ionicons name="speedometer-outline" size={20} color="#8B5CF6" />
-                </View>
-                <View style={styles.metricContent}>
-                  <Text style={styles.metricLabel}>Latência Média</Text>
-                  <Text style={styles.metricValue}>{dashboardMetrics.api_latency_avg}</Text>
-                  <Text style={styles.metricSubtext}>WS Conns: {dashboardMetrics.ws_connections}</Text>
-                </View>
-              </View>
-
-              {/* Card: Trades */}
-              <View style={[styles.metricCard, { borderLeftColor: '#EC4899' }]}>
-                <View style={styles.metricIconContainer}>
-                  <Ionicons name="trending-up-outline" size={20} color="#EC4899" />
-                </View>
-                <View style={styles.metricContent}>
-                  <Text style={styles.metricLabel}>Trades</Text>
-                  <Text style={styles.metricValue}>{dashboardMetrics.trades_executed}</Text>
-                  <Text style={styles.metricSubtext}>Pendentes: {dashboardMetrics.trades_pending}</Text>
-                </View>
-              </View>
-
-              {/* Card: Database */}
-              <View style={[styles.metricCard, { borderLeftColor: '#06B6D4' }]}>
-                <View style={styles.metricIconContainer}>
-                  <Ionicons name="server-outline" size={20} color="#06B6D4" />
-                </View>
-                <View style={styles.metricContent}>
-                  <Text style={styles.metricLabel}>Database</Text>
-                  <Text style={styles.metricValue}>{dashboardMetrics.db_queries.toLocaleString()}</Text>
-                  <Text style={styles.metricSubtext}>Erros: {dashboardMetrics.db_errors}</Text>
-                </View>
-              </View>
-
-              {/* Card: Cache */}
-              <View style={[styles.metricCard, { borderLeftColor: '#84CC16' }]}>
-                <View style={styles.metricIconContainer}>
-                  <Ionicons name="flash-outline" size={20} color="#84CC16" />
-                </View>
-                <View style={styles.metricContent}>
-                  <Text style={styles.metricLabel}>Cache Hit Rate</Text>
-                  <Text style={styles.metricValue}>{dashboardMetrics.cache_hit_rate}</Text>
-                  <Text style={styles.metricSubtext}>Performance</Text>
-                </View>
-              </View>
-
-              {/* Card: Ativos */}
-              <View style={[styles.metricCard, { borderLeftColor: '#F97316' }]}>
-                <View style={styles.metricIconContainer}>
-                  <Ionicons name="stats-chart-outline" size={20} color="#F97316" />
-                </View>
-                <View style={styles.metricContent}>
-                  <Text style={styles.metricLabel}>Ativos</Text>
-                  <Text style={styles.metricValue}>{dashboardMetrics.assets_with_data}</Text>
-                  <Text style={styles.metricSubtext}>Disp.: {dashboardMetrics.assets_available}</Text>
-                </View>
-              </View>
-            </View>
-          )}
-          <Text style={styles.lastUpdated}>
-            Atualizado: {dashboardMetrics?.updated_at || 'N/A'}
-          </Text>
         </View>
 
         {/* Tabela de usuários */}
@@ -1004,75 +839,5 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     padding: 16,
-  },
-  // Dashboard Metrics Styles
-  metricsSection: {
-    marginBottom: 20,
-  },
-  metricsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  metricsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    justifyContent: 'space-between',
-  },
-  metricCard: {
-    width: '47%',
-    backgroundColor: colors.surfaceDeep,
-    borderRadius: 12,
-    padding: 14,
-    borderLeftWidth: 4,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-    marginBottom: 8,
-  },
-  metricIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: colors.surfaceAlt,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  metricContent: {
-    flex: 1,
-  },
-  metricLabel: {
-    fontSize: 11,
-    color: colors.textMuted,
-    marginBottom: 2,
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
-  },
-  metricValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 2,
-    letterSpacing: 0.2,
-  },
-  metricSubtext: {
-    fontSize: 10,
-    color: colors.textMuted,
-    letterSpacing: 0.1,
-  },
-  lastUpdated: {
-    fontSize: 10,
-    color: colors.textMuted,
-    textAlign: 'right',
-    marginTop: 8,
-    fontStyle: 'italic',
   },
 });

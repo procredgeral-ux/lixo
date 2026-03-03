@@ -7,7 +7,6 @@ export const API_CONFIG = {
 
   // URLs locais para detecção automática (fallback)
   LOCAL_URLS: [
-    'https://web-production-640f.up.railway.app',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
   ] as string[],
