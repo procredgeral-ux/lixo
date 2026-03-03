@@ -13,8 +13,10 @@ logger = logging.getLogger(__name__)
 
 
 def run_migrations():
-    """Executar alembic migrations"""
+    """Executar alembic migrations ou criar tabelas diretamente"""
     logger.info("📦 Executando migrations...")
+    
+    # Tentar alembic primeiro
     try:
         result = subprocess.run(
             ["alembic", "upgrade", "head"],
@@ -24,16 +26,27 @@ def run_migrations():
             cwd="/app"
         )
         logger.info("✅ Migrations concluídas")
-        if result.stdout:
-            logger.info(result.stdout)
         return True
-    except subprocess.CalledProcessError as e:
-        logger.error(f"❌ Erro nas migrations: {e}")
-        logger.error(e.stderr if e.stderr else "No stderr")
+    except Exception as e:
+        logger.warning(f"Alembic falhou: {e}")
+    
+    # Fallback: criar tabelas diretamente
+    logger.info("🔄 Criando tabelas com create_all...")
+    try:
+        import asyncio
+        from core.database import engine, Base
+        from models import User, Strategy  # Importar modelos
+        
+        async def create_tables():
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+        
+        asyncio.run(create_tables())
+        logger.info("✅ Tabelas criadas com create_all")
+        return True
+    except Exception as e:
+        logger.error(f"❌ create_all também falhou: {e}")
         return False
-    except FileNotFoundError:
-        logger.warning("⚠️ Alembic não encontrado, pulando migrations")
-        return True
 
 
 def run_seed():
