@@ -729,6 +729,8 @@ class DataCollectorService:
                         'soros': autotrade_config.soros,
                         'martingale': autotrade_config.martingale,
                         'min_confidence': autotrade_config.min_confidence,
+                        'trade_timing': getattr(autotrade_config, 'trade_timing', 'on_signal'),
+                        'execute_all_signals': getattr(autotrade_config, 'execute_all_signals', False),
                         'strategy_parameters': strategy_params,
                         'indicators': indicators,
                     })
