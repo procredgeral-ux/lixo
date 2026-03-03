@@ -1,0 +1,75 @@
+# Git
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv/
+
+# Logs
+logs/
+*.log
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+autotrade.db*
+database.db
+tunestrade.db
+data/
+
+# Mobile app - NÃO NECESSÁRIO NO BACKEND
+aplicativo/
+
+# Node modules (se houver no backend)
+node_modules/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+.env.*
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Test files
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation
+docs/
+*.md
+
+# Migration CSV files (só usados localmente)
+migration_csv/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Railway
+.railway/
+
+# Misc
+.DS_Store
