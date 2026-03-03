@@ -1,0 +1,52 @@
+================================================================================
+WebSocket Connection Log
+Connection ID: keep_alive_3669e2464563
+Connection Type: keep_alive
+User: PAYOUT Monitor
+Created: 2026-03-03T14:41:42.485064
+Log File: PAYOUT_Monitor_keep_alive_keep_alive_3669e2464563_20260303_144142.log
+================================================================================
+
+[2026-03-03T14:41:42.486960] [INIT] Iniciando estabelecimento de conexão
+  Data: {"ssid_preview": "42[\"auth\",{\"session\":\"3ukili81", "is_demo": true, "user_name": "PAYOUT Monitor", "urls_available": 2}
+[2026-03-03T14:41:43.422306] [CONNECTED] Conexão estabelecida em DEMO-EU
+  Data: {"url": "wss://demo-api-eu.po.market/socket.io/?EIO=4&transport=websocket", "region": "DEMO-EU", "total_reconnects": 0}
+[2026-03-03T14:41:43.640237] [AUTH] Autenticação bem-sucedida
+  Data: {"ssid_preview": "42[\"auth\",{\"session\":\"3ukili81", "user_name": "PAYOUT Monitor", "is_demo": true}
+[2026-03-03T14:41:44.145482] [PING] Ping enviado
+[2026-03-03T14:41:44.146426] [RECV] Mensagem recebida (50 bytes): 451-["updateAssets",{"_placeholder":true,"num":0}]
+[2026-03-03T14:41:44.149470] [RECV] Mensagem recebida (44247 bytes): [[5,"#AAPL","Apple","stock",2,50,60,30,3,0,170,0,[],1772571600,false,[{"time":60},{"time":120},{"time":180},{"time":300},{"time":600},{"time":900},{"time":1800},{"time":2700},{"time":3600},{"time":720...
+[2026-03-03T14:41:44.401181] [RECV] Mensagem recebida (49 bytes): 451-["successauth",{"_placeholder":true,"num":0}]
+[2026-03-03T14:41:44.513904] [RECV] Mensagem recebida (29 bytes): {"id":"2xruYhixwlxK3Jb0ESNd"}
+[2026-03-03T14:41:44.514420] [RECV] Mensagem recebida (55 bytes): 451-["updateOpenedDeals",{"_placeholder":true,"num":0}]
+[2026-03-03T14:41:44.514931] [RECV] Mensagem recebida (2 bytes): []
+[2026-03-03T14:41:44.514931] [RECV] Mensagem recebida (58 bytes): 451-["successupdatePending",{"_placeholder":true,"num":0}]
+[2026-03-03T14:41:44.514931] [RECV] Mensagem recebida (2 bytes): []
+[2026-03-03T14:41:44.514931] [RECV] Mensagem recebida (58 bytes): 451-["successupdateBalance",{"_placeholder":true,"num":0}]
+[2026-03-03T14:41:44.515926] [RECV] Mensagem recebida (28 bytes): {"isDemo":1,"balance":50000}
+[2026-03-03T14:41:44.516923] [RECV] Mensagem recebida (50 bytes): 451-["updateCharts",{"_placeholder":true,"num":0}]
+[2026-03-03T14:41:44.516923] [RECV] Mensagem recebida (484 bytes): [{"chart_id":"chart-1","settings":"{\"chartId\":\"chart-1\",\"chartType\":1,\"chartPeriod\":4,\"candlesTimer\":false,\"symbol\":\"EURUSD_otc\",\"demoDealAmount\":10,\"liveDealAmount\":1,\"enabledTrade...
+[2026-03-03T14:41:44.516923] [RECV] Mensagem recebida (55 bytes): 451-["updateClosedDeals",{"_placeholder":true,"num":0}]
+[2026-03-03T14:41:44.517920] [RECV] Mensagem recebida (2 bytes): []
+
+================================================================================
+CONNECTION CLOSED - SUMMARY
+================================================================================
+Connection ID: keep_alive_3669e2464563
+Total Messages Sent: 0
+Total Messages Received: 14
+Total Reconnects: 0
+Total Errors: 0
+Closed At: 2026-03-03T14:41:54.502007
+================================================================================
+
+
+================================================================================
+RECONNECTION SESSION
+================================================================================
+Connection ID: keep_alive_3669e2464563
+Session Started: 2026-03-03T14:41:56.515437
+================================================================================
+
+[2026-03-03T14:41:56.516435] [INIT] Iniciando estabelecimento de conexão
+  Data: {"ssid_preview": "42[\"auth\",{\"session\":\"3ukili81", "is_demo": true, "user_name": "PAYOUT Monitor", "urls_available": 2}

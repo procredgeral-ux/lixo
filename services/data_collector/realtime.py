@@ -1411,37 +1411,34 @@ class DataCollectorService:
             else:
                 timestamp_seconds = timestamp
             
-            # Log inicial para debug
-            logger.debug(f"🔍 [{symbol}] Processando tick: timestamp_s={timestamp_seconds}, price={price}")
+            # REMOVIDO: Log de tick individual (muito verboso)
+            # Apenas logar em DEBUG se houver velas fechadas (ver abaixo)
             
             # Inicializar buffers para o asset se necessário
             if symbol not in self._candle_buffers:
                 self._candle_buffers[symbol] = {}
                 self._last_candle_close[symbol] = {}
-                logger.debug(f"🔍 [{symbol}] Buffers inicializados")
+                logger.debug(f"🔧 [{symbol}] Buffers criados")
             
             # Obter timeframes configurados (cache) - não recarregar em cada tick
             configured_timeframes = await self._get_configured_timeframes_cache()
+            
+            closed_candles = []  # Track closed candles for single log line
             
             # Verificar cada timeframe
             for timeframe_name, timeframe_seconds in self.timeframes.items():
                 # Filtrar: apenas executar estratégias para timeframes configurados
                 if configured_timeframes and timeframe_seconds not in configured_timeframes:
-                    logger.debug(f"⏭️ [{symbol}] Timeframe {timeframe_name} não configurado, pulando")
                     continue
                 
                 # Calcular o timestamp de fechamento da vela atual
                 candle_start = int(timestamp_seconds // timeframe_seconds) * timeframe_seconds
                 candle_close_time = candle_start + timeframe_seconds
 
-                # Log para debug
-                logger.debug(f"🔍 [{symbol}] {timeframe_name}: close_time={candle_close_time}, last_close={self._last_candle_close.get(symbol, {}).get(timeframe_seconds)}, current_ts={timestamp_seconds}")
-
                 # Inicializar buffer para este timeframe se necessário
                 if timeframe_seconds not in self._candle_buffers[symbol]:
                     self._candle_buffers[symbol][timeframe_seconds] = []
                     self._last_candle_close[symbol][timeframe_seconds] = None
-                    logger.debug(f"🔍 [{symbol}] Buffer inicializado para {timeframe_name}")
 
                 last_close_time = self._last_candle_close[symbol].get(timeframe_seconds)
 
@@ -1461,13 +1458,17 @@ class DataCollectorService:
                     if symbol not in self._candle_closes[timeframe_seconds][close_time_int]:
                         self._candle_closes[timeframe_seconds][close_time_int].append(symbol)
 
-                    logger.debug(f"✅ [{symbol}] {timeframe_name}: Vela fechada detectada (close_time={close_time_int})")
+                    closed_candles.append(timeframe_name)
                     self._last_candle_close[symbol][timeframe_seconds] = candle_close_time
                 elif candle_close_time < last_close_time:
-                    logger.warning(f"⏪ [{symbol}] {timeframe_name}: Timestamp regressivo detectado (close_time={candle_close_time} < {last_close_time})")
+                    logger.warning(f"⏪ [{symbol}] {timeframe_name}: Timestamp regressivo ({candle_close_time} < {last_close_time})")
                 
                 # Atualizar buffer de candles (criar/atualizar candle atual)
                 await self._update_current_candle(symbol, timeframe_seconds, timestamp_seconds, price)
+            
+            # REMOVIDO: Log de velas fechadas (muito verboso)
+            # if closed_candles:
+            #     logger.info(f"🕯️ [{symbol}] Velas fechadas: {', '.join(closed_candles)}")
                 
         except Exception as e:
             logger.error(f"Erro ao atualizar buffer de candles para {symbol}: {e}")

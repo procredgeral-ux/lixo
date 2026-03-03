@@ -1,13 +1,13 @@
 // API Configuration
 export const API_CONFIG = {
   // Backend URL - usar IP local por padrão (será atualizado pelo ngrok se disponível)
-  BASE_URL: 'http://10.234.170.209:8000',
-  WS_URL: 'ws://10.234.170.209:8000/ws',
+  BASE_URL: 'https://web-production-640f.up.railway.app',
+  WS_URL: 'wss://web-production-640f.up.railway.app/ws',
   API_PREFIX: '/api/v1',
 
   // URLs locais para detecção automática (fallback)
   LOCAL_URLS: [
-    'http://10.234.170.209:8000',
+    'https://web-production-640f.up.railway.app',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
   ] as string[],

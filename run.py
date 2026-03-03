@@ -30,8 +30,9 @@ if __name__ == "__main__":
         host=settings.API_HOST,
         port=port,
         reload=settings.DEBUG,
-        access_log=False,
-        log_level="warning"
+        access_log=settings.LOG_LEVEL.upper() == "DEBUG",  # Access log so em DEBUG
+        log_level=settings.LOG_LEVEL.lower(),  # Usar LOG_LEVEL do .env
+        use_colors=True
     )
     
     print("=" * 60)

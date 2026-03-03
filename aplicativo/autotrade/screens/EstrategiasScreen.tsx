@@ -159,7 +159,7 @@ export default function EstrategiasScreen() {
 
   const fetchAccountMode = useCallback(async () => {
     try {
-      const response = await apiClient.get<any>('/accounts/');
+      const response = await apiClient.get<any>('/accounts');
       const accounts = Array.isArray(response)
         ? response
         : Array.isArray(response?.accounts)
@@ -215,7 +215,7 @@ export default function EstrategiasScreen() {
 
   const fetchAutotradeConfigs = useCallback(async () => {
     try {
-      const response = await apiClient.get<any>('/autotrade-config/');
+      const response = await apiClient.get<any>('/autotrade-config');
       const configs = Array.isArray(response)
         ? response
         : Array.isArray(response?.configs)
@@ -241,7 +241,7 @@ export default function EstrategiasScreen() {
         setIsInitialLoad(true);
       }
       setError(null);
-      const response = await apiClient.get<any>('/strategies/');
+      const response = await apiClient.get<any>('/strategies');
       const items = Array.isArray(response)
         ? response
         : Array.isArray(response?.strategies)

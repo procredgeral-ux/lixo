@@ -241,7 +241,7 @@ export default function CreateStrategyScreen() {
         }
         
         // Buscar contas
-        const accountsData = await apiClient.get<any[]>('/accounts/');
+        const accountsData = await apiClient.get<any[]>('/accounts');
         if (accountsData) {
           setAccounts(accountsData);
           // Selecionar a primeira conta automaticamente
@@ -269,7 +269,7 @@ export default function CreateStrategyScreen() {
       try {
         setLoading(true);
         const mode = 'demo';
-        const newAccount = await apiClient.post<any>('/accounts/', {
+        const newAccount = await apiClient.post<any>('/accounts', {
           name: 'Conta Principal',
           autotrade_demo: true,
           autotrade_real: false,
@@ -568,7 +568,7 @@ export default function CreateStrategyScreen() {
       };
 
       // Enviar para o backend
-      await apiClient.post<{message: string}>('/strategies/', strategyData);
+      await apiClient.post<{message: string}>('/strategies', strategyData);
 
       setAlertConfig({
         title: 'Sucesso',

@@ -89,9 +89,15 @@ def clear_logs():
 
 
 def configure_loguru():
-    """Configurar loguru handlers"""
+    """Configurar loguru handlers com LOG_LEVEL do .env"""
     import sys
     import io
+    
+    # Obter nível de log das configurações
+    log_level = settings.LOG_LEVEL.upper()
+    
+    # IMPORTANTE: Remover handlers padrão do Loguru para que o LOG_LEVEL funcione
+    logger.remove()
     
     # Configure default extra fields for all log records
     logger.configure(
@@ -103,7 +109,7 @@ def configure_loguru():
         }
     )
 
-    # Console handler - INFO level only
+    # Console handler - usa LOG_LEVEL do .env
     class UTF8Stdout:
         def __init__(self):
             self.buffer = sys.stdout.buffer
@@ -122,21 +128,21 @@ def configure_loguru():
     
     logger.add(
         sink=UTF8Stdout(),
-        level="INFO",
+        level=log_level,
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | <level>{message}</level>"
     )
 
-    # File handler - INFO level only (reduce verbosity)
+    # File handler - app.log (usa LOG_LEVEL do .env)
     logger.add(
         sink="logs/app.log",
-        level="INFO",
+        level=log_level,
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {extra[user_name]:<15} | {extra[account_id]:<6} | {extra[account_type]:<4} | {name}:{function}:{line} | {message}",
         rotation="1 day",
         retention="7 days",
         compression="zip"
     )
 
-    # File handler - errors only
+    # File handler - errors.log (sempre ERROR)
     logger.add(
         sink="logs/errors.log",
         level="ERROR",
@@ -146,10 +152,10 @@ def configure_loguru():
         compression="zip"
     )
 
-    # File handler - Data collector logs
+    # File handler - Data collector logs (usa LOG_LEVEL do .env)
     logger.add(
         sink="logs/data_collector.log",
-        level="INFO",
+        level=log_level,
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {extra[user_name]:<15} | {extra[account_id]:<6} | {extra[account_type]:<4} | {name}:{function}:{line} | {message}",
         rotation="1 day",
         retention="7 days",
@@ -157,10 +163,10 @@ def configure_loguru():
         filter=lambda record: "data_collector" in record["name"]
     )
 
-    # File handler - Telegram notifications queue logs
+    # File handler - Telegram notifications queue logs (usa LOG_LEVEL do .env)
     logger.add(
         sink="logs/telegram_notifications.log",
-        level="INFO",
+        level=log_level,
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {extra[user_name]:<15} | {extra[account_id]:<6} | {extra[account_type]:<4} | {name}:{function}:{line} | {message}",
         rotation="1 day",
         retention="7 days",
@@ -168,10 +174,10 @@ def configure_loguru():
         filter=lambda record: "telegram" in record["name"].lower()
     )
 
-    # File handler - Strategy analysis logs
+    # File handler - Strategy analysis logs (usa LOG_LEVEL do .env)
     logger.add(
         sink="logs/strategy_analysis.log",
-        level="INFO",
+        level=log_level,
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {extra[user_name]:<15} | {extra[account_id]:<6} | {extra[account_type]:<4} | {extra[strategy_name]:<20} | {name}:{function}:{line} | {message}",
         rotation="1 day",
         retention="7 days",
@@ -179,10 +185,10 @@ def configure_loguru():
         filter=lambda record: any(keyword in record["name"] for keyword in ["strategies", "signals", "indicators"])
     )
 
-    # File handler - Trade execution logs
+    # File handler - Trade execution logs (usa LOG_LEVEL do .env)
     logger.add(
         sink="logs/trade_execution.log",
-        level="INFO",
+        level=log_level,
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {extra[user_name]:<15} | {extra[account_id]:<6} | {extra[account_type]:<4} | {extra[strategy_name]:<20} | {name}:{function}:{line} | {message}",
         rotation="1 day",
         retention="7 days",
@@ -190,7 +196,7 @@ def configure_loguru():
         filter=lambda record: any(keyword in record["name"] for keyword in ["trade_executor", "trades", "execute_trade"])
     )
 
-    # File handler - Warnings only
+    # File handler - Warnings only (sempre WARNING)
     logger.add(
         sink="logs/warnings.log",
         level="WARNING",
@@ -200,10 +206,10 @@ def configure_loguru():
         compression="zip"
     )
 
-    # File handler - Rebalancing logs
+    # File handler - Rebalancing logs (usa LOG_LEVEL do .env)
     logger.add(
         sink="logs/rebalancing.log",
-        level="INFO",
+        level=log_level,
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {extra[user_name]:<15} | {extra[account_id]:<6} | {extra[account_type]:<4} | {name}:{function}:{line} | {message}",
         rotation="1 day",
         retention="7 days",
@@ -211,10 +217,10 @@ def configure_loguru():
         filter=lambda record: any(keyword in record["name"] for keyword in ["reconnection_manager", "rebalance", "reconnection"])
     )
 
-    # File handler - WebSocket connections logs
+    # File handler - WebSocket connections logs (usa LOG_LEVEL do .env)
     logger.add(
         sink="logs/ws_connections.log",
-        level="INFO",
+        level=log_level,
         format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {extra[user_name]:<15} | {extra[account_id]:<6} | {extra[account_type]:<4} | {name}:{function}:{line} | {message}",
         rotation="1 day",
         retention="7 days",
@@ -223,19 +229,77 @@ def configure_loguru():
     )
 
 
+# Configure logging at module level (before any other operations)
+clear_logs()
+configure_loguru()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Manage application lifespan - otimizado para Railway"""
-    # Startup rápido - sem inicializações pesadas
-    logger.info("🚀 Application starting (Railway optimized)...")
+    """Manage application lifespan - suporta modo Railway e modo completo"""
     
-    # Skip all heavy initializations - already done in init_database.py
-    logger.info("✅ Fast startup mode - database initialized separately")
+    if settings.RAILWAY_FAST_MODE:
+        # Modo Railway - startup rápido sem inicializações pesadas
+        logger.info(f"🚀 Application starting (Railway fast mode) | Log Level: {settings.LOG_LEVEL}")
+        logger.info("✅ Fast startup - services will initialize on first request")
+    else:
+        # Modo completo - inicializa todos os serviços com logs detalhados
+        logger.info(f"🚀 Application starting (Full mode) | Log Level: {settings.LOG_LEVEL}")
+        logger.info("📝 Loguru configured with automatic rotation")
+        
+        # Initialize database
+        try:
+            await init_db()
+            db_connected = await check_db_connection()
+            if db_connected:
+                logger.info("✅ Database initialized successfully")
+            else:
+                logger.warning("⚠️ Database connection check failed")
+        except Exception as e:
+            logger.error(f"❌ Database initialization failed: {e}")
+        
+        # Initialize cache
+        try:
+            cache = await get_cache()
+            logger.info("✅ Cache backend initialized")
+        except Exception as e:
+            logger.warning(f"⚠️ Cache initialization failed: {e}")
+        
+        # Initialize data collector service
+        if settings.DATA_COLLECTOR_ENABLED:
+            try:
+                logger.info("📊 Initializing data collector service...")
+                await data_collector.initialize()
+                logger.info("✅ Data collector service initialized")
+                
+                # Start data collector
+                await data_collector.start()
+                logger.info("✅ Data collector service started")
+            except Exception as e:
+                logger.error(f"❌ Data collector initialization failed: {e}")
+        
+        # Initialize Telegram notification service
+        if settings.TELEGRAM_ENABLED:
+            try:
+                from services.notifications.telegram_v2 import telegram_service
+                await telegram_service.start()
+                logger.info("✅ Telegram notification service started")
+            except Exception as e:
+                logger.warning(f"⚠️ Telegram service initialization failed: {e}")
     
     yield
     
     # Shutdown
     logger.info("Shutting down application...")
+    
+    if not settings.RAILWAY_FAST_MODE:
+        # Stop data collector
+        try:
+            await data_collector.stop()
+            logger.info("✅ Data collector stopped")
+        except Exception as e:
+            logger.warning(f"⚠️ Error stopping data collector: {e}")
+    
     await close_db()
     logger.info("Application shut down successfully")
 

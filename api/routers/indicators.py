@@ -414,6 +414,22 @@ async def seed_default_indicators(db: AsyncSession = Depends(get_db)):
                 "atr_multiplier": 0.5
             },
             "is_default": True
+        },
+        {
+            "name": "VWAP",
+            "type": "vwap",
+            "description": "Volume Weighted Average Price - volume-based price benchmark",
+            "parameters": {
+                "period": 14
+            },
+            "is_default": True
+        },
+        {
+            "name": "OBV",
+            "type": "obv",
+            "description": "On Balance Volume - cumulative volume flow indicator",
+            "parameters": {},
+            "is_default": True
         }
     ]
     

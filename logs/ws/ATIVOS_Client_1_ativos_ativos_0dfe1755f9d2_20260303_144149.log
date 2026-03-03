@@ -1,0 +1,84 @@
+================================================================================
+WebSocket Connection Log
+Connection ID: ativos_0dfe1755f9d2
+Connection Type: ativos
+User: ATIVOS Client 1
+Created: 2026-03-03T14:41:49.249226
+Log File: ATIVOS_Client_1_ativos_ativos_0dfe1755f9d2_20260303_144149.log
+================================================================================
+
+[2026-03-03T14:41:49.250828] [INIT] Iniciando ATIVOS Client #1
+  Data: {"account_idx": 0, "user_name": "ATIVOS Client 1", "stable_id": "0dfe1755f9d2"}
+[2026-03-03T14:41:50.887600] [CONNECT] Cliente conectado com sucesso
+[2026-03-03T14:41:50.893602] [AUTH] Autenticação bem-sucedida
+  Data: {"account_idx": 0, "data_keys": []}
+[2026-03-03T14:41:51.103600] [CALLBACK:json_data] | keys: ['id']
+[2026-03-03T14:41:51.103600] [CALLBACK:json_data] | event: successupdatePending
+[2026-03-03T14:41:51.104598] [CALLBACK:json_data]
+[2026-03-03T14:41:51.106597] [CALLBACK:json_data] | event: updateCharts
+[2026-03-03T14:41:51.106597] [CALLBACK:json_data]
+[2026-03-03T14:41:51.106597] [CALLBACK:json_data] | event: updateOpenedDeals
+[2026-03-03T14:41:51.107602] [CALLBACK:json_data]
+[2026-03-03T14:41:51.108622] [CALLBACK:json_data]
+[2026-03-03T14:41:52.865345] [CALLBACK:stream_update] | symbols: ['AUDCHF_otc']
+[2026-03-03T14:41:53.081893] [CALLBACK:stream_update] | symbols: ['EURUSD_otc']
+[2026-03-03T14:41:53.302811] [CALLBACK:stream_update] | symbols: ['AUDCHF_otc']
+[2026-03-03T14:41:53.304803] [CALLBACK:stream_update] | symbols: ['CADCHF_otc']
+[2026-03-03T14:41:53.305800] [CALLBACK:stream_update] | symbols: ['CADJPY_otc']
+[2026-03-03T14:41:53.306797] [CALLBACK:stream_update] | symbols: ['EURUSD_otc']
+[2026-03-03T14:41:53.810582] [CALLBACK:stream_update] | symbols: ['AUDCHF_otc']
+[2026-03-03T14:41:53.812577] [CALLBACK:stream_update] | symbols: ['CADCHF_otc']
+[2026-03-03T14:41:53.813817] [CALLBACK:stream_update] | symbols: ['CADJPY_otc']
+[2026-03-03T14:41:53.815319] [CALLBACK:stream_update] | symbols: ['EURUSD_otc']
+[2026-03-03T14:41:53.816840] [CALLBACK:stream_update] | symbols: ['NZDUSD_otc']
+[2026-03-03T14:41:53.817835] [CALLBACK:stream_update] | symbols: ['USDCAD_otc']
+[2026-03-03T14:41:53.819066] [CALLBACK:stream_update] | symbols: ['USDJPY_otc']
+[2026-03-03T14:41:54.297443] [CALLBACK:stream_update] | symbols: ['AUDCHF_otc']
+[2026-03-03T14:41:54.299487] [CALLBACK:stream_update] | symbols: ['CADCHF_otc']
+[2026-03-03T14:41:54.301090] [CALLBACK:stream_update] | symbols: ['CADJPY_otc']
+[2026-03-03T14:41:54.302064] [CALLBACK:stream_update] | symbols: ['EURUSD_otc']
+[2026-03-03T14:41:54.303062] [CALLBACK:stream_update] | symbols: ['NZDUSD_otc']
+[2026-03-03T14:41:54.305057] [CALLBACK:stream_update] | symbols: ['USDCAD_otc']
+[2026-03-03T14:41:54.306791] [CALLBACK:stream_update] | symbols: ['USDJPY_otc']
+[2026-03-03T14:41:54.308376] [CALLBACK:stream_update] | symbols: ['USDRUB_otc']
+[2026-03-03T14:41:54.310413] [CALLBACK:stream_update] | symbols: ['EURRUB_otc']
+[2026-03-03T14:41:54.677341] [CALLBACK:stream_update] | symbols: ['EURUSD_otc']
+[2026-03-03T14:41:54.678338] [CALLBACK:stream_update] | symbols: ['AUDCHF_otc']
+[2026-03-03T14:41:54.679849] [CALLBACK:stream_update] | symbols: ['CADCHF_otc']
+[2026-03-03T14:41:54.680899] [CALLBACK:stream_update] | symbols: ['CADJPY_otc']
+[2026-03-03T14:41:54.682688] [CALLBACK:stream_update] | symbols: ['NZDUSD_otc']
+[2026-03-03T14:41:54.684191] [CALLBACK:stream_update] | symbols: ['USDCAD_otc']
+[2026-03-03T14:41:54.685188] [CALLBACK:stream_update] | symbols: ['USDJPY_otc']
+[2026-03-03T14:41:54.686185] [CALLBACK:stream_update] | symbols: ['USDRUB_otc']
+[2026-03-03T14:41:54.687643] [CALLBACK:stream_update] | symbols: ['EURRUB_otc']
+[2026-03-03T14:41:54.688638] [CALLBACK:stream_update] | symbols: ['EURTRY_otc']
+[2026-03-03T14:41:55.299725] [CALLBACK:stream_update] | symbols: ['AUDCHF_otc']
+[2026-03-03T14:41:55.302331] [CALLBACK:stream_update] | symbols: ['CADCHF_otc']
+[2026-03-03T14:41:55.303565] [CALLBACK:stream_update] | symbols: ['CADJPY_otc']
+[2026-03-03T14:41:55.305158] [CALLBACK:stream_update] | symbols: ['EURUSD_otc']
+[2026-03-03T14:41:55.306662] [CALLBACK:stream_update] | symbols: ['NZDUSD_otc']
+[2026-03-03T14:41:55.307673] [CALLBACK:stream_update] | symbols: ['USDCAD_otc']
+[2026-03-03T14:41:55.308746] [CALLBACK:stream_update] | symbols: ['USDJPY_otc']
+[2026-03-03T14:41:55.310298] [CALLBACK:stream_update] | symbols: ['USDRUB_otc']
+[2026-03-03T14:41:55.311269] [CALLBACK:stream_update] | symbols: ['EURRUB_otc']
+[2026-03-03T14:41:55.363397] [CALLBACK:stream_update] | symbols: ['EURTRY_otc']
+[2026-03-03T14:41:55.922116] [CALLBACK:stream_update] | symbols: ['AUDCHF_otc']
+[2026-03-03T14:41:55.926154] [CALLBACK:stream_update] | symbols: ['CADCHF_otc']
+[2026-03-03T14:41:55.929200] [CALLBACK:stream_update] | symbols: ['CADJPY_otc']
+[2026-03-03T14:41:55.932954] [CALLBACK:stream_update] | symbols: ['EURUSD_otc']
+[2026-03-03T14:41:55.935841] [CALLBACK:stream_update] | symbols: ['NZDUSD_otc']
+[2026-03-03T14:41:55.938173] [CALLBACK:stream_update] | symbols: ['USDCAD_otc']
+[2026-03-03T14:41:55.940950] [CALLBACK:stream_update] | symbols: ['USDJPY_otc']
+[2026-03-03T14:41:55.943674] [CALLBACK:stream_update] | symbols: ['USDRUB_otc']
+[2026-03-03T14:41:55.945722] [CALLBACK:stream_update] | symbols: ['EURRUB_otc']
+[2026-03-03T14:41:55.949440] [CALLBACK:stream_update] | symbols: ['EURTRY_otc']
+[2026-03-03T14:41:56.443786] [CALLBACK:stream_update] | symbols: ['AUDCHF_otc']
+[2026-03-03T14:41:56.447835] [CALLBACK:stream_update] | symbols: ['CADCHF_otc']
+[2026-03-03T14:41:56.456507] [CALLBACK:stream_update] | symbols: ['CADJPY_otc']
+[2026-03-03T14:41:56.460749] [CALLBACK:stream_update] | symbols: ['EURUSD_otc']
+[2026-03-03T14:41:56.465346] [CALLBACK:stream_update] | symbols: ['NZDUSD_otc']
+[2026-03-03T14:41:56.467341] [CALLBACK:stream_update] | symbols: ['USDCAD_otc']
+[2026-03-03T14:41:56.470891] [CALLBACK:stream_update] | symbols: ['USDJPY_otc']
+[2026-03-03T14:41:56.472396] [CALLBACK:stream_update] | symbols: ['USDRUB_otc']
+[2026-03-03T14:41:56.475388] [CALLBACK:stream_update] | symbols: ['EURRUB_otc']
+[2026-03-03T14:41:56.477587] [CALLBACK:stream_update] | symbols: ['EURTRY_otc']

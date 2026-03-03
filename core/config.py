@@ -109,6 +109,9 @@ class Settings(BaseSettings):
     MAX_CANDLES_PER_REQUEST: int = 1000
     DATA_COLLECTOR_ENABLED: bool = True
 
+    # Railway Deployment
+    RAILWAY_FAST_MODE: bool = Field(default=False, env="RAILWAY_FAST_MODE")
+
     # Strategy
     DEFAULT_TIMEFRAME: int = 60
     DEFAULT_AMOUNT: float = 10.0

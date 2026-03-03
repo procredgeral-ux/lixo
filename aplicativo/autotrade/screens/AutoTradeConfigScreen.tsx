@@ -106,13 +106,13 @@ export default function AutoTradeConfigScreen() {
     const loadData = async () => {
       try {
         // Load accounts
-        const accountsResponse = await apiClient.get<Account[]>('/accounts/');
+        const accountsResponse = await apiClient.get<Account[]>('/accounts');
         setAccounts(accountsResponse);
         
         // Load existing autotrade config for this strategy
         if (strategyId) {
           try {
-            const configResponse = await apiClient.get<any>(`/autotrade-config/?strategy_id=${strategyId}`);
+            const configResponse = await apiClient.get<any>(`/autotrade-config?strategy_id=${strategyId}`);
             if (configResponse && configResponse.length > 0) {
               const existingConfig = configResponse[0];
               setExistingConfigId(existingConfig.id);
@@ -143,7 +143,7 @@ export default function AutoTradeConfigScreen() {
               const firstAccount = accountsResponse[0];
               setSelectedAccount(firstAccount.id);
               try {
-                const legacyResponse = await apiClient.get<any>(`/autotrade-config/?account_id=${firstAccount.id}`);
+                const legacyResponse = await apiClient.get<any>(`/autotrade-config?account_id=${firstAccount.id}`);
                 const legacyConfig = Array.isArray(legacyResponse)
                   ? legacyResponse.find((item: any) => !item.strategy_id)
                   : null;
@@ -194,7 +194,7 @@ export default function AutoTradeConfigScreen() {
 
           try {
             // Check if there's an existing config for this account without strategy
-            const configResponse = await apiClient.get<any>(`/autotrade-config/?account_id=${firstAccount.id}`);
+            const configResponse = await apiClient.get<any>(`/autotrade-config?account_id=${firstAccount.id}`);
             if (configResponse && configResponse.length > 0) {
               const existingConfig = configResponse[0];
               setExistingConfigId(existingConfig.id);
@@ -292,7 +292,7 @@ export default function AutoTradeConfigScreen() {
         await apiClient.put(`/autotrade-config/${existingConfigId}`, savePayload);
       } else {
         // Criar nova configuração
-        await apiClient.post('/autotrade-config/', {
+        await apiClient.post('/autotrade-config', {
           ...savePayload,
         });
       }

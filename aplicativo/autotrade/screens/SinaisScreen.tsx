@@ -209,7 +209,7 @@ export default function SinaisScreen() {
       }
       setError(null);
       
-      const response = await apiClient.get<SignalsListResponse>('/signals/?limit=100');
+      const response = await apiClient.get<SignalsListResponse>('/signals?limit=100');
       const allSignals = response.signals || [];
 
       // Ordenar por created_at em ordem decrescente

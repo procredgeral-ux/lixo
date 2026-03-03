@@ -68,7 +68,7 @@ export default function HistoricoScreen() {
         setLoadingMore(true);
       }
       setError(null);
-      const response = await apiClient.get<any>('/trades/');
+      const response = await apiClient.get<any>('/trades'); // Corrigir trailing slash
       const items = Array.isArray(response)
         ? response
         : Array.isArray(response?.trades)

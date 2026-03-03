@@ -3,6 +3,13 @@
 import os
 import sys
 import subprocess
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente do .env
+load_dotenv()
+
+# Importar settings após carregar .env
+from core.config import settings
 
 # Run database setup first
 print("🚀 Running database setup...")
@@ -11,10 +18,10 @@ print(f"Database setup completed with exit code: {result.returncode}")
 
 # Start the application
 print("🚀 Starting application...")
-port = int(os.getenv("PORT", 8000))
-host = "0.0.0.0"
+port = int(os.getenv("PORT", settings.API_PORT))
+host = settings.API_HOST
 
-print(f"Starting uvicorn on {host}:{port}")
+print(f"Starting uvicorn on {host}:{port} (Log Level: {settings.LOG_LEVEL})")
 
 # Use uvicorn directly with the app
 import uvicorn
@@ -24,6 +31,6 @@ uvicorn.run(
     app,
     host=host,
     port=port,
-    access_log=True,
-    log_level="info"
+    access_log=settings.LOG_LEVEL.upper() == "DEBUG",
+    log_level=settings.LOG_LEVEL.lower()
 )

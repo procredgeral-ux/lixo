@@ -1,2 +1,1 @@
-2026-03-02 23:03:14 | INFO     |                 |        |      |                      | services.trade_executor:start_monitoring:49 | Monitoramento de trades ativos iniciado (WebSocket events + fallback polling)
-2026-03-02 23:32:42 | INFO     |                 |        |      |                      | services.trade_executor:stop_monitoring:72 | Monitoramento de trades ativos parado
+2026-03-03 14:41:41 | INFO     |                 |        |      |                      | services.trade_executor:start_monitoring:49 | Monitoramento de trades ativos iniciado (WebSocket events + fallback polling)
