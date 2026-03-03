@@ -1634,10 +1634,10 @@ class TradeExecutor:
                     )
                     await db.commit()
 
-        # Se no_hibernate está ativo, NÃO aplicar cooldown entre trades normais
-        # Cooldown só é aplicado quando stop gain/loss é atingido (via consecutive_stop_cooldown_until)
-        if config.no_hibernate_on_consecutive_stop:
-            return True
+        # NOTA: O cooldown entre trades (cooldown_seconds) deve ser respeitado
+        # independentemente do no_hibernate_on_consecutive_stop.
+        # O no_hibernate controla apenas se a estratégia é desligada ao atingir stop,
+        # não afeta o cooldown configurado entre trades normais.
 
         # Obter cooldown configurado (suporta formato "X-X" para randomizado)
         from utils.cooldown_utils import parse_cooldown

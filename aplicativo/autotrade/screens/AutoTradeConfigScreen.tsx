@@ -91,6 +91,9 @@ export default function AutoTradeConfigScreen() {
   const [advancedExpanded, setAdvancedExpanded] = useState(false);
   const [controlExpanded, setControlExpanded] = useState(false);
   const [smartReductionExpanded, setSmartReductionExpanded] = useState(false);
+  const [smartReductionLossTriggerText, setSmartReductionLossTriggerText] = useState(config.smart_reduction_loss_trigger?.toString() || '3');
+  const [smartReductionWinRestoreText, setSmartReductionWinRestoreText] = useState(config.smart_reduction_win_restore?.toString() || '2');
+  const [smartReductionPercentageText, setSmartReductionPercentageText] = useState(config.smart_reduction_percentage?.toString() || '50');
   const [availableTimeframes, setAvailableTimeframes] = useState<number[]>([]);
 
   // Atualizar confidenceText quando config.min_confidence muda
@@ -126,6 +129,18 @@ export default function AutoTradeConfigScreen() {
   useEffect(() => {
     setMartingaleText(config.martingale.toString());
   }, [config.martingale]);
+
+  useEffect(() => {
+    setSmartReductionLossTriggerText(config.smart_reduction_loss_trigger?.toString() || '3');
+  }, [config.smart_reduction_loss_trigger]);
+
+  useEffect(() => {
+    setSmartReductionWinRestoreText(config.smart_reduction_win_restore?.toString() || '2');
+  }, [config.smart_reduction_win_restore]);
+
+  useEffect(() => {
+    setSmartReductionPercentageText(config.smart_reduction_percentage?.toString() || '50');
+  }, [config.smart_reduction_percentage]);
 
   // Load available timeframes
   useEffect(() => {
@@ -985,8 +1000,16 @@ export default function AutoTradeConfigScreen() {
                     </View>
                     <TextInput
                       style={styles.input}
-                      value={config.smart_reduction_loss_trigger?.toString()}
-                      onChangeText={(text) => setConfig({ ...config, smart_reduction_loss_trigger: parseInt(text) || 3 })}
+                      value={smartReductionLossTriggerText}
+                      onChangeText={setSmartReductionLossTriggerText}
+                      onBlur={() => {
+                        const value = parseInt(smartReductionLossTriggerText);
+                        if (!isNaN(value) && value >= 0) {
+                          setConfig({ ...config, smart_reduction_loss_trigger: value });
+                        } else {
+                          setSmartReductionLossTriggerText(config.smart_reduction_loss_trigger?.toString() || '3');
+                        }
+                      }}
                       keyboardType="numeric"
                       placeholder="3"
                     />
@@ -1002,8 +1025,16 @@ export default function AutoTradeConfigScreen() {
                     </View>
                     <TextInput
                       style={styles.input}
-                      value={config.smart_reduction_win_restore?.toString()}
-                      onChangeText={(text) => setConfig({ ...config, smart_reduction_win_restore: parseInt(text) || 2 })}
+                      value={smartReductionWinRestoreText}
+                      onChangeText={setSmartReductionWinRestoreText}
+                      onBlur={() => {
+                        const value = parseInt(smartReductionWinRestoreText);
+                        if (!isNaN(value) && value >= 0) {
+                          setConfig({ ...config, smart_reduction_win_restore: value });
+                        } else {
+                          setSmartReductionWinRestoreText(config.smart_reduction_win_restore?.toString() || '2');
+                        }
+                      }}
                       keyboardType="numeric"
                       placeholder="2"
                     />
@@ -1019,8 +1050,16 @@ export default function AutoTradeConfigScreen() {
                     </View>
                     <TextInput
                       style={styles.input}
-                      value={config.smart_reduction_percentage?.toString()}
-                      onChangeText={(text) => setConfig({ ...config, smart_reduction_percentage: parseInt(text) || 50 })}
+                      value={smartReductionPercentageText}
+                      onChangeText={setSmartReductionPercentageText}
+                      onBlur={() => {
+                        const value = parseInt(smartReductionPercentageText);
+                        if (!isNaN(value) && value >= 0) {
+                          setConfig({ ...config, smart_reduction_percentage: value });
+                        } else {
+                          setSmartReductionPercentageText(config.smart_reduction_percentage?.toString() || '50');
+                        }
+                      }}
                       keyboardType="numeric"
                       placeholder="50"
                     />
