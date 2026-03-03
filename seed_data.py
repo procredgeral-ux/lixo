@@ -4,8 +4,7 @@ from datetime import datetime
 from sqlalchemy import select
 from core.database import get_db_context
 from core.security import get_password_hash
-from models.user import User
-from models.strategy import Strategy
+from models import User, Strategy
 import logging
 
 logging.basicConfig(level=logging.INFO)

@@ -19,8 +19,11 @@ from models import *  # Importar todos os models
 # access to the values within the .ini file in use.
 config = context.config
 
-# Usar DATABASE_URL do config.py
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("+aiosqlite", ""))
+# Usar DATABASE_URL do config.py - converter asyncpg para psycopg2 (síncrono)
+db_url = settings.DATABASE_URL
+# Remover +asyncpg ou +aiosqlite para usar driver síncrono
+db_url = db_url.replace("+asyncpg", "").replace("+aiosqlite", "")
+config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
