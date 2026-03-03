@@ -238,94 +238,26 @@ async def lifespan(app: FastAPI):
     logger.info("Starting application...")
     
     # Initialize database
+    db_initialized = False
     try:
         await init_db()
+        db_initialized = True
         logger.info("Database initialized successfully")
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
-        raise
+        logger.warning("Continuing without database - migrations may be needed")
+        # Don't raise - allow app to start for healthcheck
     
     # Check cache
     cache = get_cache()
     if cache:
         logger.info("Cache backend initialized")
     
-    # Initialize and start data collector service
-    try:
-        if settings.DATA_COLLECTOR_ENABLED:
-            await data_collector.initialize()
-            logger.info("Data collector service initialized")
-
-            # Start data collector in background
-            import asyncio
-            asyncio.create_task(data_collector.start())
-            logger.info("Data collector service started")
-        else:
-            logger.info("Data collector service disabled (DATA_COLLECTOR_ENABLED=false)")
-
-        # Start Telegram notification service queue processor
-        try:
-            from services.notifications.telegram_v2 import telegram_service_v2
-            await telegram_service_v2.start()
-            logger.info("Telegram notification service started")
-        except Exception as e:
-            logger.warning(f"Failed to start Telegram notification service: {e}")
-
-        # Start VIP cleanup job in background (runs every hour)
-        async def vip_cleanup_loop():
-            while True:
-                try:
-                    from jobs.cleanup_expired_vip import cleanup_expired_vip_users
-                    from core.database import get_db
-
-                    async for db in get_db():
-                        updated = await cleanup_expired_vip_users(db)
-                        if updated > 0:
-                            logger.info(f"VIP cleanup: {updated} users reset to 'free'")
-                        break
-                except Exception as e:
-                    logger.error(f"VIP cleanup error: {e}")
-                await asyncio.sleep(3600)  # 1 hour
-
-        asyncio.create_task(vip_cleanup_loop())
-        logger.info("VIP cleanup job started (runs every hour)")
-        
-        # Start aggregation job in background (runs every 5 minutes)
-        async def aggregation_job_loop():
-            while True:
-                try:
-                    from services.aggregation_job import aggregation_job
-                    from core.database import get_db
-                    
-                    async for db in get_db():
-                        aggregation_job.db = db  # Atribuir DB à instância global
-                        await aggregation_job.run_once()
-                        break
-                except Exception as e:
-                    logger.error(f"Aggregation job error: {e}")
-                await asyncio.sleep(300)  # 5 minutes
-        
-        asyncio.create_task(aggregation_job_loop())
-        logger.info("Aggregation job started (runs every 5 minutes)")
-    except Exception as e:
-        logger.error(f"Failed to start data collector service: {e}")
-        # Don't raise - allow app to start even if data collector fails
+    # Initialize and start data collector service - DISABLED for Railway deploy
+    logger.info("Data collector service disabled for initial deploy")
     
-    # Start performance monitor
-    try:
-        from services.performance_monitor import performance_monitor
-        await performance_monitor.start()
-        logger.info("[OK] Performance monitor started")
-    except Exception as e:
-        logger.error(f"[ERROR] Failed to start performance monitor: {e}")
-    
-    # Start aggregation job
-    try:
-        from services.aggregation_job import aggregation_job
-        await aggregation_job.start()
-        logger.info("[OK] Aggregation job started")
-    except Exception as e:
-        logger.error(f"[ERROR] Failed to start aggregation job: {e}")
+    # Skip all background services for now - enable after healthcheck passes
+    logger.info("Background services skipped - enable manually after deploy")
     
     logger.info("Application started successfully")
     
