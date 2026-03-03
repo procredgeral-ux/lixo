@@ -4,25 +4,43 @@ from datetime import datetime
 from sqlalchemy import select
 from core.database import get_db_context
 from core.security import get_password_hash
-from models import User, Strategy
+from models import User, Account, Strategy
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def seed_admin_user():
-    """Criar usuário admin padrão e retornar ID"""
+async def seed_admin_and_account():
+    """Criar usuário admin padrão e sua account"""
     async with get_db_context() as db:
         # Verificar se admin já existe
         result = await db.execute(
             select(User).where(User.email == "admin@gmail.com")
         )
-        existing = result.scalar_one_or_none()
+        existing_user = result.scalar_one_or_none()
         
-        if existing:
+        if existing_user:
             logger.info("Usuário admin já existe")
-            return existing.id
+            # Verificar se tem account
+            result = await db.execute(
+                select(Account).where(Account.user_id == existing_user.id)
+            )
+            existing_account = result.scalar_one_or_none()
+            if existing_account:
+                logger.info("Account do admin já existe")
+                return existing_user.id, existing_account.id
+            # Criar account para admin existente
+            account = Account(
+                user_id=existing_user.id,
+                name="Conta Principal",
+                is_active=True,
+                created_at=datetime.utcnow()
+            )
+            db.add(account)
+            await db.commit()
+            logger.info("✅ Account criada para admin existente")
+            return existing_user.id, account.id
         
         # Criar admin
         admin = User(
@@ -37,11 +55,25 @@ async def seed_admin_user():
         
         db.add(admin)
         await db.commit()
+        await db.refresh(admin)
         logger.info("✅ Usuário admin criado: admin@gmail.com")
-        return admin.id
+        
+        # Criar account para o admin
+        account = Account(
+            user_id=admin.id,
+            name="Conta Principal",
+            is_active=True,
+            created_at=datetime.utcnow()
+        )
+        db.add(account)
+        await db.commit()
+        await db.refresh(account)
+        logger.info("✅ Account criada para admin")
+        
+        return admin.id, account.id
 
 
-async def seed_strategies(admin_user_id: str):
+async def seed_strategies(user_id: str, account_id: str):
     """Criar strategies padrão do sistema"""
     async with get_db_context() as db:
         strategies_data = [
@@ -64,9 +96,6 @@ async def seed_strategies(admin_user_id: str):
                 "description": "Cruzamento de médias móveis exponenciais",
                 "type": "ema_cross",
                 "is_active": True,
-                "user_id": "system",
-                "account_id": "system",
-                "assets": [],
                 "parameters": {
                     "fast_period": 9,
                     "slow_period": 21,
@@ -78,9 +107,6 @@ async def seed_strategies(admin_user_id: str):
                 "description": "Divergência no indicador RSI",
                 "type": "rsi_divergence",
                 "is_active": True,
-                "user_id": "system",
-                "account_id": "system",
-                "assets": [],
                 "parameters": {
                     "period": 14,
                     "overbought": 70,
@@ -92,9 +118,6 @@ async def seed_strategies(admin_user_id: str):
                 "description": "Trading em níveis de suporte e resistência",
                 "type": "support_resistance",
                 "is_active": True,
-                "user_id": "system",
-                "account_id": "system",
-                "assets": [],
                 "parameters": {
                     "lookback_period": 20,
                     "touch_threshold": 0.02
@@ -105,9 +128,6 @@ async def seed_strategies(admin_user_id: str):
                 "description": "Estratégia de breakout de volatilidade",
                 "type": "breakout",
                 "is_active": True,
-                "user_id": "system",
-                "account_id": "system",
-                "assets": [],
                 "parameters": {
                     "atr_period": 14,
                     "multiplier": 1.5
@@ -118,9 +138,6 @@ async def seed_strategies(admin_user_id: str):
                 "description": "Seguimento de tendência com ADX",
                 "type": "trend_following",
                 "is_active": True,
-                "user_id": "system",
-                "account_id": "system",
-                "assets": [],
                 "parameters": {
                     "adx_period": 14,
                     "adx_threshold": 25,
@@ -132,9 +149,6 @@ async def seed_strategies(admin_user_id: str):
                 "description": "Squeeze de volatilidade (Bollinger + Keltner)",
                 "type": "volatility_squeeze",
                 "is_active": True,
-                "user_id": "system",
-                "account_id": "system",
-                "assets": [],
                 "parameters": {
                     "bb_period": 20,
                     "bb_std": 2.0,
@@ -147,9 +161,6 @@ async def seed_strategies(admin_user_id: str):
                 "description": "Análise de perfil de volume",
                 "type": "volume_profile",
                 "is_active": True,
-                "user_id": "system",
-                "account_id": "system",
-                "assets": [],
                 "parameters": {
                     "lookback": 20,
                     "volume_threshold": 1.5
@@ -174,8 +185,8 @@ async def seed_strategies(admin_user_id: str):
                 description=strategy_data["description"],
                 type=strategy_data["type"],
                 is_active=strategy_data["is_active"],
-                user_id=admin_user_id,
-                account_id=admin_user_id,
+                user_id=user_id,
+                account_id=account_id,
                 assets=[],
                 parameters=strategy_data["parameters"],
                 created_at=datetime.utcnow()
@@ -192,9 +203,12 @@ async def run_seed():
     logger.info("🌱 Iniciando seed de dados...")
     
     try:
-        # Criar/obter admin e usar seu ID para strategies
-        admin_id = await seed_admin_user()
-        await seed_strategies(admin_id)
+        # Criar/obter admin e sua account
+        user_id, account_id = await seed_admin_and_account()
+        logger.info(f"Using user_id: {user_id}, account_id: {account_id}")
+        
+        # Criar strategies
+        await seed_strategies(user_id, account_id)
         logger.info("✅ Seed concluído com sucesso!")
     except Exception as e:
         logger.error(f"❌ Erro durante seed: {e}")
