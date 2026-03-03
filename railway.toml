@@ -5,7 +5,7 @@ builder = "nixpacks"
 python_version = "3.11"
 
 [deploy]
-startCommand = "python -m uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 1"
+startCommand = "python start_railway.py"
 healthcheckPath = "/health"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
