@@ -197,6 +197,24 @@ async def execute_pending_trade(
             logger.warning(f"⚠️ Nenhuma conexão ativa para conta {autotrade_config['account_id']}")
             return None
         
+        # 🚨 VERIFICAÇÃO CRÍTICA: Verificar se há trades ativos antes de executar
+        # Isso previne múltiplos trades simultâneos quando execute_all_signals está desativado
+        execute_all_signals = autotrade_config.get('execute_all_signals', False)
+        if not execute_all_signals:
+            has_no_active = await trade_executor._check_no_active_trades(
+                account_id=autotrade_config['account_id'],
+                symbol=symbol,
+                execute_all_signals=False
+            )
+            if not has_no_active:
+                logger.warning(
+                    f"🔒 [CandleClose] Trade bloqueado - já existe trade ativo no ativo {symbol} "
+                    f"(account_id={autotrade_config['account_id'][:8]})"
+                )
+                return None
+        else:
+            logger.info(f"🚀 [CandleClose] EXECUTAR TODOS SINAIS ativo - ignorando bloqueio de trades simultâneos")
+        
         # USAR LOCK do trade_executor para evitar trades simultâneos no mesmo ativo
         # Isso garante sincronização com o fluxo principal de execução
         asset_lock_key = f"{autotrade_config['account_id']}:{symbol}"
@@ -209,10 +227,17 @@ async def execute_pending_trade(
                     trade_executor._asset_locks[asset_lock_key] = asyncio.Lock()
             
             async with trade_executor._asset_locks[asset_lock_key]:
-                # Verificar se há trades ativos no mesmo ativo
-                if not await trade_executor._check_no_active_trades(autotrade_config['account_id'], symbol):
-                    logger.warning(f"🔒 [CandleClose] Trade bloqueado - já existe trade ativo no ativo {symbol}")
-                    return None
+                # Verificar NOVAMENTE dentro do lock (double-check pattern)
+                # Outro trade pode ter sido criado enquanto aguardávamos o lock
+                if not execute_all_signals:
+                    has_no_active = await trade_executor._check_no_active_trades(
+                        account_id=autotrade_config['account_id'],
+                        symbol=symbol,
+                        execute_all_signals=False
+                    )
+                    if not has_no_active:
+                        logger.warning(f"🔒 [CandleClose] Trade bloqueado (double-check) - já existe trade ativo no ativo {symbol}")
+                        return None
                 
                 # Calcular valor do trade
                 amount = autotrade_config['amount']
