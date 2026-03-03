@@ -18,8 +18,11 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
     API_PREFIX: str = "/api/v1"
 
-    # Database - SQLite
-    DATABASE_URL: str = "sqlite+aiosqlite:///./autotrade.db"
+    # Database - usa variável de ambiente ou SQLite como fallback
+    DATABASE_URL: str = Field(
+        default="sqlite+aiosqlite:///./autotrade.db",
+        env="DATABASE_URL"
+    )
     DB_ECHO: bool = False
 
     # Redis (opcional - pode ser desabilitado)
