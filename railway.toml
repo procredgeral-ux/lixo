@@ -1,5 +1,8 @@
 [build]
-cbuilder = "nixpacks"
+builder = "nixpacks"
+
+[build.nixpacks]
+python_version = "3.11"
 
 [deploy]
 startCommand = "python -m uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 1"
@@ -13,6 +16,3 @@ RAILWAY_ENVIRONMENT = "production"
 ENVIRONMENT = "production"
 DEBUG = "false"
 LOG_LEVEL = "INFO"
-
-[nixpacks]
-python_version = "3.11"
