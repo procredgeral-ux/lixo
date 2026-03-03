@@ -28,16 +28,10 @@ engine = create_async_engine(
     echo=settings.DB_ECHO,
     poolclass=NullPool,  # NullPool for stable async operations
     pool_pre_ping=True,
-    pool_recycle=300,  # Reciclar conexões após 5 minutos
-    pool_timeout=30,   # Timeout de 30s para obter conexão do pool
-    max_overflow=10,   # Máximo de conexões extras além do pool
     connect_args={
         'command_timeout': 60,  # Timeout para comandos SQL
         'server_settings': {
-            'application_name': 'tunestrade_app',
-            'tcp_keepalives_idle': '60',
-            'tcp_keepalives_interval': '10',
-            'tcp_keepalives_count': '6'
+            'application_name': 'tunestrade_app'
         }
     }
 )
