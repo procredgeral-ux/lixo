@@ -1074,7 +1074,8 @@ class TradeExecutor:
                         return None
                     
                     # Verificar se deve executar trade baseado na confiança
-                    if signal.confidence < autotrade_config.min_confidence:
+                    # Se execute_all_signals estiver ativo, ignorar verificação de confiança mínima
+                    if not execute_all_signals and signal.confidence < autotrade_config.min_confidence:
                         logger.info(f"[TradeExecutor] [{symbol}] Confiança {signal.confidence:.2f} abaixo do mínimo {autotrade_config.min_confidence:.2f}")
                         return None
 
