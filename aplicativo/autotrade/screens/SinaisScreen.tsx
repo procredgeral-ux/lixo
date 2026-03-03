@@ -208,7 +208,7 @@ export default function SinaisScreen() {
       }
       setError(null);
       
-      const response = await apiClient.get<any>('/trades');
+      const response = await apiClient.get<SignalsListResponse>('/signals');
       const allSignals = response.signals || [];
 
       // Ordenar por created_at em ordem decrescente
