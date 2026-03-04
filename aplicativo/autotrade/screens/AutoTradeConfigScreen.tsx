@@ -404,41 +404,40 @@ export default function AutoTradeConfigScreen() {
                 <View style={styles.field}>
                   <Text style={styles.label}>Timeframe (segundos)</Text>
                   <View style={styles.timeframeOptions}>
-                    {[{ value: 3, label: '3s' },
-                    { value: 5, label: '5s' },
-                    { value: 30, label: '30s' },
-                    { value: 60, label: '1min' },
-                    { value: 300, label: '5min' },
-                    { value: 900, label: '15min' },
-                    { value: 3600, label: '1h' },
-                    { value: 14400, label: '4h' },
-                  ].map((option) => {
-                    const isAvailable = availableTimeframes.includes(option.value);
-                    return (
-                      <TouchableOpacity
-                        key={option.value}
-                        style={[
-                          styles.timeframeButton,
-                          config.timeframe === option.value && styles.timeframeButtonActive,
-                          !isAvailable && styles.timeframeButtonDisabled,
-                        ]}
-                        onPress={() => {
-                          if (isAvailable) {
-                            setConfig({ ...config, timeframe: option.value });
-                          }
-                        }}
-                        disabled={!isAvailable}
-                      >
-                        <Text style={[
-                          styles.timeframeButtonText,
-                          config.timeframe === option.value && styles.timeframeButtonTextActive,
-                          !isAvailable && styles.timeframeButtonTextDisabled,
-                        ]}>
-                          {option.label}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
+                    {availableTimeframes.length > 0 ? (
+                      availableTimeframes.map((value) => {
+                        const label = [
+                          { value: 3, label: '3s' },
+                          { value: 5, label: '5s' },
+                          { value: 30, label: '30s' },
+                          { value: 60, label: '1min' },
+                          { value: 300, label: '5min' },
+                          { value: 900, label: '15min' },
+                          { value: 3600, label: '1h' },
+                          { value: 14400, label: '4h' },
+                        ].find(tf => tf.value === value)?.label || `${value}s`;
+                        
+                        return (
+                          <TouchableOpacity
+                            key={value}
+                            style={[
+                              styles.timeframeButton,
+                              config.timeframe === value && styles.timeframeButtonActive,
+                            ]}
+                            onPress={() => setConfig({ ...config, timeframe: value })}
+                          >
+                            <Text style={[
+                              styles.timeframeButtonText,
+                              config.timeframe === value && styles.timeframeButtonTextActive,
+                            ]}>
+                              {label}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })
+                    ) : (
+                      <Text style={styles.hint}>Carregando timeframes disponíveis...</Text>
+                    )}
                   </View>
                 </View>
 
