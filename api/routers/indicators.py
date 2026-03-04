@@ -17,6 +17,7 @@ from schemas import (
 router = APIRouter(tags=["indicators"])
 
 
+@router.get("", response_model=IndicatorsListResponse)
 @router.get("/", response_model=IndicatorsListResponse)
 async def list_indicators(
     skip: int = 0,

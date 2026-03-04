@@ -181,7 +181,14 @@ class Settings(BaseSettings):
 
     @property
     def REDIS_URL(self) -> str:
-        """Generate Redis URL from components"""
+        """Generate Redis URL from environment variable or components"""
+        import os
+        # Railway fornece REDIS_URL diretamente
+        redis_url = os.getenv('REDIS_URL')
+        if redis_url:
+            return redis_url
+        
+        # Senão, construir a partir dos componentes
         if self.REDIS_PASSWORD:
             return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"

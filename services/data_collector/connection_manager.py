@@ -1347,6 +1347,28 @@ class UserConnectionManager:
         """Obter todas as conexões ativas"""
         return list(self.connections.values())
     
+    def get_metrics(self) -> dict:
+        """Obter métricas de conexões para o dashboard"""
+        total_connections = len(self.connections)
+        user_connections = 0
+        monitoring_connections = 0
+        active_accounts = set()
+        
+        for conn in self.connections.values():
+            if conn.account_role == 'usuario':
+                user_connections += 1
+                active_accounts.add(conn.account_id)
+            elif conn.account_role in ['monitoramento_payout', 'monitoramento_ativos']:
+                monitoring_connections += 1
+        
+        return {
+            'total_connections': total_connections,
+            'user_connections': user_connections,
+            'monitoring_connections': monitoring_connections,
+            'active_accounts': len(active_accounts),
+            'ws_connections': total_connections,  # Total de conexões WS
+        }
+    
     async def disconnect_connection(self, account_id: str, connection_type: str):
         """Desconectar imediatamente uma conexão específica"""
         key = self._get_connection_key(account_id, connection_type)

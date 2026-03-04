@@ -1,4 +1,17 @@
-2026-03-03 19:50:54 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_establish_connection:279 | [TIMEOUT] Timeout connecting to wss://demo-api-eu.po.market/socket.io/?EIO=4&transport=websocket: 
-2026-03-03 19:50:57 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_send_handshake:384 | Erro ao solicitar trades fechados: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2026-03-03 19:50:57 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_ping_loop:434 | ✗ Connection closed during ping
-2026-03-03 19:51:07 | WARNING  |                 |        |      | services.data_collector.realtime:_start_ativos_monitoring:1071 | Ativos indisponíveis ignorados: ['#AMZN_otc', '#FDX_otc']
+2026-03-04 11:03:17 | WARNING  |                 |        |      | core.security.unified:initialize:104 | [SECURITY] Sistema inicializado em modo fallback (sem Redis)
+2026-03-04 11:03:17 | WARNING  |                 |        |      | api.main:lifespan:278 | ⚠️ Security system initialized in fallback mode (Redis unavailable)
+2026-03-04 11:18:37 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-04 11:24:38 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-04 11:25:39 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-04 11:35:40 | WARNING  |                 |        |      | services.data_collector.local_storage:delete_asset_file:430 | Arquivo CADJPY_otc em uso, tentando novamente em 100ms...
+2026-03-04 11:35:41 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-04 11:39:42 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-04 11:45:42 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-04 11:50:44 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-04 11:51:44 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-04 11:54:45 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-04 11:55:45 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-04 12:00:46 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-04 12:03:47 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-04 12:12:48 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-04 12:15:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 6 ativos monitorados, precisa de 4 mais

@@ -9,7 +9,7 @@ from slowapi.util import get_remote_address
 
 from core.database import get_db
 from core.security import get_current_active_user
-from models import User, Trade, Account, Strategy
+from models import User, Trade, Account, Strategy, AutoTradeConfig
 from schemas import UserResponse, UserUpdate, UserStats, MessageResponse
 from services.notifications.telegram import telegram_service
 from api.decorators import cache_response
@@ -202,6 +202,20 @@ async def get_user_stats(
     minutes = (total_seconds % 3600) // 60
     tempo_ativo = f"{hours}h {minutes}m"
     
+    # Calcular highest_balance (maior saldo máximo entre todas as configs do usuário)
+    highest_balance = None
+    if accounts:
+        account_ids = [acc.id for acc in accounts]
+        autotrade_result = await db.execute(
+            select(AutoTradeConfig.highest_balance)
+            .where(AutoTradeConfig.account_id.in_(account_ids))
+            .where(AutoTradeConfig.highest_balance.isnot(None))
+            .order_by(AutoTradeConfig.highest_balance.desc())
+        )
+        highest_balance_row = autotrade_result.first()
+        if highest_balance_row:
+            highest_balance = highest_balance_row[0]
+    
     return UserStats(
         balance_demo=demo_balance,
         balance_real=real_balance,
@@ -220,6 +234,7 @@ async def get_user_stats(
         maior_ganho=maior_ganho,
         maior_perda=maior_perda,
         tempo_ativo=tempo_ativo,
+        highest_balance=highest_balance,
     )
 
 

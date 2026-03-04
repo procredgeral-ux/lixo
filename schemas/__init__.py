@@ -100,6 +100,7 @@ class UserStats(BaseModel):
     maior_ganho: float = 0.0
     maior_perda: float = 0.0
     tempo_ativo: str = ""
+    highest_balance: Optional[float] = None  # Saldo máximo já alcançado
 
 
 # ============================================

@@ -14,7 +14,9 @@ from pathlib import Path
 from core.config import settings
 from core.database import init_db, close_db, check_db_connection
 from core.cache import get_cache
+from core.security.unified import initialize_security, shutdown_security, get_security_health
 from core.middleware import rate_limit_middleware, csrf_middleware, security_headers_middleware
+from core.middleware.metrics import setup_metrics_middleware
 from schemas import HealthResponse, ErrorResponse, MessageResponse
 from loguru import logger
 
@@ -265,6 +267,18 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"⚠️ Cache initialization failed: {e}")
         
+        # Initialize security (Redis sessions, token blacklist, audit)
+        try:
+            logger.info("🔒 Initializing security system...")
+            await initialize_security()
+            health = await get_security_health()
+            if health['redis']['redis_connected']:
+                logger.info("✅ Security system initialized with Redis")
+            else:
+                logger.warning("⚠️ Security system initialized in fallback mode (Redis unavailable)")
+        except Exception as e:
+            logger.error(f"❌ Security system initialization failed: {e}")
+        
         # Initialize data collector service
         if settings.DATA_COLLECTOR_ENABLED:
             try:
@@ -299,6 +313,13 @@ async def lifespan(app: FastAPI):
             logger.info("✅ Data collector stopped")
         except Exception as e:
             logger.warning(f"⚠️ Error stopping data collector: {e}")
+        
+        # Shutdown security system
+        try:
+            await shutdown_security()
+            logger.info("✅ Security system shutdown")
+        except Exception as e:
+            logger.warning(f"⚠️ Error shutting down security system: {e}")
     
     await close_db()
     logger.info("Application shut down successfully")
@@ -327,6 +348,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Setup metrics middleware for performance monitoring
+setup_metrics_middleware(app)
 
 
 # ==================== EXCEPTION HANDLERS ====================

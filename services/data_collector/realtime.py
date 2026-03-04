@@ -64,6 +64,10 @@ class DataCollectorService:
         
         # Gerenciador de conexões de usuários (demo e real)
         self.connection_manager = UserConnectionManager()
+        
+        # Exportar instância global para métricas
+        import services.data_collector as dc_module
+        dc_module.connection_manager = self.connection_manager
 
         # Executor de trades
         self.trade_executor = TradeExecutor(self.connection_manager)
