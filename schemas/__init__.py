@@ -75,6 +75,12 @@ class UserResponse(BaseModel):
     vip_end_date: Optional[datetime] = None
 
 
+class UserAdminResponse(UserResponse):
+    """User response for admin panel with account balances"""
+    demo_balance: float = 0.0
+    real_balance: float = 0.0
+
+
 class UserUpdate(BaseModel):
     """User update schema"""
     name: Optional[str] = None
@@ -450,6 +456,7 @@ class AutoTradeConfigCreate(BaseModel):
     """AutoTrade config creation schema"""
     account_id: str
     strategy_id: Optional[str] = None
+    user_id: Optional[str] = None  # Para admin configurar outro usuário
     amount: float = 10.0
     stop1: int = 3
     stop2: int = 5
@@ -482,6 +489,9 @@ class AutoTradeConfigCreate(BaseModel):
         if v is None:
             return '0'
         return str(v)
+
+    class Config:
+        extra = 'allow'  # Permitir campos extras como user_id
 
 
 class AutoTradeConfigUpdate(BaseModel):
@@ -584,6 +594,7 @@ __all__ = [
     "Token",
     "TokenRefresh",
     "UserResponse",
+    "UserAdminResponse",
     "UserUpdate",
     "UserStats",
     
