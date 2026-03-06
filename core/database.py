@@ -17,65 +17,82 @@ connect_args = {}
 
 # Garantir que DATABASE_URL use asyncpg para async engine
 database_url = settings.DATABASE_URL
+
+# Log para debug (mascarado por segurança)
+if database_url:
+    masked_url = database_url.replace('://', '://***:***@').split('@')[0] + '@...' if '@' in database_url else '***'
+    logger.info(f"[DB] DATABASE_URL configurada: {masked_url}")
+else:
+    logger.error("[DB] DATABASE_URL não configurada!")
+
 if database_url.startswith("postgresql://"):
     database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 elif database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
 
 # Create async engine for PostgreSQL with optimized pooling for high load
-engine = create_async_engine(
-    database_url,
-    echo=settings.DB_ECHO,
-    pool_size=20,  # Conexões mantidas constantemente
-    max_overflow=40,  # Conexões extras quando pool_size esgotado
-    pool_pre_ping=True,  # Verifica saúde da conexão antes de usar
-    pool_recycle=300,  # Recicla conexões após 5 minutos
-    pool_timeout=30,  # Timeout para aguardar conexão disponível
-    connect_args={
-        'command_timeout': 60,
-        'server_settings': {
-            'application_name': 'tunestrade_app',
-            'statement_timeout': '60000',
-            'idle_in_transaction_session_timeout': '300000',
+try:
+    engine = create_async_engine(
+        database_url,
+        echo=settings.DB_ECHO,
+        pool_size=20,  # Conexões mantidas constantemente
+        max_overflow=40,  # Conexões extras quando pool_size esgotado
+        pool_pre_ping=True,  # Verifica saúde da conexão antes de usar
+        pool_recycle=300,  # Recicla conexões após 5 minutos
+        pool_timeout=30,  # Timeout para aguardar conexão disponível
+        connect_args={
+            'command_timeout': 60,
+            'server_settings': {
+                'application_name': 'tunestrade_app',
+                'statement_timeout': '60000',
+                'idle_in_transaction_session_timeout': '300000',
+            }
         }
-    }
-)
+    )
+    logger.success("[DB] Engine PostgreSQL criada com sucesso")
+except Exception as e:
+    logger.error(f"[DB] Erro ao criar engine: {e}")
+    # Criar engine dummy para não quebrar imports
+    engine = None
 
 # No global lock needed for PostgreSQL (uses row-level locking)
 db_lock = None
 
-# Event listener para tracking de queries
-@event.listens_for(engine.sync_engine, "before_cursor_execute")
-def _before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-    """Capturar tempo antes da execução da query"""
-    context._query_start_time = time.time()
+# Event listener para tracking de queries (só se engine foi criada)
+if engine:
+    @event.listens_for(engine.sync_engine, "before_cursor_execute")
+    def _before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        """Capturar tempo antes da execução da query"""
+        context._query_start_time = time.time()
 
-@event.listens_for(engine.sync_engine, "after_cursor_execute")
-def _after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-    """Tracking de query executada com tipo (SELECT, INSERT, UPDATE, DELETE)"""
-    try:
-        elapsed = (time.time() - context._query_start_time) * 1000  # ms
-        
-        # Detectar tipo de query a partir do statement SQL
-        statement_lower = str(statement).strip().lower()
-        if statement_lower.startswith('select'):
-            query_type = 'select'
-        elif statement_lower.startswith('insert'):
-            query_type = 'insert'
-        elif statement_lower.startswith('update'):
-            query_type = 'update'
-        elif statement_lower.startswith('delete'):
-            query_type = 'delete'
-        else:
-            query_type = 'select'  # default
-        
-        # Import seguro do performance_monitor
-        import sys
-        if 'services.performance_monitor' in sys.modules:
-            from services.performance_monitor import performance_monitor
-            performance_monitor.record_db_query(time_ms=elapsed, error=False, query_type=query_type)
-    except Exception:
-        pass
+    @event.listens_for(engine.sync_engine, "after_cursor_execute")
+    def _after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        """Tracking de query executada com tipo (SELECT, INSERT, UPDATE, DELETE)"""
+        try:
+            elapsed = (time.time() - context._query_start_time) * 1000  # ms
+            
+            # Detectar tipo de query a partir do statement SQL
+            statement_lower = str(statement).strip().lower()
+            if statement_lower.startswith('select'):
+                query_type = 'select'
+            elif statement_lower.startswith('insert'):
+                query_type = 'insert'
+            elif statement_lower.startswith('update'):
+                query_type = 'update'
+            elif statement_lower.startswith('delete'):
+                query_type = 'delete'
+            else:
+                query_type = 'select'  # default
+            
+            # Import seguro do performance_monitor
+            import sys
+            if 'services.performance_monitor' in sys.modules:
+                from services.performance_monitor import performance_monitor
+                performance_monitor.record_db_query(time_ms=elapsed, error=False, query_type=query_type)
+        except Exception:
+            pass
+else:
+    logger.warning("[DB] Engine não criada - event listeners desabilitados")
 
 # Create async session factory
 AsyncSessionLocal = async_sessionmaker(
