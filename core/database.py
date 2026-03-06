@@ -26,18 +26,17 @@ elif database_url.startswith("postgres://"):
 engine = create_async_engine(
     database_url,
     echo=settings.DB_ECHO,
-    poolclass=QueuePool,  # Connection pooling para reutilizar conexões
-    pool_size=20,  # Conexões mantidas constantemente (ajustar baseado no plano Railway)
+    pool_size=20,  # Conexões mantidas constantemente
     max_overflow=40,  # Conexões extras quando pool_size esgotado
     pool_pre_ping=True,  # Verifica saúde da conexão antes de usar
-    pool_recycle=300,  # Recicla conexões após 5 minutos (evita timeouts)
+    pool_recycle=300,  # Recicla conexões após 5 minutos
     pool_timeout=30,  # Timeout para aguardar conexão disponível
     connect_args={
-        'command_timeout': 60,  # Timeout para comandos SQL
+        'command_timeout': 60,
         'server_settings': {
             'application_name': 'tunestrade_app',
-            'statement_timeout': '60000',  # 60s timeout para queries longas
-            'idle_in_transaction_session_timeout': '300000',  # 5min timeout para transações ociosas
+            'statement_timeout': '60000',
+            'idle_in_transaction_session_timeout': '300000',
         }
     }
 )
@@ -250,7 +249,7 @@ async def get_db_context():
             # Contar queries executadas nesta sessão
             queries_executed = performance_monitor.stats['db_queries'] - query_count_before
             if queries_executed > 0:
-                logger.debug(f"[DB] {queries_executed} queries executadas na sessão")
+                pass  # Log silenciado - não registrar queries executadas
         except Exception as e:
             # Try rollback only if session is still active
             try:
