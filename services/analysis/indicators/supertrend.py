@@ -134,7 +134,8 @@ class Supertrend(TechnicalIndicator):
             'trend': trend
         }, index=data.index)
 
-        logger.debug(f"✓ Supertrend calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Supertrend calculado: {len(result)} candles")
 
         return result
 
@@ -173,7 +174,8 @@ class Supertrend(TechnicalIndicator):
             elif all(recent_trend == -1):
                 result.iloc[i, result.columns.get_loc('confidence')] = 0.8
 
-        logger.debug(f"✓ Supertrend com sinais calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Supertrend com sinais calculado: {len(result)} candles")
 
         return result
 

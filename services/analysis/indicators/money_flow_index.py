@@ -73,7 +73,8 @@ class MoneyFlowIndex(TechnicalIndicator):
         # Calcular MFI
         mfi = 100 - (100 / (1 + money_flow_ratio))
 
-        logger.debug(f"✓ Money Flow Index calculado: {len(mfi)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Money Flow Index calculado: {len(mfi)} candles")
 
         return mfi
 
@@ -111,7 +112,8 @@ class MoneyFlowIndex(TechnicalIndicator):
         result.loc[mfi < oversold, 'confidence'] = 0.8
         result.loc[mfi > overbought, 'confidence'] = 0.8
 
-        logger.debug(f"✓ Money Flow Index com sinais calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Money Flow Index com sinais calculado: {len(result)} candles")
 
         return result
 

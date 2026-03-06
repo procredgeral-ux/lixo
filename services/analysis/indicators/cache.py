@@ -88,7 +88,8 @@ class IndicatorCache:
             self.access_times[key] = time.time()
             self.hits += 1
             
-            logger.debug(f"Cache hit for {indicator_name}: {self.hits}/{self.hits + self.misses}")
+            # Log silenciado para reduzir poluição
+            # logger.debug(f"Cache hit for {indicator_name}: {self.hits}/{self.hits + self.misses}")
             return value
     
     def set(self, indicator_name: str, params: Dict[str, Any], data_hash: str, value: Any):
@@ -109,7 +110,8 @@ class IndicatorCache:
                 # Atualizar valor existente
                 self.cache[key] = (value, time.time())
                 self.access_times[key] = time.time()
-                logger.debug(f"Cache updated for {indicator_name}: {len(self.cache)}/{self.max_size}")
+                # Log silenciado
+                # logger.debug(f"Cache updated for {indicator_name}: {len(self.cache)}/{self.max_size}")
                 return
             
             # Evict oldest entries se cache estiver cheio
@@ -119,7 +121,8 @@ class IndicatorCache:
             self.cache[key] = (value, time.time())
             self.access_times[key] = time.time()
             
-            logger.debug(f"Cache set for {indicator_name}: {len(self.cache)}/{self.max_size}")
+            # Log silenciado para reduzir poluição
+            # logger.debug(f"Cache set for {indicator_name}: {len(self.cache)}/{self.max_size}")
     
     def _evict_oldest(self):
         """Evict the oldest entry from cache (LRU)"""
@@ -128,7 +131,8 @@ class IndicatorCache:
         
         oldest_key = min(self.access_times.keys(), key=lambda k: self.access_times[k])
         self._remove(oldest_key)
-        logger.debug(f"Cache evicted oldest entry: {oldest_key}")
+        # Log silenciado
+        # logger.debug(f"Cache evicted oldest entry: {oldest_key}")
     
     def _remove(self, key: str):
         """
@@ -277,7 +281,8 @@ def cached_indicator(indicator_name: str):
             )
             
             if cached_value is not None:
-                logger.debug(f"Cache hit for {indicator_name}")
+                # Log silenciado
+                # logger.debug(f"Cache hit for {indicator_name}")
                 return cached_value
             
             # Calculate value
@@ -291,7 +296,8 @@ def cached_indicator(indicator_name: str):
                 result
             )
             
-            logger.debug(f"Cache miss for {indicator_name}, calculated and cached")
+            # Log silenciado
+            # logger.debug(f"Cache miss for {indicator_name}, calculated and cached")
             return result
         
         return wrapper

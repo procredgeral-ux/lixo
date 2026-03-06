@@ -1,3 +1,2 @@
-2026-03-05 20:41:21 | INFO     |                 |        |      | services.notifications.telegram_v2:_start_queue_processor:145 | [TelegramV2] Processador de fila iniciado
-2026-03-05 20:41:21 | INFO     |                 |        |      | services.notifications.telegram_v2:start:151 | [TelegramV2] Processador de fila iniciado via start()
-2026-03-05 20:42:37 | INFO     |                 |        |      | services.notifications.telegram_v2:_process_message_queue:186 | [TelegramV2] Processador de fila cancelado
+2026-03-06 14:26:49 | INFO     |                 |        |      | services.notifications.telegram_v2:_start_queue_processor:145 | [TelegramV2] Processador de fila iniciado
+2026-03-06 14:26:49 | INFO     |                 |        |      | services.notifications.telegram_v2:start:151 | [TelegramV2] Processador de fila iniciado via start()

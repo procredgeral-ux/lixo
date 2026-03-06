@@ -71,7 +71,8 @@ class DonchianChannels(TechnicalIndicator):
             'lower_channel': lower_channel
         }, index=data.index)
 
-        logger.debug(f"✓ Donchian Channels calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Donchian Channels calculado: {len(result)} candles")
 
         return result
 
@@ -107,7 +108,8 @@ class DonchianChannels(TechnicalIndicator):
         result.loc[result['signal'] == 'buy', 'confidence'] = 0.7
         result.loc[result['signal'] == 'sell', 'confidence'] = 0.7
 
-        logger.debug(f"✓ Donchian Channels com sinais calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Donchian Channels com sinais calculado: {len(result)} candles")
 
         return result
 

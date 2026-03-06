@@ -130,10 +130,11 @@ class BatchSignalSaver:
                 existing.indicators = indicators_data or existing.indicators
                 existing.created_at = datetime.now()  # Atualizar timestamp
                 
-                logger.debug(
-                    f"[BATCH SAVER] Sinal atualizado no buffer: {symbol} ({signal_type_str}) | "
-                    f"conf={existing.confidence:.2f} (era {signal.confidence:.2f})"
-                )
+                # Log silenciado
+                # logger.debug(
+                #     f"[BATCH SAVER] Sinal atualizado no buffer: {symbol} ({signal_type_str}) | "
+                #     f"conf={existing.confidence:.2f} (era {signal.confidence:.2f})"
+                # )
                 return existing.id
             
             # Criar novo sinal (não existe duplicata)

@@ -1,3 +1,8 @@
-2026-03-05 20:41:11 | INFO     |                 |        |      | services.data_collector.reconnection_manager:register_connection:68 | [OK] Conexão registrada: [%s] %s (id: %s)
-2026-03-05 20:41:18 | INFO     |                 |        |      | services.data_collector.reconnection_manager:register_connection:68 | [OK] Conexão registrada: [%s] %s (id: %s)
-2026-03-05 20:41:18 | INFO     |                 |        |      | services.data_collector.reconnection_manager:register_connection:68 | [OK] Conexão registrada: [%s] %s (id: %s)
+2026-03-06 14:26:39 | INFO     |                 |        |      | services.data_collector.reconnection_manager:register_connection:68 | [OK] Conexão registrada: [%s] %s (id: %s)
+2026-03-06 14:26:45 | INFO     |                 |        |      | services.data_collector.reconnection_manager:register_connection:68 | [OK] Conexão registrada: [%s] %s (id: %s)
+2026-03-06 14:26:45 | INFO     |                 |        |      | services.data_collector.reconnection_manager:register_connection:68 | [OK] Conexão registrada: [%s] %s (id: %s)
+2026-03-06 14:28:44 | INFO     |                 |        |      | services.data_collector.reconnection_manager:unregister_connection:84 | [OK] Conexão '%s' removida do monitoramento
+2026-03-06 14:29:14 | INFO     |                 |        |      | services.data_collector.reconnection_manager:unregister_connection:84 | [OK] Conexão '%s' removida do monitoramento
+2026-03-06 14:29:24 | INFO     |                 |        |      | services.data_collector.reconnection_manager:register_connection:68 | [OK] Conexão registrada: [%s] %s (id: %s)
+2026-03-06 14:29:30 | INFO     |                 |        |      | services.data_collector.reconnection_manager:unregister_connection:84 | [OK] Conexão '%s' removida do monitoramento
+2026-03-06 14:29:32 | INFO     |                 |        |      | services.data_collector.reconnection_manager:register_connection:68 | [OK] Conexão registrada: [%s] %s (id: %s)

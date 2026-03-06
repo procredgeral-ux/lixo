@@ -1,4 +1,410 @@
-2026-03-05 20:41:08 | WARNING  |                 |        |      | core.security.unified:initialize:104 | [SECURITY] Sistema inicializado em modo fallback (sem Redis)
-2026-03-05 20:41:08 | WARNING  |                 |        |      | api.main:lifespan:275 | ⚠️ Security system initialized in fallback mode (Redis unavailable)
-2026-03-05 20:42:21 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1294 | [Rebalance] #CITI_otc: NUNCA recebeu ticks desde a inscrição
-2026-03-05 20:42:21 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1341 | [Rebalance] ATIVOS Client 1: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-06 14:26:36 | WARNING  |                 |        |      | core.security.unified:initialize:104 | [SECURITY] Sistema inicializado em modo fallback (sem Redis)
+2026-03-06 14:26:36 | WARNING  |                 |        |      | api.main:lifespan:275 | ⚠️ Security system initialized in fallback mode (Redis unavailable)
+2026-03-06 14:26:49 | WARNING  |                 |        |      | services.data_collector.realtime:_start_ativos_monitoring:1076 | Ativos indisponíveis ignorados: ['#AMZN_otc', '#FDX_otc']
+2026-03-06 14:27:08 | WARNING  |                 |        |      | api.routers.admin:update_table_record:994 | [ADMIN UPDATE] Erro ao atualizar campo account_id: cannot access local variable 'date' where it is not associated with a value
+2026-03-06 14:27:08 | WARNING  |                 |        |      | api.routers.admin:update_table_record:994 | [ADMIN UPDATE] Erro ao atualizar campo strategy_id: cannot access local variable 'date' where it is not associated with a value
+2026-03-06 14:27:08 | WARNING  |                 |        |      | api.routers.admin:update_table_record:994 | [ADMIN UPDATE] Erro ao atualizar campo cooldown_seconds: cannot access local variable 'date' where it is not associated with a value
+2026-03-06 14:27:08 | WARNING  |                 |        |      | api.routers.admin:update_table_record:994 | [ADMIN UPDATE] Erro ao atualizar campo trade_timing: cannot access local variable 'date' where it is not associated with a value
+2026-03-06 14:27:08 | WARNING  |                 |        |      | api.routers.admin:update_table_record:994 | [ADMIN UPDATE] Erro ao atualizar campo last_trade_date: cannot access local variable 'date' where it is not associated with a value
+2026-03-06 14:27:08 | WARNING  |                 |        |      | api.routers.admin:update_table_record:994 | [ADMIN UPDATE] Erro ao atualizar campo last_trade_time: cannot access local variable 'date' where it is not associated with a value
+2026-03-06 14:27:08 | WARNING  |                 |        |      | api.routers.admin:update_table_record:994 | [ADMIN UPDATE] Erro ao atualizar campo last_activity_timestamp: cannot access local variable 'date' where it is not associated with a value
+2026-03-06 14:27:20 | ERROR    |                 |        |      | services.performance_monitor:record_db_query:715 | [DB ERROR] Query select falhou: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $6: datetime.datetime(2026, 3, 6, 14, 27, 20... (can't subtract offset-naive and offset-aware datetimes)
+[SQL: UPDATE autotrade_configs SET is_active=$1::BOOLEAN, soros_level=$2::INTEGER, martingale_level=$3::INTEGER, loss_consecutive=$4::INTEGER, win_consecutive=$5::INTEGER, updated_at=$6::TIMESTAMP WITHOUT TIME ZONE WHERE autotrade_configs.id IN ($7::VARCHAR)]
+[parameters: (False, 0, 0, 0, 0, datetime.datetime(2026, 3, 6, 14, 27, 20, 493388, tzinfo=zoneinfo.ZoneInfo(key='America/Sao_Paulo')), 'e9bf55da-6182-4b1f-8241-f640f40f8ca6')]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-03-06 14:27:20 | ERROR    |                 |        |      | api.routers.admin:update_user_account_mode:1154 | ✗ [ADMIN] Erro ao atualizar modo da conta: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $6: datetime.datetime(2026, 3, 6, 14, 27, 20... (can't subtract offset-naive and offset-aware datetimes)
+[SQL: UPDATE autotrade_configs SET is_active=$1::BOOLEAN, soros_level=$2::INTEGER, martingale_level=$3::INTEGER, loss_consecutive=$4::INTEGER, win_consecutive=$5::INTEGER, updated_at=$6::TIMESTAMP WITHOUT TIME ZONE WHERE autotrade_configs.id IN ($7::VARCHAR)]
+[parameters: (False, 0, 0, 0, 0, datetime.datetime(2026, 3, 6, 14, 27, 20, 493388, tzinfo=zoneinfo.ZoneInfo(key='America/Sao_Paulo')), 'e9bf55da-6182-4b1f-8241-f640f40f8ca6')]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-03-06 14:27:36 | ERROR    |                 |        |      | services.performance_monitor:record_db_query:715 | [DB ERROR] Query select falhou: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $6: datetime.datetime(2026, 3, 6, 14, 27, 36... (can't subtract offset-naive and offset-aware datetimes)
+[SQL: UPDATE autotrade_configs SET is_active=$1::BOOLEAN, soros_level=$2::INTEGER, martingale_level=$3::INTEGER, loss_consecutive=$4::INTEGER, win_consecutive=$5::INTEGER, updated_at=$6::TIMESTAMP WITHOUT TIME ZONE WHERE autotrade_configs.id IN ($7::VARCHAR)]
+[parameters: (False, 0, 0, 0, 0, datetime.datetime(2026, 3, 6, 14, 27, 36, 413916, tzinfo=zoneinfo.ZoneInfo(key='America/Sao_Paulo')), '80ef0dfc-fab4-4135-8c7f-d7f2b4704250')]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-03-06 14:27:36 | ERROR    |                 |        |      | api.routers.admin:update_user_account_mode:1154 | ✗ [ADMIN] Erro ao atualizar modo da conta: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $6: datetime.datetime(2026, 3, 6, 14, 27, 36... (can't subtract offset-naive and offset-aware datetimes)
+[SQL: UPDATE autotrade_configs SET is_active=$1::BOOLEAN, soros_level=$2::INTEGER, martingale_level=$3::INTEGER, loss_consecutive=$4::INTEGER, win_consecutive=$5::INTEGER, updated_at=$6::TIMESTAMP WITHOUT TIME ZONE WHERE autotrade_configs.id IN ($7::VARCHAR)]
+[parameters: (False, 0, 0, 0, 0, datetime.datetime(2026, 3, 6, 14, 27, 36, 413916, tzinfo=zoneinfo.ZoneInfo(key='America/Sao_Paulo')), '80ef0dfc-fab4-4135-8c7f-d7f2b4704250')]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-03-06 14:27:40 | ERROR    |                 |        |      | services.performance_monitor:record_db_query:715 | [DB ERROR] Query select falhou: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $6: datetime.datetime(2026, 3, 6, 14, 27, 40... (can't subtract offset-naive and offset-aware datetimes)
+[SQL: UPDATE autotrade_configs SET is_active=$1::BOOLEAN, soros_level=$2::INTEGER, martingale_level=$3::INTEGER, loss_consecutive=$4::INTEGER, win_consecutive=$5::INTEGER, updated_at=$6::TIMESTAMP WITHOUT TIME ZONE WHERE autotrade_configs.id IN ($7::VARCHAR)]
+[parameters: (False, 0, 0, 0, 0, datetime.datetime(2026, 3, 6, 14, 27, 40, 990261, tzinfo=zoneinfo.ZoneInfo(key='America/Sao_Paulo')), '80ef0dfc-fab4-4135-8c7f-d7f2b4704250')]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-03-06 14:27:40 | ERROR    |                 |        |      | api.routers.admin:update_user_account_mode:1154 | ✗ [ADMIN] Erro ao atualizar modo da conta: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $6: datetime.datetime(2026, 3, 6, 14, 27, 40... (can't subtract offset-naive and offset-aware datetimes)
+[SQL: UPDATE autotrade_configs SET is_active=$1::BOOLEAN, soros_level=$2::INTEGER, martingale_level=$3::INTEGER, loss_consecutive=$4::INTEGER, win_consecutive=$5::INTEGER, updated_at=$6::TIMESTAMP WITHOUT TIME ZONE WHERE autotrade_configs.id IN ($7::VARCHAR)]
+[parameters: (False, 0, 0, 0, 0, datetime.datetime(2026, 3, 6, 14, 27, 40, 990261, tzinfo=zoneinfo.ZoneInfo(key='America/Sao_Paulo')), '80ef0dfc-fab4-4135-8c7f-d7f2b4704250')]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-03-06 14:27:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #CITI_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:27:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:27:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1342 | [Rebalance] ATIVOS Client 1: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-06 14:28:07 | ERROR    |                 |        |      | services.performance_monitor:record_db_query:715 | [DB ERROR] Query select falhou: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $6: datetime.datetime(2026, 3, 6, 14, 28, 7,... (can't subtract offset-naive and offset-aware datetimes)
+[SQL: UPDATE autotrade_configs SET is_active=$1::BOOLEAN, soros_level=$2::INTEGER, martingale_level=$3::INTEGER, loss_consecutive=$4::INTEGER, win_consecutive=$5::INTEGER, updated_at=$6::TIMESTAMP WITHOUT TIME ZONE WHERE autotrade_configs.id IN ($7::VARCHAR)]
+[parameters: (False, 0, 0, 0, 0, datetime.datetime(2026, 3, 6, 14, 28, 7, 38338, tzinfo=zoneinfo.ZoneInfo(key='America/Sao_Paulo')), 'e9bf55da-6182-4b1f-8241-f640f40f8ca6')]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-03-06 14:28:07 | ERROR    |                 |        |      | api.routers.admin:update_user_account_mode:1154 | ✗ [ADMIN] Erro ao atualizar modo da conta: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $6: datetime.datetime(2026, 3, 6, 14, 28, 7,... (can't subtract offset-naive and offset-aware datetimes)
+[SQL: UPDATE autotrade_configs SET is_active=$1::BOOLEAN, soros_level=$2::INTEGER, martingale_level=$3::INTEGER, loss_consecutive=$4::INTEGER, win_consecutive=$5::INTEGER, updated_at=$6::TIMESTAMP WITHOUT TIME ZONE WHERE autotrade_configs.id IN ($7::VARCHAR)]
+[parameters: (False, 0, 0, 0, 0, datetime.datetime(2026, 3, 6, 14, 28, 7, 38338, tzinfo=zoneinfo.ZoneInfo(key='America/Sao_Paulo')), 'e9bf55da-6182-4b1f-8241-f640f40f8ca6')]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-03-06 14:28:44 | WARNING  |                 |        |      | services.data_collector.realtime:_client_connection_watchdog:3077 | [WATCHDOG] ⚠️ ATIVOS Client 1: PROBLEMA DETECTADO! Gap: 13.4s, WS connected: True
+2026-03-06 14:28:51 | WARNING  |                 |        |      | services.pocketoption.maintenance_checker:_check_once:75 | [MaintenanceChecker] Failed to check maintenance: 
+2026-03-06 14:29:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_message_loop:490 | ✗ Connection closed during message receive
+2026-03-06 14:29:09 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-06 14:29:14 | WARNING  |                 |        |      | services.data_collector.realtime:_periodic_assets_update:590 | [WARNING] Payout connection lost, reconnecting...
+2026-03-06 14:29:14 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_establish_connection:279 | [TIMEOUT] Timeout connecting to wss://demo-api-eu.po.market/socket.io/?EIO=4&transport=websocket: 
+2026-03-06 14:29:24 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_message_loop:490 | ✗ Connection closed during message receive
+2026-03-06 14:29:24 | ERROR    |                 |        |      | services.pocketoption.keep_alive:send_message:1010 | Failed to send message: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
+2026-03-06 14:29:24 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever AUDCAD_otc (conexão indisponível)
+2026-03-06 14:29:24 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:24 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever AUDUSD_otc (conexão indisponível)
+2026-03-06 14:29:24 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:24 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever CADJPY_otc (conexão indisponível)
+2026-03-06 14:29:25 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:25 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever BNB-USD_otc (conexão indisponível)
+2026-03-06 14:29:25 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:25 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDJPY_otc (conexão indisponível)
+2026-03-06 14:29:25 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:25 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever EURRUB_otc (conexão indisponível)
+2026-03-06 14:29:25 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:25 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever EURNZD_otc (conexão indisponível)
+2026-03-06 14:29:25 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:25 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever UAHUSD_otc (conexão indisponível)
+2026-03-06 14:29:25 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:25 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDDZD_otc (conexão indisponível)
+2026-03-06 14:29:30 | WARNING  |                 |        |      | services.data_collector.realtime:_client_connection_watchdog:3077 | [WATCHDOG] ⚠️ ATIVOS Client 1: PROBLEMA DETECTADO! Gap: 6.5s, WS connected: False
+2026-03-06 14:29:41 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_establish_connection:279 | [TIMEOUT] Timeout connecting to wss://demo-api-eu.po.market/socket.io/?EIO=4&transport=websocket: 
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1299 | [Rebalance] EURUSD_otc: INATIVO - último tick há 79s
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1299 | [Rebalance] AUDCAD_otc: INATIVO - último tick há 79s
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1299 | [Rebalance] AUDUSD_otc: INATIVO - último tick há 79s
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1299 | [Rebalance] CADJPY_otc: INATIVO - último tick há 79s
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1299 | [Rebalance] BNB-USD_otc: INATIVO - último tick há 79s
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1299 | [Rebalance] USDJPY_otc: INATIVO - último tick há 79s
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1299 | [Rebalance] EURRUB_otc: INATIVO - último tick há 79s
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1299 | [Rebalance] EURNZD_otc: INATIVO - último tick há 79s
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1299 | [Rebalance] UAHUSD_otc: INATIVO - último tick há 79s
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1299 | [Rebalance] USDDZD_otc: INATIVO - último tick há 79s
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1342 | [Rebalance] ATIVOS Client 1: apenas 0 ativos monitorados, precisa de 10 mais
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDSGD_otc (conexão indisponível)
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever UAHUSD_otc (conexão indisponível)
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:49 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDDZD_otc (conexão indisponível)
+2026-03-06 14:29:50 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:50 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever MARA_otc (conexão indisponível)
+2026-03-06 14:29:50 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:50 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever MADUSD_otc (conexão indisponível)
+2026-03-06 14:29:50 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:50 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever CADJPY_otc (conexão indisponível)
+2026-03-06 14:29:50 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:50 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever DOTUSD_otc (conexão indisponível)
+2026-03-06 14:29:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:51 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #AMZN_otc (conexão indisponível)
+2026-03-06 14:29:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:51 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDVND_otc (conexão indisponível)
+2026-03-06 14:29:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:29:51 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever EURNZD_otc (conexão indisponível)
+2026-03-06 14:29:52 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_establish_connection:279 | [TIMEOUT] Timeout connecting to wss://try-demo-eu.po.market/socket.io/?EIO=4&transport=websocket: 
+2026-03-06 14:29:52 | ERROR    |                 |        |      | services.pocketoption.keep_alive:_establish_connection:331 | ❌ Failed to connect to all 2 available URLs
+2026-03-06 14:29:52 | ERROR    |                 |        |      | services.pocketoption.keep_alive:_establish_connection:333 | Last error: TimeoutError: 
+2026-03-06 14:29:52 | ERROR    |                 |        |      | services.pocketoption.keep_alive:start_persistent_connection:82 | Failed to establish initial connection
+2026-03-06 14:29:52 | ERROR    |                 |        |      | services.pocketoption.client:_start_persistent_connection:332 | Failed to establish persistent connection
+2026-03-06 14:29:52 | ERROR    |                 |        |      | services.data_collector.realtime:_reconnect_client_with_retry:3166 | [RECONNECT] ❌ ATIVOS Client 1: Falha na reconexão
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDSGD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] UAHUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDDZD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] MARA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] MADUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] CADJPY_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] DOTUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDVND_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] EURNZD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1342 | [Rebalance] ATIVOS Client 1: apenas 0 ativos monitorados, precisa de 10 mais
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:51 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDSGD_otc (conexão indisponível)
+2026-03-06 14:30:52 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:52 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever UAHUSD_otc (conexão indisponível)
+2026-03-06 14:30:52 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:52 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDDZD_otc (conexão indisponível)
+2026-03-06 14:30:52 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:52 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever MARA_otc (conexão indisponível)
+2026-03-06 14:30:52 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:52 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever CADJPY_otc (conexão indisponível)
+2026-03-06 14:30:52 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:52 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever DOTUSD_otc (conexão indisponível)
+2026-03-06 14:30:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:53 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #AMZN_otc (conexão indisponível)
+2026-03-06 14:30:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:53 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDVND_otc (conexão indisponível)
+2026-03-06 14:30:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:53 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever KESUSD_otc (conexão indisponível)
+2026-03-06 14:30:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:30:53 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever EURNZD_otc (conexão indisponível)
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1276 | [Rebalance] [WARN] Arquivo de UAHUSD_otc não encontrado ou erro ao apagar
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDSGD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] UAHUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDDZD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] MARA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] CADJPY_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] DOTUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDVND_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] KESUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] EURNZD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1342 | [Rebalance] ATIVOS Client 1: apenas 0 ativos monitorados, precisa de 10 mais
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:53 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDSGD_otc (conexão indisponível)
+2026-03-06 14:31:54 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:54 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDDZD_otc (conexão indisponível)
+2026-03-06 14:31:54 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:54 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever MARA_otc (conexão indisponível)
+2026-03-06 14:31:54 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:54 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #PFE_otc (conexão indisponível)
+2026-03-06 14:31:54 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:54 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever CADJPY_otc (conexão indisponível)
+2026-03-06 14:31:54 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:54 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever DOTUSD_otc (conexão indisponível)
+2026-03-06 14:31:55 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:55 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #AMZN_otc (conexão indisponível)
+2026-03-06 14:31:55 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:55 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #MSFT_otc (conexão indisponível)
+2026-03-06 14:31:55 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:55 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDVND_otc (conexão indisponível)
+2026-03-06 14:31:55 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:31:55 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever KESUSD_otc (conexão indisponível)
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDSGD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDDZD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] MARA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #PFE_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] CADJPY_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] DOTUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #MSFT_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDVND_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] KESUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1342 | [Rebalance] ATIVOS Client 1: apenas 0 ativos monitorados, precisa de 10 mais
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDSGD_otc (conexão indisponível)
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDDZD_otc (conexão indisponível)
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever MARA_otc (conexão indisponível)
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #PFE_otc (conexão indisponível)
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:56 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever CADJPY_otc (conexão indisponível)
+2026-03-06 14:32:57 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:57 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever DOTUSD_otc (conexão indisponível)
+2026-03-06 14:32:57 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:57 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #AMZN_otc (conexão indisponível)
+2026-03-06 14:32:57 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:57 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #MSFT_otc (conexão indisponível)
+2026-03-06 14:32:57 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:57 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDVND_otc (conexão indisponível)
+2026-03-06 14:32:57 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:32:57 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever KESUSD_otc (conexão indisponível)
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1276 | [Rebalance] [WARN] Arquivo de #MSFT_otc não encontrado ou erro ao apagar
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDSGD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDDZD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] MARA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #PFE_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] CADJPY_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] DOTUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #MSFT_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDVND_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] KESUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1342 | [Rebalance] ATIVOS Client 1: apenas 0 ativos monitorados, precisa de 10 mais
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDSGD_otc (conexão indisponível)
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDDZD_otc (conexão indisponível)
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever MARA_otc (conexão indisponível)
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #PFE_otc (conexão indisponível)
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:58 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever CADJPY_otc (conexão indisponível)
+2026-03-06 14:33:59 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:59 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever DOTUSD_otc (conexão indisponível)
+2026-03-06 14:33:59 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:59 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #AMZN_otc (conexão indisponível)
+2026-03-06 14:33:59 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:59 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDVND_otc (conexão indisponível)
+2026-03-06 14:33:59 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:59 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever KESUSD_otc (conexão indisponível)
+2026-03-06 14:33:59 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:33:59 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever EURNZD_otc (conexão indisponível)
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDSGD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDDZD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] MARA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #PFE_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] CADJPY_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] DOTUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDVND_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] KESUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] EURNZD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1342 | [Rebalance] ATIVOS Client 1: apenas 0 ativos monitorados, precisa de 10 mais
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDSGD_otc (conexão indisponível)
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDDZD_otc (conexão indisponível)
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever MARA_otc (conexão indisponível)
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:00 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #PFE_otc (conexão indisponível)
+2026-03-06 14:35:01 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:01 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever CADJPY_otc (conexão indisponível)
+2026-03-06 14:35:01 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:01 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever DOTUSD_otc (conexão indisponível)
+2026-03-06 14:35:01 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:01 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #AMZN_otc (conexão indisponível)
+2026-03-06 14:35:01 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:01 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDVND_otc (conexão indisponível)
+2026-03-06 14:35:01 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:01 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever KESUSD_otc (conexão indisponível)
+2026-03-06 14:35:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:35:02 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever EURNZD_otc (conexão indisponível)
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDSGD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDDZD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] MARA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #PFE_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] CADJPY_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] DOTUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDVND_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] KESUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] EURNZD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1342 | [Rebalance] ATIVOS Client 1: apenas 0 ativos monitorados, precisa de 10 mais
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDSGD_otc (conexão indisponível)
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDDZD_otc (conexão indisponível)
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever MARA_otc (conexão indisponível)
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:02 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #PFE_otc (conexão indisponível)
+2026-03-06 14:36:03 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:03 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever CADJPY_otc (conexão indisponível)
+2026-03-06 14:36:03 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:03 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever DOTUSD_otc (conexão indisponível)
+2026-03-06 14:36:03 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:03 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #AMZN_otc (conexão indisponível)
+2026-03-06 14:36:03 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:03 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDVND_otc (conexão indisponível)
+2026-03-06 14:36:03 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:03 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever TON-USD_otc (conexão indisponível)
+2026-03-06 14:36:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:36:04 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever KESUSD_otc (conexão indisponível)
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDSGD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDDZD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] MARA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #PFE_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] CADJPY_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] DOTUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] USDVND_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] TON-USD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] KESUSD_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1342 | [Rebalance] ATIVOS Client 1: apenas 0 ativos monitorados, precisa de 10 mais
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDSGD_otc (conexão indisponível)
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDDZD_otc (conexão indisponível)
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:04 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever MARA_otc (conexão indisponível)
+2026-03-06 14:37:05 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:05 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #PFE_otc (conexão indisponível)
+2026-03-06 14:37:05 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:05 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever CADJPY_otc (conexão indisponível)
+2026-03-06 14:37:05 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:05 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever DOTUSD_otc (conexão indisponível)
+2026-03-06 14:37:05 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:05 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever #AMZN_otc (conexão indisponível)
+2026-03-06 14:37:05 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:05 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever USDVND_otc (conexão indisponível)
+2026-03-06 14:37:06 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:06 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever TON-USD_otc (conexão indisponível)
+2026-03-06 14:37:06 | WARNING  |                 |        |      | services.pocketoption.keep_alive:send_message:1007 | Cannot send message: not connected
+2026-03-06 14:37:06 | WARNING  |                 |        |      | services.data_collector.realtime:_subscribe_asset:1147 | [WARNING] Falha ao inscrever KESUSD_otc (conexão indisponível)

@@ -175,34 +175,36 @@ class StrategyManager:
                             if asset:
                                 signal.asset_id = asset.id
                         
-                            await self._save_signal(signal, db)
-                            # Execute trade
-                            await self._execute_trade(strategy, signal, db)
+                        # Save signal and execute trade em sessões separadas
+                        await self._save_signal(signal)
+                        # Execute trade
+                        await self._execute_trade(strategy, signal)
 
             except ValueError as e:
                 logger.error(f"Error analyzing {asset_symbol}: {e}", exc_info=True)
             except Exception as e:
                 logger.error(f"Error executing strategy for {asset_symbol}: {e}", exc_info=True)
 
-    async def _save_signal(self, signal: Signal, db: AsyncSession):
+    async def _save_signal(self, signal: Signal):
         """Save signal to database"""
         try:
-            db.add(signal)
-            await db.commit()
-            logger.debug(f"Signal saved: {signal.signal_type} for asset {signal.asset_id}")
+            async with get_db_context() as db:
+                db.add(signal)
+                await db.commit()
+                logger.debug(f"Signal saved: {signal.signal_type} for asset {signal.asset_id}")
         except Exception as e:
             logger.error(f"Failed to save signal: {e}", exc_info=True)
-            await db.rollback()
 
     @retry_on_exception(CONNECTION_RETRY_CONFIG, exceptions=(ConnectionError, RetryableError))
-    async def _execute_trade(self, strategy: BaseStrategy, signal: Signal, db: AsyncSession):
+    async def _execute_trade(self, strategy: BaseStrategy, signal: Signal):
         """Execute trade based on signal"""
         try:
-            # Get account
-            account_result = await db.execute(
-                select(Account).where(Account.id == strategy.account_id)
-            )
-            account = account_result.scalar_one_or_none()
+            # Get account em sessão separada
+            async with get_db_context() as db:
+                account_result = await db.execute(
+                    select(Account).where(Account.id == strategy.account_id)
+                )
+                account = account_result.scalar_one_or_none()
 
             if not account:
                 logger.warning(f"Account not found: {strategy.account_id}")
@@ -264,41 +266,42 @@ class StrategyManager:
                 duration=strategy.duration
             )
 
-            # Save trade to database
-            trade = Trade(
-                account_id=account.id,
-                asset_id=signal.asset_id,
-                strategy_id=strategy.id if hasattr(strategy, 'id') else signal.strategy_id,
-                direction=TradeDirection.CALL if signal.signal_type == SignalType.BUY else TradeDirection.PUT,
-                amount=strategy.amount,
-                entry_price=order_result.entry_price,
-                duration=strategy.duration,
-                status=TradeStatus.ACTIVE,
-                placed_at=datetime.utcnow(),
-                expires_at=datetime.utcnow() + timedelta(seconds=strategy.duration),
-                signal_confidence=signal.confidence,
-                signal_indicators=signal.indicators
-            )
-
-            db.add(trade)
-            await db.commit()
-
-            if getattr(signal, "id", None):
-                executed_at = trade.placed_at or datetime.utcnow()
-                signal.is_executed = True
-                signal.trade_id = trade.id
-                signal.executed_at = executed_at
-                await db.execute(
-                    update(Signal)
-                    .where(Signal.id == signal.id)
-                    .values(
-                        is_executed=True,
-                        trade_id=trade.id,
-                        executed_at=executed_at
-                    )
+            # Save trade to database em sessão separada
+            async with get_db_context() as db:
+                trade = Trade(
+                    account_id=account.id,
+                    asset_id=signal.asset_id,
+                    strategy_id=strategy.id if hasattr(strategy, 'id') else signal.strategy_id,
+                    direction=TradeDirection.CALL if signal.signal_type == SignalType.BUY else TradeDirection.PUT,
+                    amount=strategy.amount,
+                    entry_price=order_result.entry_price,
+                    duration=strategy.duration,
+                    status=TradeStatus.ACTIVE,
+                    placed_at=datetime.utcnow(),
+                    expires_at=datetime.utcnow() + timedelta(seconds=strategy.duration),
+                    signal_confidence=signal.confidence,
+                    signal_indicators=signal.indicators
                 )
+
+                db.add(trade)
                 await db.commit()
-                logger.info(f"Sinal atualizado como executado: {signal.id}")
+
+                if getattr(signal, "id", None):
+                    executed_at = trade.placed_at or datetime.utcnow()
+                    signal.is_executed = True
+                    signal.trade_id = trade.id
+                    signal.executed_at = executed_at
+                    await db.execute(
+                        update(Signal)
+                        .where(Signal.id == signal.id)
+                        .values(
+                            is_executed=True,
+                            trade_id=trade.id,
+                            executed_at=executed_at
+                        )
+                    )
+                    await db.commit()
+                    logger.info(f"Sinal atualizado como executado: {signal.id}")
                 
                 # Registrar sinal como executado no performance monitor
                 try:
@@ -315,7 +318,6 @@ class StrategyManager:
             logger.error(f"Validation error executing trade: {e}", exc_info=True)
         except Exception as e:
             logger.error(f"Failed to execute trade: {e}", exc_info=True)
-            await db.rollback()
 
     async def get_strategy_performance(self, strategy_id: str) -> Optional[Dict[str, Any]]:
         """Get performance metrics for a strategy"""

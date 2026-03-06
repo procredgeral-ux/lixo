@@ -1,3 +1,12 @@
-2026-03-05 20:41:08 | INFO     |                 |        |      |                      | services.trade_executor:start_monitoring:49 | Monitoramento de trades ativos iniciado (WebSocket events + fallback polling)
-2026-03-05 20:42:08 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:268 | Sem conexões ativas para monitorar trades expirados
-2026-03-05 20:42:36 | INFO     |                 |        |      |                      | services.trade_executor:stop_monitoring:72 | Monitoramento de trades ativos parado
+2026-03-06 14:26:36 | INFO     |                 |        |      |                      | services.trade_executor:start_monitoring:49 | Monitoramento de trades ativos iniciado (WebSocket events + fallback polling)
+2026-03-06 14:27:36 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:286 | Sem conexões ativas para monitorar trades expirados
+2026-03-06 14:28:37 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:286 | Sem conexões ativas para monitorar trades expirados
+2026-03-06 14:29:37 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:286 | Sem conexões ativas para monitorar trades expirados
+2026-03-06 14:30:37 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:286 | Sem conexões ativas para monitorar trades expirados
+2026-03-06 14:31:37 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:286 | Sem conexões ativas para monitorar trades expirados
+2026-03-06 14:32:37 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:286 | Sem conexões ativas para monitorar trades expirados
+2026-03-06 14:33:37 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:286 | Sem conexões ativas para monitorar trades expirados
+2026-03-06 14:34:37 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:286 | Sem conexões ativas para monitorar trades expirados
+2026-03-06 14:35:37 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:286 | Sem conexões ativas para monitorar trades expirados
+2026-03-06 14:36:37 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:286 | Sem conexões ativas para monitorar trades expirados
+2026-03-06 14:37:37 | DEBUG    |                 |        |      |                      | services.trade_executor:_monitor_active_trades:286 | Sem conexões ativas para monitorar trades expirados

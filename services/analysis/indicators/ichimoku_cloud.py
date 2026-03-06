@@ -111,7 +111,8 @@ class IchimokuCloud(TechnicalIndicator):
             'chikou_span': chikou_span
         }, index=data.index)
 
-        logger.debug(f"✓ Ichimoku Cloud calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Ichimoku Cloud calculado: {len(result)} candles")
 
         return result
 

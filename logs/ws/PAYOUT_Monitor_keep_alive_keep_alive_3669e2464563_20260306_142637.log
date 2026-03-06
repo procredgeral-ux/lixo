@@ -1,0 +1,113 @@
+================================================================================
+WebSocket Connection Log
+Connection ID: keep_alive_3669e2464563
+Connection Type: keep_alive
+User: PAYOUT Monitor
+Created: 2026-03-06T14:26:37.613493
+Log File: PAYOUT_Monitor_keep_alive_keep_alive_3669e2464563_20260306_142637.log
+================================================================================
+
+[2026-03-06T14:26:37.614491] [INIT] Iniciando estabelecimento de conexão
+  Data: {"ssid_preview": "42[\"auth\",{\"session\":\"3ukili81", "is_demo": true, "user_name": "PAYOUT Monitor", "urls_available": 2}
+[2026-03-06T14:26:38.489375] [CONNECTED] Conexão estabelecida em DEMO-EU
+  Data: {"url": "wss://demo-api-eu.po.market/socket.io/?EIO=4&transport=websocket", "region": "DEMO-EU", "total_reconnects": 0}
+[2026-03-06T14:26:38.711931] [AUTH] Autenticação bem-sucedida
+  Data: {"ssid_preview": "42[\"auth\",{\"session\":\"3ukili81", "user_name": "PAYOUT Monitor", "is_demo": true}
+[2026-03-06T14:26:39.225140] [PING] Ping enviado
+[2026-03-06T14:26:39.226035] [RECV] Mensagem recebida (50 bytes): 451-["updateAssets",{"_placeholder":true,"num":0}]
+[2026-03-06T14:26:39.290571] [RECV] Mensagem recebida (44248 bytes): [[5,"#AAPL","Apple","stock",2,50,60,30,3,0,170,0,[],1772830800,false,[{"time":60},{"time":120},{"time":180},{"time":300},{"time":600},{"time":900},{"time":1800},{"time":2700},{"time":3600},{"time":720...
+[2026-03-06T14:26:39.372742] [RECV] Mensagem recebida (49 bytes): 451-["successauth",{"_placeholder":true,"num":0}]
+[2026-03-06T14:26:39.386993] [RECV] Mensagem recebida (29 bytes): {"id":"eJ5vGxGE4uf147pzGEem"}
+[2026-03-06T14:26:39.388320] [RECV] Mensagem recebida (58 bytes): 451-["successupdatePending",{"_placeholder":true,"num":0}]
+[2026-03-06T14:26:39.388320] [RECV] Mensagem recebida (2 bytes): []
+[2026-03-06T14:26:39.388320] [RECV] Mensagem recebida (55 bytes): 451-["updateOpenedDeals",{"_placeholder":true,"num":0}]
+[2026-03-06T14:26:39.388320] [RECV] Mensagem recebida (2 bytes): []
+[2026-03-06T14:26:39.389314] [RECV] Mensagem recebida (50 bytes): 451-["updateCharts",{"_placeholder":true,"num":0}]
+[2026-03-06T14:26:39.389314] [RECV] Mensagem recebida (484 bytes): [{"chart_id":"chart-1","settings":"{\"chartId\":\"chart-1\",\"chartType\":1,\"chartPeriod\":4,\"candlesTimer\":false,\"symbol\":\"EURUSD_otc\",\"demoDealAmount\":10,\"liveDealAmount\":1,\"enabledTrade...
+[2026-03-06T14:26:39.389314] [RECV] Mensagem recebida (58 bytes): 451-["successupdateBalance",{"_placeholder":true,"num":0}]
+[2026-03-06T14:26:39.390312] [RECV] Mensagem recebida (28 bytes): {"isDemo":1,"balance":50000}
+[2026-03-06T14:26:39.391359] [RECV] Mensagem recebida (55 bytes): 451-["updateClosedDeals",{"_placeholder":true,"num":0}]
+[2026-03-06T14:26:39.392427] [RECV] Mensagem recebida (2 bytes): []
+[2026-03-06T14:26:59.222037] [PING] Ping enviado
+[2026-03-06T14:27:19.222913] [PING] Ping enviado
+[2026-03-06T14:27:25.964375] [RECV] Mensagem recebida (50 bytes): 451-["updateAssets",{"_placeholder":true,"num":0}]
+[2026-03-06T14:27:26.398279] [RECV] Mensagem recebida (44248 bytes): [[5,"#AAPL","Apple","stock",2,50,60,30,3,0,170,0,[],1772830800,false,[{"time":60},{"time":120},{"time":180},{"time":300},{"time":600},{"time":900},{"time":1800},{"time":2700},{"time":3600},{"time":720...
+[2026-03-06T14:27:39.241372] [PING] Ping enviado
+[2026-03-06T14:27:59.242601] [PING] Ping enviado
+[2026-03-06T14:28:19.243638] [PING] Ping enviado
+[2026-03-06T14:28:39.259343] [PING] Ping enviado
+[2026-03-06T14:28:59.276345] [PING] Ping enviado
+[2026-03-06T14:29:04.016703] [DISCONNECT] Conexão encerrada: ConnectionClosed in message loop
+
+================================================================================
+CONNECTION CLOSED - SUMMARY
+================================================================================
+Connection ID: keep_alive_3669e2464563
+Total Messages Sent: 0
+Total Messages Received: 16
+Total Reconnects: 1
+Total Errors: 0
+Closed At: 2026-03-06T14:29:14.303092
+================================================================================
+
+
+================================================================================
+RECONNECTION SESSION
+================================================================================
+Connection ID: keep_alive_3669e2464563
+Session Started: 2026-03-06T14:29:16.317877
+================================================================================
+
+[2026-03-06T14:29:16.319706] [INIT] Iniciando estabelecimento de conexão
+  Data: {"ssid_preview": "42[\"auth\",{\"session\":\"3ukili81", "is_demo": true, "user_name": "PAYOUT Monitor", "urls_available": 2}
+[2026-03-06T14:29:26.007174] [CONNECTED] Conexão estabelecida em DEMO-EU
+  Data: {"url": "wss://demo-api-eu.po.market/socket.io/?EIO=4&transport=websocket", "region": "DEMO-EU", "total_reconnects": 0}
+[2026-03-06T14:29:31.512771] [AUTH] Autenticação bem-sucedida
+  Data: {"ssid_preview": "42[\"auth\",{\"session\":\"3ukili81", "user_name": "PAYOUT Monitor", "is_demo": true}
+[2026-03-06T14:29:32.023815] [PING] Ping enviado
+[2026-03-06T14:29:32.024812] [RECV] Mensagem recebida (50 bytes): 451-["updateAssets",{"_placeholder":true,"num":0}]
+[2026-03-06T14:29:52.015665] [PING] Ping enviado
+[2026-03-06T14:30:10.956172] [RECV] Mensagem recebida (44248 bytes): [[5,"#AAPL","Apple","stock",2,50,60,30,3,0,170,0,[],1772830800,false,[{"time":60},{"time":120},{"time":180},{"time":300},{"time":600},{"time":900},{"time":1800},{"time":2700},{"time":3600},{"time":720...
+[2026-03-06T14:30:10.984210] [RECV] Mensagem recebida (49 bytes): 451-["successauth",{"_placeholder":true,"num":0}]
+[2026-03-06T14:30:11.000577] [RECV] Mensagem recebida (29 bytes): {"id":"mIbFJkYlg4_QQg4sGCVL"}
+[2026-03-06T14:30:11.000680] [RECV] Mensagem recebida (58 bytes): 451-["successupdatePending",{"_placeholder":true,"num":0}]
+[2026-03-06T14:30:11.001297] [RECV] Mensagem recebida (2 bytes): []
+[2026-03-06T14:30:11.001297] [RECV] Mensagem recebida (55 bytes): 451-["updateOpenedDeals",{"_placeholder":true,"num":0}]
+[2026-03-06T14:30:11.001297] [RECV] Mensagem recebida (2 bytes): []
+[2026-03-06T14:30:11.001891] [RECV] Mensagem recebida (58 bytes): 451-["successupdateBalance",{"_placeholder":true,"num":0}]
+[2026-03-06T14:30:11.002421] [RECV] Mensagem recebida (28 bytes): {"isDemo":1,"balance":50000}
+[2026-03-06T14:30:11.003398] [RECV] Mensagem recebida (50 bytes): 451-["updateCharts",{"_placeholder":true,"num":0}]
+[2026-03-06T14:30:11.004392] [RECV] Mensagem recebida (484 bytes): [{"chart_id":"chart-1","settings":"{\"chartId\":\"chart-1\",\"chartType\":1,\"chartPeriod\":4,\"candlesTimer\":false,\"symbol\":\"EURUSD_otc\",\"demoDealAmount\":10,\"liveDealAmount\":1,\"enabledTrade...
+[2026-03-06T14:30:11.004392] [RECV] Mensagem recebida (55 bytes): 451-["updateClosedDeals",{"_placeholder":true,"num":0}]
+[2026-03-06T14:30:11.005434] [RECV] Mensagem recebida (2 bytes): []
+[2026-03-06T14:30:12.024882] [PING] Ping enviado
+[2026-03-06T14:30:32.017867] [PING] Ping enviado
+[2026-03-06T14:30:52.025649] [PING] Ping enviado
+[2026-03-06T14:31:01.622564] [RECV] Mensagem recebida (50 bytes): 451-["updateAssets",{"_placeholder":true,"num":0}]
+[2026-03-06T14:31:01.758115] [RECV] Mensagem recebida (44247 bytes): [[5,"#AAPL","Apple","stock",2,50,60,30,3,0,170,0,[],1772830800,false,[{"time":60},{"time":120},{"time":180},{"time":300},{"time":600},{"time":900},{"time":1800},{"time":2700},{"time":3600},{"time":720...
+[2026-03-06T14:31:12.010263] [PING] Ping enviado
+[2026-03-06T14:31:32.005723] [PING] Ping enviado
+[2026-03-06T14:31:52.035281] [PING] Ping enviado
+[2026-03-06T14:32:12.052380] [PING] Ping enviado
+[2026-03-06T14:32:32.080333] [PING] Ping enviado
+[2026-03-06T14:32:52.071871] [PING] Ping enviado
+[2026-03-06T14:33:12.089596] [PING] Ping enviado
+[2026-03-06T14:33:24.894217] [RECV] Mensagem recebida (50 bytes): 451-["updateAssets",{"_placeholder":true,"num":0}]
+[2026-03-06T14:33:25.229723] [RECV] Mensagem recebida (44248 bytes): [[5,"#AAPL","Apple","stock",2,50,60,30,3,0,170,0,[],1772830800,false,[{"time":60},{"time":120},{"time":180},{"time":300},{"time":600},{"time":900},{"time":1800},{"time":2700},{"time":3600},{"time":720...
+[2026-03-06T14:33:32.104664] [PING] Ping enviado
+[2026-03-06T14:33:52.118660] [PING] Ping enviado
+[2026-03-06T14:34:12.140324] [PING] Ping enviado
+[2026-03-06T14:34:32.132576] [PING] Ping enviado
+[2026-03-06T14:34:52.154973] [PING] Ping enviado
+[2026-03-06T14:35:12.147417] [PING] Ping enviado
+[2026-03-06T14:35:22.330677] [RECV] Mensagem recebida (50 bytes): 451-["updateAssets",{"_placeholder":true,"num":0}]
+[2026-03-06T14:35:22.764424] [RECV] Mensagem recebida (44247 bytes): [[5,"#AAPL","Apple","stock",2,50,60,30,3,0,170,0,[],1772830800,false,[{"time":60},{"time":120},{"time":180},{"time":300},{"time":600},{"time":900},{"time":1800},{"time":2700},{"time":3600},{"time":720...
+[2026-03-06T14:35:32.143513] [PING] Ping enviado
+[2026-03-06T14:35:52.156820] [PING] Ping enviado
+[2026-03-06T14:36:12.163436] [PING] Ping enviado
+[2026-03-06T14:36:28.190143] [RECV] Mensagem recebida (50 bytes): 451-["updateAssets",{"_placeholder":true,"num":0}]
+[2026-03-06T14:36:28.607555] [RECV] Mensagem recebida (44247 bytes): [[5,"#AAPL","Apple","stock",2,50,60,30,3,0,170,0,[],1772830800,false,[{"time":60},{"time":120},{"time":180},{"time":300},{"time":600},{"time":900},{"time":1800},{"time":2700},{"time":3600},{"time":720...
+[2026-03-06T14:36:32.170794] [PING] Ping enviado
+[2026-03-06T14:36:52.190826] [PING] Ping enviado
+[2026-03-06T14:37:12.199103] [PING] Ping enviado
+[2026-03-06T14:37:32.202833] [PING] Ping enviado

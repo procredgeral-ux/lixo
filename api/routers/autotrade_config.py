@@ -99,11 +99,15 @@ async def create_autotrade_config(
     logger.info(f"📥 config_data.model_dump(): {config_data.model_dump()}")
     logger.info(f"📥 config_data.model_dump(exclude_unset=True): {config_data.model_dump(exclude_unset=True)}")
 
-    # Verify account ownership
+    # Determinar o usuário alvo (admin pode configurar para outro usuário)
+    target_user_id = config_data.user_id if (config_data.user_id and current_user.is_superuser) else current_user.id
+    logger.info(f"👤 current_user: {current_user.id}, target_user_id: {target_user_id}, is_superuser: {current_user.is_superuser}")
+
+    # Verify account ownership (do usuário alvo)
     account_result = await db.execute(
         select(Account).where(
             Account.id == config_data.account_id,
-            Account.user_id == current_user.id
+            Account.user_id == target_user_id
         )
     )
     account = account_result.scalar_one_or_none()
@@ -114,12 +118,12 @@ async def create_autotrade_config(
             detail="Account not found"
         )
 
-    # Verify strategy ownership if provided
+    # Verify strategy ownership if provided (do usuário alvo)
     if config_data.strategy_id:
         strategy_result = await db.execute(
             select(Strategy).where(
                 Strategy.id == config_data.strategy_id,
-                Strategy.user_id == current_user.id
+                Strategy.user_id == target_user_id
             )
         )
         strategy = strategy_result.scalar_one_or_none()
@@ -260,11 +264,15 @@ async def get_autotrade_configs(
     account_id: Optional[str] = None,
     strategy_id: Optional[str] = None,
     is_active: Optional[bool] = None,
+    user_id: Optional[str] = None,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Get auto trade configurations"""
-    query = select(AutoTradeConfig).join(Account).where(Account.user_id == current_user.id)
+    # Determine target user (admin can query for other users)
+    target_user_id = user_id if (user_id and current_user.is_superuser) else current_user.id
+    
+    query = select(AutoTradeConfig).join(Account).where(Account.user_id == target_user_id)
     
     if account_id:
         query = query.where(AutoTradeConfig.account_id == account_id)
@@ -313,19 +321,45 @@ async def get_autotrade_config(
 async def update_autotrade_config(
     config_id: str,
     config_data: AutoTradeConfigUpdate,
+    user_id: Optional[str] = None,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Update auto trade configuration"""
+    # Determine target user (admin can update for other users)
+    target_user_id = user_id if (user_id and current_user.is_superuser) else current_user.id
+    
+    logger.info(f"[DEBUG PUT] config_id={config_id}, target_user_id={target_user_id}, user_id_param={user_id}, is_superuser={current_user.is_superuser}")
+    
+    # Primeiro, tente buscar a config sem JOIN para ver se ela existe
+    simple_result = await db.execute(
+        select(AutoTradeConfig).where(AutoTradeConfig.id == config_id)
+    )
+    simple_config = simple_result.scalar_one_or_none()
+    if simple_config:
+        logger.info(f"[DEBUG PUT] Config encontrada sem JOIN: id={simple_config.id}, account_id={simple_config.account_id}")
+        # Verificar se a account pertence ao target_user_id
+        account_result = await db.execute(
+            select(Account).where(Account.id == simple_config.account_id)
+        )
+        account = account_result.scalar_one_or_none()
+        if account:
+            logger.info(f"[DEBUG PUT] Account encontrada: id={account.id}, user_id={account.user_id}, target={target_user_id}")
+        else:
+            logger.warning(f"[DEBUG PUT] Account NÃO encontrada para account_id={simple_config.account_id}")
+    else:
+        logger.warning(f"[DEBUG PUT] Config NÃO encontrada sem JOIN para id={config_id}")
+    
     result = await db.execute(
         select(AutoTradeConfig).join(Account).where(
             AutoTradeConfig.id == config_id,
-            Account.user_id == current_user.id
+            Account.user_id == target_user_id
         )
     )
     config = result.scalar_one_or_none()
     
     if not config:
+        logger.error(f"[DEBUG PUT] Config não encontrada com JOIN. config_id={config_id}, target_user_id={target_user_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="AutoTrade config not found"

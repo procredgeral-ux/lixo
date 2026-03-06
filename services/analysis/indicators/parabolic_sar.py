@@ -140,7 +140,8 @@ class ParabolicSAR(TechnicalIndicator):
                         ep.iloc[i] = ep.iloc[i-1]
                         af.iloc[i] = af.iloc[i-1]
 
-        logger.debug(f"✓ Parabolic SAR calculado: {len(sar)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Parabolic SAR calculado: {len(sar)} candles")
 
         return sar
 
@@ -189,7 +190,8 @@ class ParabolicSAR(TechnicalIndicator):
             elif all(recent_trend == -1):
                 result.iloc[i, result.columns.get_loc('confidence')] = 0.8
 
-        logger.debug(f"✓ Parabolic SAR com sinais calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Parabolic SAR com sinais calculado: {len(result)} candles")
 
         return result
 

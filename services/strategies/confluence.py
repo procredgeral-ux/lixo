@@ -446,8 +446,8 @@ class ConfluenceCalculator:
         weighted_buy_score = self._calculate_weighted_score(buy_signals)
         weighted_sell_score = self._calculate_weighted_score(sell_signals)
         
-        # DEBUG: Log dos scores antes das penalidades - SILENCIADO no console (DEBUG only)
-        logger.debug(f"📊 [CONFLUENCE] Scores: BUY={weighted_buy_score:.3f}, SELL={weighted_sell_score:.3f} | Buy={len(buy_signals)} Sell={len(sell_signals)}")
+        # DEBUG: Log dos scores antes das penalidades - SILENCIADO
+        # logger.debug(f"📊 [CONFLUENCE] Scores: BUY={weighted_buy_score:.3f}, SELL={weighted_sell_score:.3f} | Buy={len(buy_signals)} Sell={len(sell_signals)}")
         
         # Log detalhado dos sinais - SILENCIADO no console
         # (Comentado para reduzir flood - ative se precisar debugar)
@@ -468,8 +468,8 @@ class ConfluenceCalculator:
             weighted_buy_score = min(weighted_buy_score + divergence_bonus, 1.0)
             weighted_sell_score = min(weighted_sell_score + divergence_bonus, 1.0)
         
-        # DEBUG: Log dos scores finais - SILENCIADO (DEBUG only)
-        logger.debug(f"📊 [CONFLUENCE] Scores finais: BUY={weighted_buy_score:.3f}, SELL={weighted_sell_score:.3f}")
+        # DEBUG: Log dos scores finais - SILENCIADO
+        # logger.debug(f"📊 [CONFLUENCE] Scores finais: BUY={weighted_buy_score:.3f}, SELL={weighted_sell_score:.3f}")
         
         # Calculate difference
         score_diff = abs(weighted_buy_score - weighted_sell_score)
@@ -482,16 +482,19 @@ class ConfluenceCalculator:
                 buy_count = len(buy_signals)
                 sell_count = 0
                 weighted_score = weighted_buy_score
-                logger.debug(f"📊 [CONFLUENCE] BUY vence por quantidade ({len(buy_signals)} > {len(sell_signals)})")
+                # Log silenciado
+                # logger.debug(f"📊 [CONFLUENCE] BUY vence por quantidade ({len(buy_signals)} > {len(sell_signals)})")
             elif len(sell_signals) > len(buy_signals):
                 direction = SignalDirection.SELL
                 buy_count = 0
                 sell_count = len(sell_signals)
                 weighted_score = weighted_sell_score
-                logger.debug(f"📊 [CONFLUENCE] SELL vence por quantidade ({len(sell_signals)} > {len(buy_signals)})")
+                # Log silenciado
+                # logger.debug(f"📊 [CONFLUENCE] SELL vence por quantidade ({len(sell_signals)} > {len(buy_signals)})")
             else:
                 # Equal scores and equal count - return HOLD
-                logger.debug(f"📊 [CONFLUENCE] Diferença muito pequena ({score_diff:.3f}) e quantidade igual, retornando HOLD")
+                # Log silenciado
+                # logger.debug(f"📊 [CONFLUENCE] Diferença muito pequena ({score_diff:.3f}) e quantidade igual, retornando HOLD")
                 return {
                     'direction': SignalDirection.HOLD,
                     'confluence_score': 0.0,

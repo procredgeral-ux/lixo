@@ -198,7 +198,8 @@ class DataCollectorService:
             )
             
             signal_type_str = signal.signal_type.value if hasattr(signal.signal_type, 'value') else str(signal.signal_type)
-            logger.info(f"[BEST SIGNAL] Sinal adicionado ao batch: {symbol} ({signal_type_str}) | conf={signal.confidence:.2f}")
+            # Log silenciado
+            # logger.info(f"[BEST SIGNAL] Sinal adicionado ao batch: {symbol} ({signal_type_str}) | conf={signal.confidence:.2f}")
             
             # Registrar sinal no performance monitor
             try:
@@ -2091,7 +2092,7 @@ class DataCollectorService:
 
             # Log para debug
             total_configs = sum(len(configs) for configs in all_configs.values())
-            logger.debug(f"[INFO] [{symbol}] {total_configs} configurações carregadas para {len(all_configs)} contas")
+            # logger.debug(f"[INFO] [{symbol}] {total_configs} configurações carregadas para {len(all_configs)} contas")
 
             # Filtrar configs para este timeframe
             configs_for_timeframe = []
@@ -2106,8 +2107,6 @@ class DataCollectorService:
             if not configs_for_timeframe:
                 logger.debug(f"[WARNING] [{symbol}] Nenhuma configuração ativa para timeframe {timeframe_seconds}s")
                 return None
-
-            
 
             # Verificar saldo de cada conta antes de gerar sinais
             configs_with_sufficient_balance = []
@@ -2184,7 +2183,7 @@ class DataCollectorService:
                 logger.debug(f"[WARNING] [{symbol}] Nenhuma configuração com saldo suficiente")
                 return None
 
-            logger.info(f"[MONEY] [{symbol}] {len(configs_with_sufficient_balance)} configuração(ões) com saldo suficiente")
+            # logger.info(f"[MONEY] [{symbol}] {len(configs_with_sufficient_balance)} configuração(ões) com saldo suficiente")
 
             # Obter buffer de candles
             buffers = self._candle_buffers.get(symbol, {})
@@ -2208,7 +2207,7 @@ class DataCollectorService:
                             buffers[timeframe_seconds] = buffers[timeframe_seconds][-200:]
                         # Atualizar buffer
                         buffer = buffers[timeframe_seconds]
-                        logger.info(f"[OK] [{symbol}] {len(candles_timeframe)} candles convertidos de 1s para {timeframe_seconds}s")
+                        # logger.info(f"[OK] [{symbol}] {len(candles_timeframe)} candles convertidos de 1s para {timeframe_seconds}s")
 
             if len(buffer) < 12:
                 logger.warning(f"[WARNING] [{symbol}] Buffer insuficiente ({len(buffer)} < 12)")
@@ -2296,9 +2295,9 @@ class DataCollectorService:
                 strategy_display_name = config.get('strategy_name', f"AutoTrade-{account_id[:8]}")
                 indicators_config = config.get('indicators', [])
                 
-                # Log indicadores configurados para debug
+                # Log indicadores configurados para debug - SILENCIADO
                 indicator_types = [ind.get('type', 'unknown') for ind in indicators_config]
-                logger.info(f"📊 [USUÁRIO: {user_name}] Indicadores configurados: {indicator_types}")
+                # logger.info(f"📊 [USUÁRIO: {user_name}] Indicadores configurados: {indicator_types}")
                 
                 strategy = CustomStrategy(
                     name=strategy_display_name,
@@ -2416,7 +2415,7 @@ class DataCollectorService:
             try:
                 from services.analysis.indicators.synthetic_volume import add_synthetic_volume
                 df = add_synthetic_volume(df, price_column='close')
-                logger.debug(f"✓ Volume sintético adicionado ao DataFrame ({len(df)} candles)")
+                # logger.debug(f"✓ Volume sintético adicionado ao DataFrame ({len(df)} candles)")
             except Exception as e:
                 logger.warning(f"⚠️ Não foi possível adicionar volume sintético: {e}")
 

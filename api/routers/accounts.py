@@ -29,14 +29,43 @@ router = APIRouter()
 
 @router.get("", response_model=List[AccountResponse])
 async def get_accounts(
+    user_id: Optional[str] = None,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Get all accounts for current user"""
+    """Get all accounts for current user (or for another user if admin)"""
+    # Se user_id fornecido e usuário é admin, buscar contas desse usuário
+    target_user_id = user_id if (user_id and current_user.is_superuser) else current_user.id
+    is_admin = user_id is not None and current_user.is_superuser
+    
     result = await db.execute(
-        select(Account).where(Account.user_id == current_user.id)
+        select(Account).where(Account.user_id == target_user_id)
     )
     accounts = result.scalars().all()
+    
+    # Se admin está consultando e usuário não tem conta, criar uma automaticamente
+    if is_admin and not accounts:
+        # Buscar dados do usuário alvo
+        from models import User
+        target_user_result = await db.execute(
+            select(User).where(User.id == target_user_id)
+        )
+        target_user = target_user_result.scalar_one_or_none()
+        
+        if target_user:
+            logger.info(f"[ADMIN] Criando conta automaticamente para usuário {target_user_id}")
+            new_account = Account(
+                user_id=target_user_id,
+                name=f"Conta de {target_user.name}",
+                autotrade_demo=True,
+                autotrade_real=False,
+                uid=0,
+                platform=0
+            )
+            db.add(new_account)
+            await db.commit()
+            await db.refresh(new_account)
+            accounts = [new_account]
     
     return [
         AccountResponse(

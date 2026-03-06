@@ -70,7 +70,8 @@ class SyntheticVolumeCalculator:
             # Normalizar para valores entre 1 e 1000
             synthetic_volume = self._normalize_volume(synthetic_volume)
 
-            logger.debug(f"✓ Volume sintético calculado: média={synthetic_volume.mean():.2f}")
+            # Log silenciado
+            # logger.debug(f"✓ Volume sintético calculado: média={synthetic_volume.mean():.2f}")
 
             return synthetic_volume
 

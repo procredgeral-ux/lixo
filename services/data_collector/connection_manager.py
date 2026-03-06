@@ -25,6 +25,7 @@ class UserConnection:
         self.client: Optional[AsyncPocketOptionClient] = None
         self._is_connected = False
         self.subscribed_assets = set()
+        self._permanent_disconnect = False  # Flag para evitar reconexão automática
 
     def _get_log_prefix(self):
         """Gerar prefixo de log com nome do usuário ou tipo de monitoramento"""
@@ -752,6 +753,16 @@ Por favor, adicione saldo à sua conta para continuar usando o AutoTrade."""
                             logger.warning(f"{self._get_log_prefix()} [{self.account_id}] Erro ao enviar notificação Telegram: {e}")
                         
                         # 🚨 DESCONECTAR WebSocket imediatamente para evitar reconexão
+                        # Definir flag para evitar que o loop de monitoramento tente reconectar
+                        self._permanent_disconnect = True
+                        logger.warning(
+                            f"{self._get_log_prefix()} [{self.account_id}] 🚫 PERMANENT_DISCONNECT ativado por saldo insuficiente - autotrade desabilitado",
+                            extra={
+                                "user_name": self.user_name,
+                                "account_id": self.account_id[:8] if self.account_id else "",
+                                "account_type": self.connection_type
+                            }
+                        )
                         await self.disconnect()
                         logger.info(
                             f"{self._get_log_prefix()} [{self.account_id}] 🔌 Conexão WebSocket FECHADA por saldo insuficiente",
@@ -854,7 +865,8 @@ class UserConnectionManager:
                     {"account_id": account_id}
                 )
                 await db.commit()
-                logger.debug(f"[{account_id[:8]}...] last_activity atualizado")
+                # Log silenciado
+                # logger.debug(f"[{account_id[:8]}...] last_activity atualizado")
         except Exception as e:
             logger.error(f"[{account_id[:8]}...] Erro ao atualizar last_activity: {e}")
     
@@ -1080,26 +1092,28 @@ class UserConnectionManager:
             elif account_dt:
                 last_activity_timestamp = account_dt
 
-            logger.debug(
-                f"Conta {account.id[:8]}...: has_configs={has_configs}, is_active={is_active}, "
-                f"autotrade_demo={autotrade_demo}, autotrade_real={autotrade_real}, "
-                f"ssid_demo={'***' if ssid_demo else 'N/A'}, ssid_real={'***' if ssid_real else 'N/A'}",
-                extra={
-                    "user_name": user_name,
-                    "account_id": account.id[:8] if account.id else "",
-                    "account_type": ""
-                }
-            )
+            # Log silenciado - debug de conta
+            # logger.debug(
+            #     f"Conta {account.id[:8]}...: has_configs={has_configs}, is_active={is_active}, "
+            #     f"autotrade_demo={autotrade_demo}, autotrade_real={autotrade_real}, "
+            #     f"ssid_demo={'***' if ssid_demo else 'N/A'}, ssid_real={'***' if ssid_real else 'N/A'}",
+            #     extra={
+            #         "user_name": user_name,
+            #         "account_id": account.id[:8] if account.id else "",
+            #         "account_type": ""
+            #     }
+            # )
 
             if not has_configs:
-                logger.debug(
-                    f"Conta {account.id[:8]}...: Sem estratégias, pulando conexões",
-                    extra={
-                        "user_name": user_name,
-                        "account_id": account.id[:8] if account.id else "",
-                        "account_type": ""
-                    }
-                )
+                # Log silenciado
+                # logger.debug(
+                #     f"Conta {account.id[:8]}...: Sem estratégias, pulando conexões",
+                #     extra={
+                #         "user_name": user_name,
+                #         "account_id": account.id[:8] if account.id else "",
+                #         "account_type": ""
+                #     }
+                # )
                 # Desconectar se estiver conectado
                 demo_key = self._get_connection_key(account.id, 'demo')
                 real_key = self._get_connection_key(account.id, 'real')
@@ -1252,7 +1266,19 @@ class UserConnectionManager:
             # Verificar conexão demo
             demo_key = self._get_connection_key(account.id, 'demo')
             if should_connect_demo and ssid_demo:
-                if demo_key not in self.connections or not self.connections[demo_key].is_connected:
+                # 🚫 VERIFICAR SE CONEXÃO EXISTENTE FOI MARCADA COMO PERMANENT_DISCONNECT
+                if demo_key in self.connections and getattr(self.connections[demo_key], '_permanent_disconnect', False):
+                    logger.warning(
+                        f"[{account.id[:8]}...] 🚫 Conexão demo marcada como PERMANENT_DISCONNECT por saldo insuficiente. "
+                        f"Removendo e NÃO reconectando.",
+                        extra={
+                            "user_name": user_name,
+                            "account_id": account.id[:8] if account.id else "",
+                            "account_type": "demo"
+                        }
+                    )
+                    del self.connections[demo_key]
+                elif demo_key not in self.connections or not self.connections[demo_key].is_connected:
                     logger.info(f"[{account.id[:8]}...] Iniciando conexão demo para usuário...", extra={
                         "user_name": user_name,
                         "account_id": account.id[:8] if account.id else "",
@@ -1274,7 +1300,19 @@ class UserConnectionManager:
             # Verificar conexão real
             real_key = self._get_connection_key(account.id, 'real')
             if should_connect_real and ssid_real:
-                if real_key not in self.connections or not self.connections[real_key].is_connected:
+                # 🚫 VERIFICAR SE CONEXÃO EXISTENTE FOI MARCADA COMO PERMANENT_DISCONNECT
+                if real_key in self.connections and getattr(self.connections[real_key], '_permanent_disconnect', False):
+                    logger.warning(
+                        f"[{account.id[:8]}...] 🚫 Conexão real marcada como PERMANENT_DISCONNECT por saldo insuficiente. "
+                        f"Removendo e NÃO reconectando.",
+                        extra={
+                            "user_name": user_name,
+                            "account_id": account.id[:8] if account.id else "",
+                            "account_type": "real"
+                        }
+                    )
+                    del self.connections[real_key]
+                elif real_key not in self.connections or not self.connections[real_key].is_connected:
                     logger.info(f"[{account.id[:8]}...] Iniciando conexão real para usuário...", extra={
                         "user_name": user_name,
                         "account_id": account.id[:8] if account.id else "",
@@ -1369,10 +1407,27 @@ class UserConnectionManager:
             'ws_connections': total_connections,  # Total de conexões WS
         }
     
-    async def disconnect_connection(self, account_id: str, connection_type: str):
-        """Desconectar imediatamente uma conexão específica"""
+    async def disconnect_connection(self, account_id: str, connection_type: str, permanent: bool = False):
+        """Desconectar imediatamente uma conexão específica
+        
+        Args:
+            account_id: ID da conta
+            connection_type: Tipo de conexão ('demo' ou 'real')
+            permanent: Se True, marca a conexão como PERMANENT_DISCONNECT para evitar reconexão automática
+        """
         key = self._get_connection_key(account_id, connection_type)
         if key in self.connections:
+            if permanent:
+                # Marcar como desconexão permanente para evitar reconexão
+                self.connections[key]._permanent_disconnect = True
+                logger.warning(
+                    f"[{account_id[:8]}...] 🚫 Marcando conexão {connection_type} como PERMANENT_DISCONNECT",
+                    extra={
+                        "user_name": self.connections[key].user_name if key in self.connections else "",
+                        "account_id": account_id[:8] if account_id else "",
+                        "account_type": connection_type
+                    }
+                )
             logger.info(f"[{account_id[:8]}...] Desconectando conexão {connection_type} imediatamente...", extra={
                 "user_name": self.connections[key].user_name if key in self.connections else "",
                 "account_id": account_id[:8] if account_id else "",

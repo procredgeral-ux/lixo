@@ -7,6 +7,14 @@ from typing import List, Optional
 from datetime import datetime, timedelta
 from loguru import logger
 
+# Função helper para garantir datetime sem timezone (offset-naive)
+def naive_utcnow():
+    """Retorna datetime.utcnow() garantindo que seja offset-naive"""
+    dt = datetime.utcnow()
+    if dt.tzinfo is not None:
+        dt = dt.replace(tzinfo=None)
+    return dt
+
 from core.database import get_db
 from core.security import get_current_active_user
 from models import User, Strategy, Signal, Indicator, strategy_indicators
@@ -77,6 +85,7 @@ async def _build_strategy_response(strategy: Strategy, db: AsyncSession) -> Stra
 
 @router.get("", response_model=List[StrategyResponse])
 async def get_strategies(
+    user_id: Optional[str] = None,  # Permitir admin filtrar por usuário específico
     active: bool = None,
     strategy_type: str = None,
     limit: int = 100,  # Paginação padrão
@@ -84,15 +93,22 @@ async def get_strategies(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Get all strategies for current user with pagination"""
+    """Get all strategies for current user with pagination. Admin can filter by user_id."""
     from models import AutoTradeConfig
+
+    # Determinar qual user_id usar
+    target_user_id = current_user.id
+    if user_id and current_user.is_superuser:
+        # Admin pode ver estratégias de qualquer usuário
+        target_user_id = user_id
+        logger.info(f"[ADMIN] Superusuário {current_user.email} buscando estratégias do usuário {user_id}")
 
     # Query otimizada com join para evitar N+1
     query = (
         select(Strategy, AutoTradeConfig.is_active.label('autotrade_active'))
         .outerjoin(AutoTradeConfig, Strategy.id == AutoTradeConfig.strategy_id)
         .options(selectinload(Strategy.indicators))
-        .where(Strategy.user_id == current_user.id)
+        .where(Strategy.user_id == target_user_id)
     )
 
     if active is not None:
@@ -280,9 +296,9 @@ async def create_strategy(
         timeframe=5,
         min_confidence=0.7,
         is_active=False,
-        last_activity_timestamp=datetime.utcnow(),
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        last_activity_timestamp=naive_utcnow(),
+        created_at=naive_utcnow(),
+        updated_at=naive_utcnow()
     )
     db.add(autotrade_config)
     await db.commit()
@@ -316,13 +332,17 @@ async def get_strategy(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Get strategy details with performance"""
-    result = await db.execute(
-        select(Strategy).options(selectinload(Strategy.indicators)).where(
-            Strategy.id == strategy_id,
-            Strategy.user_id == current_user.id
-        )
+    """Get strategy details with performance. Admin can view any strategy."""
+    # Construir query base
+    query = select(Strategy).options(selectinload(Strategy.indicators)).where(
+        Strategy.id == strategy_id
     )
+    
+    # Se não for superusuário, filtrar apenas estratégias do próprio usuário
+    if not current_user.is_superuser:
+        query = query.where(Strategy.user_id == current_user.id)
+    
+    result = await db.execute(query)
     strategy = result.scalar_one_or_none()
 
     if not strategy:
@@ -380,13 +400,15 @@ async def update_strategy(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Update strategy"""
-    result = await db.execute(
-        select(Strategy).where(
-            Strategy.id == strategy_id,
-            Strategy.user_id == current_user.id
-        )
-    )
+    """Update strategy. Admin can edit any strategy."""
+    # Construir query base
+    query = select(Strategy).where(Strategy.id == strategy_id)
+    
+    # Se não for superusuário, filtrar apenas estratégias do próprio usuário
+    if not current_user.is_superuser:
+        query = query.where(Strategy.user_id == current_user.id)
+    
+    result = await db.execute(query)
     strategy = result.scalar_one_or_none()
 
     if not strategy:
@@ -564,14 +586,14 @@ async def update_strategy(
                     logger.error(f"Erro ao enviar notificação de autotrade: {e}")
             
             autotrade_config.is_active = strategy_update.is_active
-            autotrade_config.updated_at = datetime.utcnow()
+            autotrade_config.updated_at = naive_utcnow()
             # Atualizar last_activity_timestamp quando estratégia é ativada
             if strategy_update.is_active:
-                autotrade_config.last_activity_timestamp = datetime.utcnow()
+                autotrade_config.last_activity_timestamp = naive_utcnow()
             logger.info(f"AutoTrade config is_active atualizado para {strategy_update.is_active} na estratégia {strategy_id}")
             
             await db.commit()
-            autotrade_config.updated_at = datetime.utcnow()
+            autotrade_config.updated_at = naive_utcnow()
             logger.info(f"AutoTrade config is_active atualizado para {strategy_update.is_active} na estratégia {strategy_id}")
             
             # Invalidar cache de configs no data_collector
@@ -609,7 +631,7 @@ async def update_strategy(
                     )
                 )
 
-    strategy.updated_at = datetime.utcnow()
+    strategy.updated_at = naive_utcnow()
     
     await db.commit()
     await db.refresh(strategy)
@@ -630,13 +652,15 @@ async def delete_strategy(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Delete strategy - otimizado com DELETE em batch para 1000+ usuários"""
-    result = await db.execute(
-        select(Strategy).where(
-            Strategy.id == strategy_id,
-            Strategy.user_id == current_user.id
-        )
-    )
+    """Delete strategy - Admin can delete any strategy, users only their own"""
+    # Construir query base
+    query = select(Strategy).where(Strategy.id == strategy_id)
+    
+    # Se não for superusuário, filtrar apenas estratégias do próprio usuário
+    if not current_user.is_superuser:
+        query = query.where(Strategy.user_id == current_user.id)
+    
+    result = await db.execute(query)
     strategy = result.scalar_one_or_none()
 
     if not strategy:

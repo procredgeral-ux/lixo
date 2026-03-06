@@ -88,7 +88,8 @@ class FibonacciRetracement(TechnicalIndicator):
             'fib_100': fib_100
         }, index=data.index)
 
-        logger.debug(f"✓ Fibonacci Retracement calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Fibonacci Retracement calculado: {len(result)} candles")
 
         return result
 
@@ -124,7 +125,8 @@ class FibonacciRetracement(TechnicalIndicator):
         result.loc[(close > result['fib_50']) & (close < result['fib_236']), 'confidence'] = 0.8
         result.loc[(close < result['fib_50']) & (close > result['fib_786']), 'confidence'] = 0.8
 
-        logger.debug(f"✓ Fibonacci Retracement com sinais calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Fibonacci Retracement com sinais calculado: {len(result)} candles")
 
         return result
 

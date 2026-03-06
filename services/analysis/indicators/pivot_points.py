@@ -76,7 +76,8 @@ class PivotPoints(TechnicalIndicator):
             's3': s3
         }, index=data.index)
 
-        logger.debug(f"✓ Pivot Points calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Pivot Points calculado: {len(result)} candles")
 
         return result
 
@@ -111,7 +112,8 @@ class PivotPoints(TechnicalIndicator):
         result['confidence'] = 0.5
         result.loc[(close > result['r2']) | (close < result['s2']), 'confidence'] = 0.8
 
-        logger.debug(f"✓ Pivot Points com sinais calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Pivot Points com sinais calculado: {len(result)} candles")
 
         return result
 

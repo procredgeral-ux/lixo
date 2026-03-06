@@ -74,7 +74,8 @@ class HeikenAshi(TechnicalIndicator):
             'ha_close': ha_close
         }, index=data.index)
 
-        logger.debug(f"✓ Heiken Ashi calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Heiken Ashi calculado: {len(result)} candles")
 
         return result
 

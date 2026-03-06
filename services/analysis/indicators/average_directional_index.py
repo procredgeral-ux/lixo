@@ -89,7 +89,8 @@ class AverageDirectionalIndex(TechnicalIndicator):
             'minus_di': minus_di
         }, index=data.index)
 
-        logger.debug(f"✓ ADX calculado: {len(result)} candles")
+        # Log silenciado para reduzir poluição
+        # logger.debug(f"✓ ADX calculado: {len(result)} candles")
 
         return result
 
@@ -128,7 +129,8 @@ class AverageDirectionalIndex(TechnicalIndicator):
         result.loc[result['adx'] > 40, 'confidence'] = 0.9
         result.loc[result['adx'] > 30, 'confidence'] = 0.7
 
-        logger.debug(f"✓ ADX com sinais calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ ADX com sinais calculado: {len(result)} candles")
 
         return result
 

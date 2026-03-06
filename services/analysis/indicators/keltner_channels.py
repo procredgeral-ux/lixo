@@ -97,7 +97,8 @@ class KeltnerChannels(TechnicalIndicator):
             'lower_band': lower_band
         }, index=data.index)
 
-        logger.debug(f"✓ Keltner Channels calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Keltner Channels calculado: {len(result)} candles")
 
         return result
 
@@ -133,7 +134,8 @@ class KeltnerChannels(TechnicalIndicator):
         band_width = result['upper_band'] - result['lower_band']
         result.loc[band_width > band_width.rolling(window=20).mean() * 1.5, 'confidence'] = 0.8
 
-        logger.debug(f"✓ Keltner Channels com sinais calculado: {len(result)} candles")
+        # Log silenciado
+        # logger.debug(f"✓ Keltner Channels com sinais calculado: {len(result)} candles")
 
         return result
 

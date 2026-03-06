@@ -199,21 +199,28 @@ class TradeExecutor:
                         }
                     )
                     # Tentar buscar trades ativos expirados recentemente
+                    # FIX: Buscar IDs primeiro, depois processar em sessões separadas
                     five_minutes_ago = datetime.utcnow() - pd.Timedelta(minutes=5)
-                    expired_query = select(Trade).where(
-                        Trade.status == TradeStatus.ACTIVE,
-                        Trade.expires_at <= five_minutes_ago,
-                    )
-                    if account_id:
-                        expired_query = expired_query.where(Trade.account_id == account_id)
-                    if connection_type:
-                        expired_query = expired_query.where(Trade.connection_type == connection_type)
-                    result = await db.execute(expired_query)
-                    expired_trades = result.scalars().all()
-                    if expired_trades:
+                    expired_trade_ids = []
+                    try:
+                        expired_query = select(Trade.id).where(
+                            Trade.status == TradeStatus.ACTIVE,
+                            Trade.expires_at <= five_minutes_ago,
+                        )
+                        if account_id:
+                            expired_query = expired_query.where(Trade.account_id == account_id)
+                        if connection_type:
+                            expired_query = expired_query.where(Trade.connection_type == connection_type)
+                        result = await db.execute(expired_query)
+                        expired_trade_ids = [row[0] for row in result.all()]
+                    except Exception as e:
+                        logger.error(f"Erro ao buscar trades expirados: {e}")
+                        return
+                    
+                    if expired_trade_ids:
                         account_label = account_id[:8] if account_id else "?"
                         logger.info(
-                            f"Verificando {len(expired_trades)} trades expirados "
+                            f"Verificando {len(expired_trade_ids)} trades expirados "
                             f"(conta={account_label}, order_id não encontrado)",
                             extra={
                                 "user_name": "",
@@ -221,10 +228,21 @@ class TradeExecutor:
                                 "account_type": connection_type or ""
                             }
                         )
-                        for expired_trade in expired_trades:
-                            account_lock = self._get_account_lock(expired_trade.account_id)
-                            async with account_lock:
-                                await self._check_trade_result(expired_trade, db)
+                        # Processar cada trade em sua própria sessão
+                        for expired_trade_id in expired_trade_ids:
+                            try:
+                                async with get_db_context() as trade_db:
+                                    # Buscar trade completo nesta sessão
+                                    trade_result = await trade_db.execute(
+                                        select(Trade).where(Trade.id == expired_trade_id)
+                                    )
+                                    expired_trade = trade_result.scalar_one_or_none()
+                                    if expired_trade:
+                                        account_lock = self._get_account_lock(expired_trade.account_id)
+                                        async with account_lock:
+                                            await self._check_trade_result(expired_trade, trade_db)
+                            except Exception as e:
+                                logger.error(f"Erro ao processar trade expirado {expired_trade_id[:8]}: {e}")
                     return
 
                 # Se o trade ainda está ativo, verificar resultado
@@ -277,32 +295,48 @@ class TradeExecutor:
 
                 active_account_ids = {connection.account_id for connection in active_connections}
                 
-                # Buscar trades ativos expirados há mais de 1 minuto
-                async with get_db_context() as db:
-                    one_minute_ago = datetime.utcnow() - pd.Timedelta(minutes=1)
-                    trade_query = select(Trade).where(
-                        Trade.status == TradeStatus.ACTIVE,
-                        Trade.expires_at <= one_minute_ago,
-                        Trade.account_id.in_(active_account_ids),
-                    )
-                    result = await db.execute(trade_query)
-                    expired_trades = result.scalars().all()
-                    
-                    if expired_trades:
-                        logger.info(
-                            f"Verificando {len(expired_trades)} trades expirados (fallback polling)",
-                            extra={
-                                "user_name": "",
-                                "account_id": "",
-                                "account_type": ""
-                            }
+                # Buscar IDs dos trades ativos expirados há mais de 1 minuto
+                expired_trade_ids = []
+                try:
+                    async with get_db_context() as db:
+                        one_minute_ago = datetime.utcnow() - pd.Timedelta(minutes=1)
+                        trade_query = select(Trade.id).where(
+                            Trade.status == TradeStatus.ACTIVE,
+                            Trade.expires_at <= one_minute_ago,
+                            Trade.account_id.in_(active_account_ids),
                         )
+                        result = await db.execute(trade_query)
+                        expired_trade_ids = [row[0] for row in result.all()]
+                except Exception as e:
+                    logger.error(f"Erro ao buscar trades expirados: {e}")
+                    continue
                     
-                    for trade in expired_trades:
-                        # Trade expirou há mais de 1 minuto, verificar resultado
-                        account_lock = self._get_account_lock(trade.account_id)
-                        async with account_lock:
-                            await self._check_trade_result(trade, db)
+                if expired_trade_ids:
+                    logger.info(
+                        f"Verificando {len(expired_trade_ids)} trades expirados (fallback polling)",
+                        extra={
+                            "user_name": "",
+                            "account_id": "",
+                            "account_type": ""
+                        }
+                    )
+                
+                # Processar cada trade em sua própria sessão
+                for trade_id in expired_trade_ids:
+                    try:
+                        async with get_db_context() as trade_db:
+                            # Buscar trade completo nesta sessão
+                            trade_result = await trade_db.execute(
+                                select(Trade).where(Trade.id == trade_id)
+                            )
+                            trade = trade_result.scalar_one_or_none()
+                            if trade:
+                                # Trade expirou há mais de 1 minuto, verificar resultado
+                                account_lock = self._get_account_lock(trade.account_id)
+                                async with account_lock:
+                                    await self._check_trade_result(trade, trade_db)
+                    except Exception as e:
+                        logger.error(f"Erro ao processar trade expirado {trade_id[:8]}: {e}")
                 
             except asyncio.CancelledError:
                 break
@@ -514,36 +548,7 @@ class TradeExecutor:
                     except Exception:
                         account_name_for_log = None
 
-                    # Importar e usar o user_logger para registrar resultado do trade
-                    try:
-                        from services.user_logger import user_logger
-                        # Buscar user_name e asset_name
-                        user_name_log = user_name or account_name_for_log or ""
-                        asset_name_log = asset_name or ""
-                        
-                        user_logger.log_trade_result(
-                            username=user_name_log,
-                            account_id=trade.account_id,
-                            asset=asset_name_log,
-                            order_id=trade.id,
-                            result='win' if trade.status == TradeStatus.WIN else 'loss' if trade.status == TradeStatus.LOSS else 'draw',
-                            profit=trade.profit if trade.profit else 0,
-                            balance_before=None,  # Não temos saldo anterior aqui
-                            balance_after=None
-                        )
-                    except Exception as e:
-                        logger.debug(f"[USER LOGGER] Erro ao logar resultado: {e}")
-
-                    logger.success(
-                        f"[{trade.id[:8]}...] Trade fechou: {trade.status} (lucro: ${trade.profit if trade.profit else 0:.2f}, payout: {trade.payout if trade.payout else 0:.1f}%)",
-                        extra={
-                            "user_name": account_name_for_log or "",
-                            "account_id": trade.account_id[:8] if trade.account_id else "",
-                            "account_type": trade.connection_type or ""
-                        }
-                    )
-
-                    # Buscar dados para notificação (async)
+                    # Buscar dados do usuário e asset para user_logger e notificação
                     user_chat_id = None
                     account_name = None
                     user_name = None
@@ -579,6 +584,35 @@ class TradeExecutor:
                                 "account_type": trade.connection_type or ""
                             }
                         )
+
+                    # Importar e usar o user_logger para registrar resultado do trade
+                    try:
+                        from services.user_logger import user_logger
+                        # Buscar user_name e asset_name
+                        user_name_log = user_name or account_name_for_log or ""
+                        asset_name_log = asset_name or ""
+                        
+                        user_logger.log_trade_result(
+                            username=user_name_log,
+                            account_id=trade.account_id,
+                            asset=asset_name_log,
+                            order_id=trade.id,
+                            result='win' if trade.status == TradeStatus.WIN else 'loss' if trade.status == TradeStatus.LOSS else 'draw',
+                            profit=trade.profit if trade.profit else 0,
+                            balance_before=None,  # Não temos saldo anterior aqui
+                            balance_after=None
+                        )
+                    except Exception as e:
+                        logger.debug(f"[USER LOGGER] Erro ao logar resultado: {e}")
+
+                    logger.success(
+                        f"[{trade.id[:8]}...] Trade fechou: {trade.status} (lucro: ${trade.profit if trade.profit else 0:.2f}, payout: {trade.payout if trade.payout else 0:.1f}%)",
+                        extra={
+                            "user_name": account_name_for_log or user_name or "",
+                            "account_id": trade.account_id[:8] if trade.account_id else "",
+                            "account_type": trade.connection_type or ""
+                        }
+                    )
 
                     # Calcular saldo antes e depois do trade
                     balance_after = current_balance if current_balance else 0
@@ -1748,10 +1782,13 @@ class TradeExecutor:
 
                 # Desconectar conexão WebSocket do usuário
                 if hasattr(self, 'connection_manager') and self.connection_manager:
-                    # Desconectar ambas as conexões (demo e real)
-                    await self.connection_manager.disconnect_connection(account_id, 'demo')
-                    await self.connection_manager.disconnect_connection(account_id, 'real')
-                    logger.info(f"✓ Conexões WebSocket desconectadas para conta {account_id}")
+                    # Desconectar ambas as conexões (demo e real) com flag PERMANENT quando apropriado
+                    is_permanent = ("saldo insuficiente" in reason.lower() or 
+                                    "stop amount" in reason.lower() or
+                                    "all-win" in reason.lower())
+                    await self.connection_manager.disconnect_connection(account_id, 'demo', permanent=is_permanent)
+                    await self.connection_manager.disconnect_connection(account_id, 'real', permanent=is_permanent)
+                    logger.info(f"✓ Conexões WebSocket desconectadas para conta {account_id} (permanente={is_permanent})")
 
                 # Enviar notificação via Telegram para o usuário correto
                 if "Stop Loss" in reason and loss_consecutive is not None and stop2 is not None:
@@ -2307,7 +2344,8 @@ class TradeExecutor:
                 if config.total_losses is None:
                     config.total_losses = 0
                 config.total_losses += 1
-                logger.info(f"📉 Perda total: {config.total_losses}")
+                # Log silenciado
+                # logger.info(f"📉 Perda total: {config.total_losses}")
 
                 # Soros: Resetar após perda
                 if config.soros > 0:

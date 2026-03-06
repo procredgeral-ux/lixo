@@ -577,7 +577,12 @@ class ConnectionKeepAlive:
 
     async def _check_autotrade_active(self) -> bool:
         """Verificar no banco de dados se o autotrade está ativo para esta conta"""
+        logger.info(
+            f"[AUTOTRADE CHECK] Verificando status para account_id={self.account_id}, user={self.user_name}"
+        )
+        
         if not self.account_id:
+            logger.warning(f"[AUTOTRADE CHECK] Sem account_id, permitindo reconexão por padrão")
             return True  # Se não temos account_id, assumir que está ativo
         
         try:
@@ -599,6 +604,11 @@ class ConnectionKeepAlive:
                 row = result.fetchone()
                 is_active = bool(row[0]) if row else False
                 
+                logger.info(
+                    f"[AUTOTRADE CHECK] Resultado para account_id={self.account_id}: "
+                    f"is_active={is_active}, raw_value={row[0] if row else None}"
+                )
+                
                 if not is_active:
                     logger.warning(
                         f"[RECONNECTION BLOCKED] [{self.account_id}] Autotrade INATIVO no banco de dados. "
@@ -608,6 +618,10 @@ class ConnectionKeepAlive:
                             "account_id": self.account_id[:8] if self.account_id else "",
                             "account_type": "demo" if self.is_demo else "real"
                         }
+                    )
+                else:
+                    logger.info(
+                        f"[AUTOTRADE CHECK] [{self.account_id}] Autotrade ATIVO - permitindo reconexão"
                     )
                 
                 return is_active
@@ -638,11 +652,15 @@ class ConnectionKeepAlive:
 
         # Registrar esta conexão no gerenciador unificado
         connection_id = f"keep_alive_{id(self)}"
+        self._reconnection_id = connection_id  # CRITICAL: Armazenar para poder fazer unregister depois
         
         # Criar callback de verificação de autotrade - sempre verifica no banco
         async def should_reconnect_with_check():
             """Verificar no banco se autotrade está ativo para esta conta"""
-            return await self._check_autotrade_active()
+            logger.info(f"[RECONNECTION CHECK] Verificando se deve reconectar para {self.user_name} (account_id={self.account_id})")
+            result = await self._check_autotrade_active()
+            logger.info(f"[RECONNECTION CHECK] Resultado para {self.user_name}: should_reconnect={result}")
+            return result
         
         reconnection_manager.register_connection(
             connection_id=connection_id,

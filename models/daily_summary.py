@@ -6,7 +6,15 @@ permitindo queries de relatório rápidas sem escanear milhares de registros.
 """
 from sqlalchemy import Column, String, Integer, Float, Date, Index, func
 from sqlalchemy.orm import declarative_base
-from datetime import date
+from zoneinfo import ZoneInfo
+from datetime import datetime
+
+# Timezone de Brasília (UTC-3)
+BRASILIA_TZ = ZoneInfo("America/Sao_Paulo")
+
+def get_brasilia_time():
+    """Retorna datetime atual no timezone de Brasília"""
+    return datetime.now(BRASILIA_TZ)
 from typing import Optional
 
 Base = declarative_base()
@@ -52,7 +60,7 @@ class DailySignalSummary(Base):
     max_confidence = Column(Float, default=0.0)
     
     # Timestamp
-    updated_at = Column(Date, nullable=False, default=func.current_date())
+    updated_at = Column(Date, nullable=False, default=get_brasilia_time)
     
     # Índices compostos para queries comuns
     __table_args__ = (
@@ -77,7 +85,7 @@ class AggregationJobLog(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     job_name = Column(String, nullable=False)
     started_at = Column(Date, nullable=False)
-    completed_at = Column(Date, nullable=True)
+    completed_at = Column(Date, nullable=True, default=get_brasilia_time)
     records_processed = Column(Integer, default=0)
     status = Column(String, nullable=False)  # 'running', 'completed', 'failed'
     error_message = Column(String, nullable=True)

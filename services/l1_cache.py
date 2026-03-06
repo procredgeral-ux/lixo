@@ -66,7 +66,8 @@ class L1InProcessCache:
                 value, expiry = self._cache[key]
                 if expiry is None or time.time() < expiry:
                     self._stats['hits'] += 1
-                    logger.info(f"[L1 CACHE HIT] {key} (hits: {self._stats['hits']}, misses: {self._stats['misses']})")
+                    # Log silenciado
+                    # logger.info(f"[L1 CACHE HIT] {key} (hits: {self._stats['hits']}, misses: {self._stats['misses']})")
                     # Report to performance monitor
                     try:
                         from services.performance_monitor import performance_monitor
@@ -81,7 +82,8 @@ class L1InProcessCache:
                     logger.debug(f"[L1 CACHE EXPIRED] {key}")
             else:
                 self._stats['misses'] += 1
-                logger.info(f"[L1 CACHE MISS] {key} (hits: {self._stats['hits']}, misses: {self._stats['misses']})")
+                # Log silenciado
+                # logger.info(f"[L1 CACHE MISS] {key} (hits: {self._stats['hits']}, misses: {self._stats['misses']})")
             # Report miss to performance monitor
             try:
                 from services.performance_monitor import performance_monitor

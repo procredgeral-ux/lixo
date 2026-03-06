@@ -88,6 +88,11 @@ class CustomStrategy(BaseStrategy):
         indicator_signals = []
         indicator_details: List[Dict[str, Any]] = []
         
+        # Contadores para log consolidado
+        total_indicators = len(self.indicators)
+        analyzed_count = 0
+        signals_generated = 0
+        
         for indicator_info in self.indicators:
             indicator_type = indicator_info.get('type')
             indicator_params = indicator_info.get('parameters', {})
@@ -100,7 +105,7 @@ class CustomStrategy(BaseStrategy):
                     indicator_params = {}
             indicator_name = indicator_info.get('name')
             
-            logger.debug(f"🔍 [USUÁRIO: {self.user_name}] [ATIVO: {symbol}] Analisando indicador: {indicator_type}")
+            # Log individual removido - será consolidado no final
             
             signal_data = await self._analyze_indicator(
                 indicator_type,
@@ -111,16 +116,22 @@ class CustomStrategy(BaseStrategy):
                 symbol
             )
             
+            analyzed_count += 1
+            
             if signal_data:
                 signal, details = signal_data
-                # SILENCIADO no console - apenas debug
-                logger.debug(f"✅ [USUÁRIO: {self.user_name}] [ATIVO: {symbol}] Sinal gerado por {indicator_type}: {signal.signal_type.value}")
+                # Log individual removido - será consolidado no final
                 indicator_signals.append(signal)
                 indicator_details.append(details)
+                signals_generated += 1
             else:
                 # SILENCIADO no console - não logar indicadores sem sinal
                 pass
 
+        # Log consolidado no final da análise
+        if analyzed_count > 0:
+            logger.debug(f"🔍 [USUÁRIO: {self.user_name}] [ATIVO: {symbol}] Análise concluída: {analyzed_count} indicadores analisados, {signals_generated} sinais gerados")
+        
         # Combine signals using confluence calculator
         if not indicator_signals:
             return None
@@ -145,8 +156,8 @@ class CustomStrategy(BaseStrategy):
         # Calculate confluence using improved system
         confluence_result = self.confluence_calculator.calculate_confluence(confluence_signals)
         
-        # DEBUG: Log do resultado do confluence - SILENCIADO no console
-        logger.debug(f"📊 [CONFLUENCE] direction={confluence_result.get('direction')}, score={confluence_result.get('weighted_score'):.4f}")
+        # DEBUG: Log do resultado do confluence - SILENCIADO
+        # logger.debug(f"📊 [CONFLUENCE] direction={confluence_result.get('direction')}, score={confluence_result.get('weighted_score'):.4f}")
         
         # Log detalhado do confluence no arquivo do usuário - DESABILITADO
         # (já está silenciado no user_logger)
@@ -245,10 +256,8 @@ class CustomStrategy(BaseStrategy):
                 logger.warning(f"⚠️ [USUÁRIO: {self.user_name}] [ATIVO: {symbol}] [{indicator_type}] Cálculo retornou None")
                 return None
             
-            # Log values info for debugging - SILENCIADO no console
-            if hasattr(values, '__len__'):
-                logger.debug(f"🔍 [{symbol}] [{indicator_type}] {len(values)} items")
-                # Log detalhado DESABILITADO no arquivo do usuário
+            # Log values info - COMPLETAMENTE SILENCIADO
+            # Não logar informações individuais de indicadores
             
             # Generate signal based on indicator values
             result = self._generate_signal_from_indicator(
