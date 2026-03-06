@@ -51,8 +51,8 @@ class User(Base):
     is_superuser = Column(Boolean, default=False)
     # Sistema de planos: Free, VIP (Semanal), VIP+ (Mensal)
     role = Column(String, default="free")  # 'free', 'vip', 'vip_plus'
-    vip_start_date = Column(DateTime, nullable=True)  # Data de início do VIP
-    vip_end_date = Column(DateTime, nullable=True)  # Data de término do VIP
+    vip_start_date = Column(DateTime(timezone=False), nullable=True)  # Data de início do VIP (naive para compatibilidade)
+    vip_end_date = Column(DateTime(timezone=False), nullable=True)  # Data de término do VIP (naive para compatibilidade)
     maintenance_logout_at = Column(DateTime, nullable=True)  # Timestamp quando usuário foi deslogado por manutenção
     created_at = Column(DateTime, default=get_brasilia_time)
     updated_at = Column(DateTime, default=get_brasilia_time, onupdate=get_brasilia_time)
