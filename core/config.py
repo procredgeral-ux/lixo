@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     DB_ECHO: bool = False
 
     # Redis (opcional - pode ser desabilitado)
+    REDIS_URL: Optional[str] = Field(default=None, env="REDIS_URL")
     REDIS_HOST: str = Field(default="localhost", env="REDIS_HOST")
     REDIS_PORT: int = Field(default=6379, env="REDIS_PORT")
     REDIS_DB: int = Field(default=0, env="REDIS_DB")
