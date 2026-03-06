@@ -8,11 +8,17 @@ from functools import lru_cache
 
 def get_database_url():
     """Get DATABASE_URL from environment (required)"""
+    # Debug: listar todas as vars de ambiente do Railway
+    import os
+    railway_vars = {k: v[:20] + '...' if v and len(v) > 20 else v for k, v in os.environ.items() if 'DATABASE' in k or 'POSTGRES' in k or 'RAILWAY' in k}
+    print(f"[DEBUG] Railway DB vars: {railway_vars}")
+    
     url = os.getenv('DATABASE_URL')
     if url:
+        print(f"[DEBUG] DATABASE_URL encontrada: {url[:30]}...")
         return url
     # Sem fallback SQLite - PostgreSQL é obrigatório
-    raise ValueError("DATABASE_URL não configurada! Defina a variável de ambiente com a URL do PostgreSQL.")
+    raise ValueError(f"DATABASE_URL não configurada! Vars encontradas: {list(os.environ.keys())[:20]}")
 
 
 def get_redis_url():
