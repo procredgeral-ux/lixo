@@ -22,19 +22,32 @@ class RedisClient:
         host: str = "localhost",
         port: int = 6379,
         db: int = 0,
-        password: Optional[str] = None
+        password: Optional[str] = None,
+        redis_url: Optional[str] = None
     ):
-        """Conectar ao Redis"""
+        """Conectar ao Redis - suporta URL completa ou componentes separados"""
         try:
-            self.redis = await redis.from_url(
-                f"redis://{host}:{port}/{db}",
-                password=password,
-                encoding="utf-8",
-                decode_responses=True
-            )
+            # Se redis_url for fornecido, usar diretamente (Railway style)
+            if redis_url:
+                self.redis = await redis.from_url(
+                    redis_url,
+                    encoding="utf-8",
+                    decode_responses=True
+                )
+                logger.info(f"✅ Redis conectado via URL: {redis_url.replace(password or '', '***') if password else redis_url}")
+            else:
+                # Fallback para componentes individuais
+                self.redis = await redis.from_url(
+                    f"redis://{host}:{port}/{db}",
+                    password=password,
+                    encoding="utf-8",
+                    decode_responses=True
+                )
+                logger.info(f"✅ Redis conectado: {host}:{port}")
+            
             await self.redis.ping()
             self.connected = True
-            logger.info(f"✅ Redis conectado: {host}:{port}")
+            
         except Exception as e:
             logger.error(f"❌ Erro ao conectar ao Redis: {e}")
             raise
