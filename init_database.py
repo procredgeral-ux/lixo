@@ -53,8 +53,14 @@ def run_seed():
     """Executar seed data"""
     logger.info("🌱 Executando seed data...")
     try:
+        # Tentar importar seed_data se existir
+        try:
+            from seed_data import run_seed as seed_func
+        except ImportError:
+            logger.warning("⚠️  Módulo seed_data não encontrado, pulando seed")
+            return True
+        
         import asyncio
-        from seed_data import run_seed as seed_func
         asyncio.run(seed_func())
         return True
     except Exception as e:
