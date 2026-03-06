@@ -5,7 +5,7 @@ builder = "nixpacks"
 python_version = "3.11"
 
 [deploy]
-startCommand = "python -c 'from core.database import engine; import asyncio; asyncio.run(engine.begin())' 2>/dev/null || true; python init_database.py; python start_railway.py"
+startCommand = "python init_database.py && python start_railway.py"
 healthcheckPath = "/health"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
