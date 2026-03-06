@@ -1,0 +1,84 @@
+# RAILWAY ENVIRONMENT VARIABLES
+# Configure estas variáveis no Railway Dashboard (Settings > Variables)
+
+# ============================================
+# OBRIGATÓRIO - PostgreSQL
+# ============================================
+DATABASE_URL=postgresql://postgres:lGQYDSYZCSbyZHFRNbYOWAjGKefFtpeE@postgres.railway.internal:5432/railway
+
+# ============================================
+# OBRIGATÓRIO - Redis  
+# ============================================
+REDIS_URL=redis://default:SRruPcfmqmPzXxmSrgIhNEcPerWKPUQa@redis.railway.internal:6379
+REDIS_ENABLED=true
+
+# ============================================
+# BÁSICO
+# ============================================
+ENVIRONMENT=production
+DEBUG=false
+LOG_LEVEL=INFO
+API_HOST=0.0.0.0
+API_PORT=8000
+API_PREFIX=/api/v1
+
+# ============================================
+# SEGURANÇA
+# ============================================
+SECRET_KEY=tunestrade-production-secret-key-2024-secure-railway-app-32chars
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
+
+# ============================================
+# TELEGRAM (ESSENCIAL!)
+# ============================================
+TELEGRAM_BOT_TOKEN=8209575841:AAEp4EJAblEHF2NTqkUIJqA-oII5Y4hs3eI
+TELEGRAM_ENABLED=true
+
+# ============================================
+# CORS
+# ============================================
+CORS_ORIGINS=*
+CORS_ALLOW_CREDENTIALS=true
+
+# ============================================
+# POCKETOPTION
+# ============================================
+POCKETOPTION_MAINTENANCE_CHECK_ENABLED=true
+POCKETOPTION_MAINTENANCE_CHECK_URL=https://pocketoption.com/pt/cabinet/demo-quick-high-low/
+POCKETOPTION_MAINTENANCE_CHECK_INTERVAL=60
+POCKETOPTION_MAINTENANCE_CHECK_TIMEOUT=10
+
+# ============================================
+# RISK MANAGEMENT
+# ============================================
+MAX_TRADES_PER_DAY=20
+MAX_TRADES_SIMULTANEOUS=5
+MAX_TRADE_AMOUNT=100.0
+MAX_DAILY_LOSS_PERCENT=5.0
+MIN_SIGNAL_CONFIDENCE=0.7
+
+# ============================================
+# DATA COLLECTOR
+# ============================================
+DATA_COLLECTOR_ENABLED=true
+
+# ============================================
+# LOGGING
+# ============================================
+LOG_FILE=logs/autotrade.log
+LOG_FORMAT="{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} | {message}"
+LOG_ROTATION=1 day
+LOG_RETENTION=7 days
+
+# ============================================
+# MONITORING
+# ============================================
+PROMETHEUS_ENABLED=true
+PROMETHEUS_PORT=9090
+
+# ============================================
+# CELERY (desabilitado)
+# ============================================
+CELERY_ENABLED=false
