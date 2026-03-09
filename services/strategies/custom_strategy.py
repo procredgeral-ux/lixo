@@ -10,6 +10,11 @@ from models import Candle, Signal, SignalType
 from services.strategies.base import BaseStrategy
 from services.strategies.confluence import ConfluenceCalculator, SignalDirection
 from services.user_logger import user_logger
+from services.analysis.indicators.timeframe_config import (
+    get_indicator_params_for_timeframe,
+    calculate_min_rows_for_indicator,
+    adjust_params_for_timeframe
+)
 
 
 class CustomStrategy(BaseStrategy):
@@ -47,13 +52,14 @@ class CustomStrategy(BaseStrategy):
         # Map indicator types to their implementations
         self.indicator_cache: Dict[str, Any] = {}
 
-    async def analyze(self, candles: List[Candle], symbol: str = "Unknown") -> Optional[Signal]:
+    async def analyze(self, candles: List[Candle], symbol: str = "Unknown", force_mode: bool = False) -> Optional[Signal]:
         """
         Analyze candles using selected indicators and generate signal
 
         Args:
             candles: List of candles to analyze
             symbol: Asset symbol being analyzed
+            force_mode: If True, force signal generation using all indicators immediately
 
         Returns:
             Optional[Signal]: Generated signal or None
@@ -62,7 +68,7 @@ class CustomStrategy(BaseStrategy):
             return None
 
         if not self.indicators:
-            logger.warning("⚠️ Nenhum indicador configurado para esta estratégia!")
+            # Silenciado: não logar quando não há indicadores configurados
             return None
 
         # Convert candles to DataFrame for easier processing
@@ -124,13 +130,36 @@ class CustomStrategy(BaseStrategy):
                 indicator_signals.append(signal)
                 indicator_details.append(details)
                 signals_generated += 1
+            elif force_mode:
+                # 🚀 MODO FORCE: Se indicador não gerou sinal natural, forçar um sinal
+                # baseado na tendência de preço ou último valor disponível
+                forced_signal = self._force_signal_from_indicator(
+                    indicator_type, indicator_name, indicator_params, 
+                    df, candles, symbol
+                )
+                if forced_signal:
+                    indicator_signals.append(forced_signal[0])
+                    indicator_details.append(forced_signal[1])
+                    signals_generated += 1
             else:
                 # SILENCIADO no console - não logar indicadores sem sinal
                 pass
 
         # Log consolidado no final da análise
         if analyzed_count > 0:
-            logger.debug(f"🔍 [USUÁRIO: {self.user_name}] [ATIVO: {symbol}] Análise concluída: {analyzed_count} indicadores analisados, {signals_generated} sinais gerados")
+            mode_str = "FORCE" if force_mode else "NORMAL"
+            logger.debug(f"🔍 [USUÁRIO: {self.user_name}] [ATIVO: {symbol}] [MODO: {mode_str}] Análise concluída: {analyzed_count} indicadores analisados, {signals_generated} sinais gerados")
+        
+        # 🚀 MODO FORCE: Se não há sinais suficientes, forçar pelo menos alguns
+        if force_mode and len(indicator_signals) < 2 and len(self.indicators) >= 2:
+            # Forçar sinais adicionais baseados na tendência de preço
+            forced_additional = self._force_signals_from_price_trend(
+                df, candles, symbol, 2 - len(indicator_signals)
+            )
+            for fsig, fdet in forced_additional:
+                indicator_signals.append(fsig)
+                indicator_details.append(fdet)
+                signals_generated += 1
         
         # Combine signals using confluence calculator
         if not indicator_signals:
@@ -163,7 +192,11 @@ class CustomStrategy(BaseStrategy):
         # (já está silenciado no user_logger)
         
         # Check if signal should be generated
-        if not self.confluence_calculator.should_generate_signal(confluence_result, df):
+        # Forçar geração de sinal, mas verificar se direção é válida
+        if confluence_result.get('direction') == SignalDirection.HOLD:
+            logger.debug(f"🚫 [CONFLUENCE BACKTEST] Sinal bloqueado - direction=HOLD")
+            return None
+        elif not self.confluence_calculator.should_generate_signal(confluence_result, df):
             # SILENCIADO: não logar sinais bloqueados no console
             logger.debug(f"🚫 [CONFLUENCE] Sinal bloqueado - {confluence_result.get('direction')}")
             return None
@@ -206,7 +239,7 @@ class CustomStrategy(BaseStrategy):
         symbol: str = "Unknown"
     ) -> Optional[Tuple[Signal, Dict[str, Any]]]:
         """
-        Analyze using a specific indicator
+        Analyze using a specific indicator with timeframe-adjusted parameters
 
         Args:
             indicator_type: Type of indicator (rsi, macd, etc.)
@@ -227,13 +260,28 @@ class CustomStrategy(BaseStrategy):
                 logger.warning(f"Could not load indicator: {indicator_type}")
                 return None
 
-            # Calculate minimum rows required based on indicator parameters
-            min_rows_required = self._get_min_rows_for_indicator(indicator_type, indicator_params)
+            # AJUSTAR PARÂMETROS BASEADO NO TIMEFRAME
+            # Usar a configuração otimizada para o timeframe atual
+            adjusted_params = get_indicator_params_for_timeframe(
+                indicator_type, 
+                self.timeframe,  # Usar o timeframe da estratégia
+                indicator_params  # Parâmetros customizados do usuário
+            )
+            
+            # Log de debug para mostrar ajuste de timeframe (opcional)
+            # logger.debug(f"[{indicator_type}] Timeframe: {self.timeframe}s, Params: {adjusted_params}")
+
+            # Calculate minimum rows required based on adjusted parameters
+            min_rows_required = calculate_min_rows_for_indicator(
+                indicator_type, 
+                self.timeframe, 
+                adjusted_params
+            )
             
             # Check if we have enough data
             if len(df) < min_rows_required:
                 logger.warning(
-                    f"⚠️ [USUÁRIO: {self.user_name}] [ATIVO: {symbol}] [{indicator_type}] Dados insuficientes: {len(df)} rows, mínimo {min_rows_required} necessário"
+                    f"⚠️ [USUÁRIO: {self.user_name}] [ATIVO: {symbol}] [{indicator_type}] Dados insuficientes: {len(df)} rows, mínimo {min_rows_required} necessário (timeframe: {self.timeframe}s)"
                 )
                 return None
 
@@ -242,7 +290,7 @@ class CustomStrategy(BaseStrategy):
             import inspect
             init_params = inspect.signature(indicator_class.__init__).parameters
             valid_params = {
-                k: v for k, v in indicator_params.items()
+                k: v for k, v in adjusted_params.items()
                 if k in init_params and k != 'self'
             }
             
@@ -263,7 +311,7 @@ class CustomStrategy(BaseStrategy):
             result = self._generate_signal_from_indicator(
                 indicator_type,
                 indicator_name,
-                indicator_params,
+                adjusted_params,  # Usar parâmetros ajustados
                 values,
                 df,
                 candles,
@@ -370,9 +418,11 @@ class CustomStrategy(BaseStrategy):
                 'williams_r': 'services.analysis.indicators.williams_r.WilliamsR',
                 'zonas': 'services.analysis.indicators.zonas.Zonas',
                 'momentum': 'services.analysis.indicators.momentum.Momentum',
+                'mom': 'services.analysis.indicators.momentum.Momentum',  # 🚀 ALIAS
                 'adx': 'services.analysis.indicators.adx.ADX',
                 # Novos indicadores
                 'parabolic_sar': 'services.analysis.indicators.parabolic_sar.ParabolicSAR',
+                'psar': 'services.analysis.indicators.parabolic_sar.ParabolicSAR',  # 🚀 ALIAS
                 'ichimoku_cloud': 'services.analysis.indicators.ichimoku_cloud.IchimokuCloud',
                 'money_flow_index': 'services.analysis.indicators.money_flow_index.MoneyFlowIndex',
                 'average_directional_index': 'services.analysis.indicators.average_directional_index.AverageDirectionalIndex',
@@ -384,6 +434,23 @@ class CustomStrategy(BaseStrategy):
                 'fibonacci_retracement': 'services.analysis.indicators.fibonacci_retracement.FibonacciRetracement',
                 'vwap': 'services.analysis.indicators.vwap.VWAP',
                 'obv': 'services.analysis.indicators.obv.OBV',
+                # Indicadores adicionais (faltavam no mapeamento)
+                'awesome_oscillator': 'services.analysis.indicators.awesome_oscillator.AwesomeOscillator',
+                'detrended_price_oscillator': 'services.analysis.indicators.detrended_price_oscillator.DetrendedPriceOscillator',
+                'force_index': 'services.analysis.indicators.force_index.ForceIndex',
+                'klinger_oscillator': 'services.analysis.indicators.klinger_oscillator.KlingerOscillator',
+                'mass_index': 'services.analysis.indicators.mass_index.MassIndex',
+                'true_strength_index': 'services.analysis.indicators.true_strength_index.TrueStrengthIndex',
+                'tsi': 'services.analysis.indicators.true_strength_index.TrueStrengthIndex',  # 🚀 ALIAS
+                'ultimate_oscillator': 'services.analysis.indicators.ultimate_oscillator.UltimateOscillator',
+                'uo': 'services.analysis.indicators.ultimate_oscillator.UltimateOscillator',  # 🚀 ALIAS
+                # 🚀 ALIASES adicionais para evitar warnings
+                'stoch_k': 'services.analysis.indicators.stochastic.Stochastic',
+                'stoch_d': 'services.analysis.indicators.stochastic.Stochastic',
+                'bb_b': 'services.analysis.indicators.bollinger.BollingerBands',
+                'bb_width': 'services.analysis.indicators.bollinger.BollingerBands',
+                'kc_upper': 'services.analysis.indicators.keltner_channels.KeltnerChannels',
+                'kc_lower': 'services.analysis.indicators.keltner_channels.KeltnerChannels',
             }
 
             module_path = indicator_map.get(indicator_type)
@@ -407,6 +474,161 @@ class CustomStrategy(BaseStrategy):
         except Exception as e:
             logger.error(f"Failed to load indicator {indicator_type}: {e}", exc_info=True)
             return None
+
+    def _force_signal_from_indicator(
+        self,
+        indicator_type: str,
+        indicator_name: Optional[str],
+        indicator_params: Dict[str, Any],
+        df: pd.DataFrame,
+        candles: List[Candle],
+        symbol: str = "Unknown"
+    ) -> Optional[Tuple[Signal, Dict[str, Any]]]:
+        """
+        🚀 FORCE MODE: Generate a forced signal from an indicator even when conditions aren't perfect
+        Uses trend analysis and price momentum to force a directional signal.
+        """
+        try:
+            indicator_type = (indicator_type or "").strip().lower()
+            indicator_label = indicator_name or indicator_type
+            
+            # Get price trend direction
+            closes = df['close'].values
+            if len(closes) < 3:
+                return None
+            
+            # Simple trend: compare last price with average of previous prices
+            last_price = closes[-1]
+            prev_avg = np.mean(closes[-10:-1]) if len(closes) >= 10 else np.mean(closes[:-1])
+            
+            # Determine direction based on price position relative to trend
+            if last_price > prev_avg * 1.001:  # Price above average (0.1% threshold)
+                direction = SignalType.BUY
+                confidence = 0.55
+                condition = "forced_above_trend"
+            elif last_price < prev_avg * 0.999:  # Price below average
+                direction = SignalType.SELL
+                confidence = 0.55
+                condition = "forced_below_trend"
+            else:
+                # Neutral - use momentum of last 3 candles
+                if len(closes) >= 3:
+                    momentum = closes[-1] - closes[-3]
+                    if momentum > 0:
+                        direction = SignalType.BUY
+                        confidence = 0.52
+                        condition = "forced_momentum_up"
+                    else:
+                        direction = SignalType.SELL
+                        confidence = 0.52
+                        condition = "forced_momentum_down"
+                else:
+                    return None
+            
+            signal = Signal(
+                signal_type=direction,
+                confidence=confidence,
+                price=candles[-1].close
+            )
+            
+            details = {
+                "type": indicator_type,
+                "name": indicator_label,
+                "signal": signal.signal_type.value,
+                "confidence": confidence,
+                "parameters": indicator_params,
+                "result": {
+                    "last_price": last_price,
+                    "prev_avg": prev_avg,
+                    "condition": condition,
+                    "forced": True
+                },
+                "divergence": "none",
+                "symbol": symbol,
+                "forced_signal": True
+            }
+            
+            return signal, details
+            
+        except Exception as e:
+            logger.debug(f"Error forcing signal for {indicator_type}: {e}")
+            return None
+
+    def _force_signals_from_price_trend(
+        self,
+        df: pd.DataFrame,
+        candles: List[Candle],
+        symbol: str = "Unknown",
+        count: int = 1
+    ) -> List[Tuple[Signal, Dict[str, Any]]]:
+        """
+        🚀 FORCE MODE: Generate forced signals purely from price trend analysis
+        when indicators don't provide enough signals naturally.
+        """
+        forced_signals = []
+        
+        try:
+            closes = df['close'].values
+            if len(closes) < 5:
+                return forced_signals
+            
+            # Calculate trend using last 5 candles
+            short_term_avg = np.mean(closes[-5:])
+            medium_term_avg = np.mean(closes[-10:]) if len(closes) >= 10 else np.mean(closes[:-5])
+            
+            last_price = closes[-1]
+            
+            # Determine dominant trend
+            if short_term_avg > medium_term_avg * 1.002:  # Strong uptrend
+                direction = SignalType.BUY
+                confidence = 0.60
+                trend_strength = "strong_uptrend"
+            elif short_term_avg > medium_term_avg:  # Weak uptrend
+                direction = SignalType.BUY
+                confidence = 0.55
+                trend_strength = "weak_uptrend"
+            elif short_term_avg < medium_term_avg * 0.998:  # Strong downtrend
+                direction = SignalType.SELL
+                confidence = 0.60
+                trend_strength = "strong_downtrend"
+            else:  # Weak downtrend
+                direction = SignalType.SELL
+                confidence = 0.55
+                trend_strength = "weak_downtrend"
+            
+            # Generate requested number of forced signals
+            for i in range(count):
+                signal = Signal(
+                    signal_type=direction,
+                    confidence=confidence - (i * 0.02),  # Slightly decrease confidence for additional signals
+                    price=candles[-1].close
+                )
+                
+                details = {
+                    "type": "price_trend",
+                    "name": f"ForcedTrend_{i+1}",
+                    "signal": signal.signal_type.value,
+                    "confidence": signal.confidence,
+                    "parameters": {},
+                    "result": {
+                        "last_price": last_price,
+                        "short_avg": short_term_avg,
+                        "medium_avg": medium_term_avg,
+                        "trend_strength": trend_strength,
+                        "forced": True
+                    },
+                    "divergence": "none",
+                    "symbol": symbol,
+                    "forced_signal": True
+                }
+                
+                forced_signals.append((signal, details))
+            
+            return forced_signals
+            
+        except Exception as e:
+            logger.debug(f"Error generating forced trend signals: {e}")
+            return forced_signals
 
     def _generate_oscillator_signal(
         self,
@@ -683,6 +905,35 @@ class CustomStrategy(BaseStrategy):
                         }
                         return _build_details(signal, price, result)
 
+                # SINAL FLEXÍVEL: Se não estiver em nenhuma zona, usar proximidade
+                # ou tendência de preço para gerar sinal
+                if _valid(support_high) and price < support_high:
+                    # Preço abaixo do suporte = possível tendência de baixa
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {
+                        "price": price,
+                        "support_high": support_high,
+                        "condition": "below_support"
+                    }
+                    return _build_details(signal, price, result)
+                elif _valid(resistance_low) and price > resistance_low:
+                    # Preço acima da resistência = possível tendência de alta
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {
+                        "price": price,
+                        "resistance_low": resistance_low,
+                        "condition": "above_resistance"
+                    }
+                    return _build_details(signal, price, result)
+
                 # No signal from zonas
                 return None
 
@@ -789,8 +1040,8 @@ class CustomStrategy(BaseStrategy):
                     signal, result = signal_result
                     return _build_details(signal, current_value, result)
                 
-                # Sinal flexível: CCI > 0 = momento bullish
-                if current_value > 0 and current_value < overbought:
+                # Sinal flexível: CCI > 20 = momento bullish (era 0, mais conservador)
+                if current_value > 20 and current_value < overbought:
                     signal = Signal(
                         signal_type=SignalType.BUY,
                         confidence=0.6,
@@ -799,8 +1050,8 @@ class CustomStrategy(BaseStrategy):
                     result = {"cci": current_value, "condition": "positive_momentum"}
                     return _build_details(signal, current_value, result)
                 
-                # Sinal SELL: CCI < 0 = momento bearish
-                if current_value < 0 and current_value > oversold:
+                # Sinal SELL: CCI < -20 = momento bearish (era 0, mais conservador)
+                if current_value < -20 and current_value > oversold:
                     signal = Signal(
                         signal_type=SignalType.SELL,
                         confidence=0.6,
@@ -827,8 +1078,8 @@ class CustomStrategy(BaseStrategy):
                     signal, result = signal_result
                     return _build_details(signal, current_value, result)
                 
-                # Sinal flexível: ROC > 0 = momentum positivo
-                if current_value > 0:
+                # Sinal flexível: ROC > 0.5 = momentum positivo (era 0, mais conservador)
+                if current_value > 0.5:
                     signal = Signal(
                         signal_type=SignalType.BUY,
                         confidence=0.6,
@@ -837,8 +1088,8 @@ class CustomStrategy(BaseStrategy):
                     result = {"roc": current_value, "condition": "positive_roc"}
                     return _build_details(signal, current_value, result)
                 
-                # Sinal SELL: ROC < 0 = momentum negativo
-                if current_value < 0:
+                # Sinal SELL: ROC < -0.5 = momentum negativo (era 0, mais conservador)
+                elif current_value < -0.5:
                     signal = Signal(
                         signal_type=SignalType.SELL,
                         confidence=0.6,
@@ -846,6 +1097,7 @@ class CustomStrategy(BaseStrategy):
                     )
                     result = {"roc": current_value, "condition": "negative_roc"}
                     return _build_details(signal, current_value, result)
+                # Zona neutra: entre -0.5 e 0.5 = não gera sinal
 
             elif indicator_type == 'williams_r':
                 overbought = indicator_params.get('overbought', -20)
@@ -883,8 +1135,8 @@ class CustomStrategy(BaseStrategy):
                     signal, result = signal_result
                     return _build_details(signal, current_value, result)
                 
-                # Sinal flexível: RSI > 50 = momento bullish
-                if current_value > 50 and current_value < overbought:
+                # Sinal flexível: RSI > 55 = momento bullish (era 50, mais conservador)
+                if current_value > 55 and current_value < overbought:
                     signal = Signal(
                         signal_type=SignalType.BUY,
                         confidence=0.6,
@@ -896,8 +1148,8 @@ class CustomStrategy(BaseStrategy):
                     }
                     return _build_details(signal, current_value, result)
                 
-                # Sinal SELL: RSI < 50 = momento bearish
-                if current_value < 50 and current_value > oversold:
+                # Sinal SELL: RSI < 45 = momento bearish (era 50, mais conservador)
+                if current_value < 45 and current_value > oversold:
                     signal = Signal(
                         signal_type=SignalType.SELL,
                         confidence=0.6,
@@ -1544,6 +1796,24 @@ class CustomStrategy(BaseStrategy):
                     )
                     result = {"pivot": float(pivot), "s1": float(s1) if pd.notna(s1) else None, "r1": float(r1), "level": "resistance"}
                     return _build_details(signal, float(r1), result)
+                
+                # SINAL FLEXÍVEL: Preço acima/abaixo do Pivot
+                if price > float(pivot) * 1.001:  # 0.1% acima do pivot
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"pivot": float(pivot), "price": price, "condition": "above_pivot"}
+                    return _build_details(signal, float(pivot), result)
+                elif price < float(pivot) * 0.999:  # 0.1% abaixo do pivot
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"pivot": float(pivot), "price": price, "condition": "below_pivot"}
+                    return _build_details(signal, float(pivot), result)
 
             elif indicator_type == 'supertrend':
                 # Supertrend: sinal quando muda de direção
@@ -1786,24 +2056,27 @@ class CustomStrategy(BaseStrategy):
                         }
                         return _build_details(signal, current_value, result)
                     
-                    # ATR muito baixo = possível acumulação (sinal de compra para breakout)
+                    # ATR muito baixo = possível acumulação, mas não gerar sinal direcional
+                    # Apenas reduzir confiança de outros sinais em mercado sem direção
                     if atr_ratio < 0.6:
-                        signal = Signal(
-                            signal_type=SignalType.BUY,
-                            confidence=0.6,
-                            price=price
-                        )
-                        result = {
-                            "atr": current_atr,
-                            "atr_ratio": float(atr_ratio),
-                            "condition": "low_volatility_accumulation"
-                        }
-                        return _build_details(signal, current_value, result)
+                        # Retornar None - não gerar sinal em acumulação lateral
+                        # O ATR não deve gerar sinal direcional, apenas indicar volatilidade
+                        return None
                     
-                    # Sinal padrão: qualquer volatilidade média gera sinal BUY
+                    # Sinal padrão: usar direção da tendência do preço (não fixar em BUY)
                     if 0.6 <= atr_ratio <= 2.0:
+                        # Determinar direção baseado no movimento recente do preço
+                        price_change_pct = (candles[-1].close - candles[-5].close) / candles[-5].close if len(candles) >= 5 else 0
+                        
+                        if price_change_pct > 0.001:  # Tendência de alta
+                            signal_type = SignalType.BUY
+                        elif price_change_pct < -0.001:  # Tendência de baixa
+                            signal_type = SignalType.SELL
+                        else:  # Neutro - não gerar sinal
+                            return None
+                        
                         signal = Signal(
-                            signal_type=SignalType.BUY,
+                            signal_type=signal_type,
                             confidence=0.55,
                             price=price
                         )
@@ -1811,9 +2084,429 @@ class CustomStrategy(BaseStrategy):
                             "atr": current_atr,
                             "atr_sma": float(atr_sma),
                             "ratio": float(atr_ratio),
-                            "condition": "normal_volatility"
+                            "price_change": price_change_pct,
+                            "condition": "normal_volatility_with_trend"
                         }
                         return _build_details(signal, current_value, result)
+
+            elif indicator_type == 'vwap':
+                # VWAP: Volume Weighted Average Price
+                if not isinstance(values, pd.Series) or len(values) < 1:
+                    return None
+                
+                price = candles[-1].close
+                vwap_value = float(values.iloc[-1])
+                
+                # Sinal: preço acima do VWAP = tendência de alta (BUY), abaixo = tendência de baixa (SELL)
+                tolerance = price * 0.001  # 0.1% de tolerância
+                
+                if price > vwap_value + tolerance:  # Preço claramente acima do VWAP
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.65,
+                        price=price
+                    )
+                    result = {
+                        "vwap": vwap_value,
+                        "price": price,
+                        "price_to_vwap_ratio": price / vwap_value if vwap_value > 0 else 0,
+                        "condition": "above_vwap"
+                    }
+                    return _build_details(signal, vwap_value, result)
+                elif price < vwap_value - tolerance:  # Preço claramente abaixo do VWAP
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.65,
+                        price=price
+                    )
+                    result = {
+                        "vwap": vwap_value,
+                        "price": price,
+                        "price_to_vwap_ratio": price / vwap_value if vwap_value > 0 else 0,
+                        "condition": "below_vwap"
+                    }
+                    return _build_details(signal, vwap_value, result)
+
+            elif indicator_type == 'obv':
+                # OBV: On Balance Volume
+                if not isinstance(values, pd.Series) or len(values) < 2:
+                    return None
+                
+                current_obv = float(values.iloc[-1])
+                previous_obv = float(values.iloc[-2])
+                price = candles[-1].close
+                
+                # Sinal baseado na direção do OBV
+                obv_change = current_obv - previous_obv
+                obv_change_pct = abs(obv_change) / abs(previous_obv) if previous_obv != 0 else 0
+                
+                # OBV crescente = pressão compradora (BUY)
+                if obv_change > 0 and obv_change_pct > 0.001:  # Mudança significativa (> 0.1%)
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.6,
+                        price=price
+                    )
+                    result = {
+                        "obv": current_obv,
+                        "obv_previous": previous_obv,
+                        "obv_change": obv_change,
+                        "condition": "increasing"
+                    }
+                    return _build_details(signal, current_obv, result)
+                # OBV decrescente = pressão vendedora (SELL)
+                elif obv_change < 0 and obv_change_pct > 0.001:
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.6,
+                        price=price
+                    )
+                    result = {
+                        "obv": current_obv,
+                        "obv_previous": previous_obv,
+                        "obv_change": obv_change,
+                        "condition": "decreasing"
+                    }
+                    return _build_details(signal, current_obv, result)
+
+            elif indicator_type == 'awesome_oscillator':
+                # Awesome Oscillator - sinal em cruzamento do zero
+                if not isinstance(values, pd.Series) or len(values) < 2:
+                    return None
+                
+                current_ao = float(values.iloc[-1])
+                previous_ao = float(values.iloc[-2])
+                price = candles[-1].close
+                
+                # Cruzamento acima do zero = BUY
+                if previous_ao < 0 and current_ao > 0:
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.65,
+                        price=price
+                    )
+                    result = {"ao": current_ao, "ao_previous": previous_ao, "condition": "cross_above_zero"}
+                    return _build_details(signal, current_ao, result)
+                # Cruzamento abaixo do zero = SELL
+                elif previous_ao > 0 and current_ao < 0:
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.65,
+                        price=price
+                    )
+                    result = {"ao": current_ao, "ao_previous": previous_ao, "condition": "cross_below_zero"}
+                    return _build_details(signal, current_ao, result)
+                
+                # SINAL FLEXÍVEL: AO positivo/negativo consistente
+                if current_ao > 0 and previous_ao > 0:
+                    # Dois valores positivos seguidos = momento de alta
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"ao": current_ao, "condition": "positive_momentum"}
+                    return _build_details(signal, current_ao, result)
+                elif current_ao < 0 and previous_ao < 0:
+                    # Dois valores negativos seguidos = momento de baixa
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"ao": current_ao, "condition": "negative_momentum"}
+                    return _build_details(signal, current_ao, result)
+
+            elif indicator_type == 'detrended_price_oscillator':
+                # DPO - sinal quando preço está distante da tendência
+                if not isinstance(values, pd.Series) or len(values) < 1:
+                    return None
+                
+                dpo_value = float(values.iloc[-1])
+                price = candles[-1].close
+                
+                # DPO negativo = preço abaixo da tendência = possível reversão para cima
+                if dpo_value < -0.02:  # -2%
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.6,
+                        price=price
+                    )
+                    result = {"dpo": dpo_value, "condition": "below_trend"}
+                    return _build_details(signal, dpo_value, result)
+                # DPO positivo = preço acima da tendência = possível reversão para baixo
+                elif dpo_value > 0.02:  # +2%
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.6,
+                        price=price
+                    )
+                    result = {"dpo": dpo_value, "condition": "above_trend"}
+                    return _build_details(signal, dpo_value, result)
+                
+                # SINAL FLEXÍVEL: DPO levemente desviado (0.5% a 2%)
+                if -0.02 <= dpo_value < -0.005:  # Entre -2% e -0.5%
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"dpo": dpo_value, "condition": "slightly_below_trend"}
+                    return _build_details(signal, dpo_value, result)
+                elif 0.005 < dpo_value <= 0.02:  # Entre 0.5% e 2%
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"dpo": dpo_value, "condition": "slightly_above_trend"}
+                    return _build_details(signal, dpo_value, result)
+
+            elif indicator_type == 'force_index':
+                # Force Index - sinal em cruzamento do zero
+                if not isinstance(values, pd.Series) or len(values) < 2:
+                    return None
+                
+                current_fi = float(values.iloc[-1])
+                previous_fi = float(values.iloc[-2])
+                price = candles[-1].close
+                
+                # Cruzamento acima do zero = pressão compradora = BUY
+                if previous_fi < 0 and current_fi > 0:
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.62,
+                        price=price
+                    )
+                    result = {"force_index": current_fi, "fi_previous": previous_fi, "condition": "buying_pressure"}
+                    return _build_details(signal, current_fi, result)
+                # Cruzamento abaixo do zero = pressão vendedora = SELL
+                elif previous_fi > 0 and current_fi < 0:
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.62,
+                        price=price
+                    )
+                    result = {"force_index": current_fi, "fi_previous": previous_fi, "condition": "selling_pressure"}
+                    return _build_details(signal, current_fi, result)
+                
+                # SINAL FLEXÍVEL: FI positivo/negativo consistente
+                if current_fi > 0 and previous_fi > 0:
+                    # Força compradora consistente
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"force_index": current_fi, "condition": "buying_momentum"}
+                    return _build_details(signal, current_fi, result)
+                elif current_fi < 0 and previous_fi < 0:
+                    # Força vendedora consistente
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"force_index": current_fi, "condition": "selling_momentum"}
+                    return _build_details(signal, current_fi, result)
+
+            elif indicator_type == 'klinger_oscillator':
+                # Klinger Oscillator - sinal em cruzamento da linha de sinal
+                if not isinstance(values, pd.DataFrame) or values.empty or len(values) < 2:
+                    return None
+                
+                kvo = float(values['kvo'].iloc[-1])
+                signal_line = float(values['signal'].iloc[-1])
+                prev_kvo = float(values['kvo'].iloc[-2])
+                prev_signal = float(values['signal'].iloc[-2])
+                price = candles[-1].close
+                
+                # Cruzamento KVO acima da linha de sinal = BUY
+                if prev_kvo < prev_signal and kvo > signal_line:
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.63,
+                        price=price
+                    )
+                    result = {"kvo": kvo, "signal": signal_line, "condition": "cross_above_signal"}
+                    return _build_details(signal, kvo, result)
+                # Cruzamento KVO abaixo da linha de sinal = SELL
+                elif prev_kvo > prev_signal and kvo < signal_line:
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.63,
+                        price=price
+                    )
+                    result = {"kvo": kvo, "signal": signal_line, "condition": "cross_below_signal"}
+                    return _build_details(signal, kvo, result)
+                
+                # SINAL FLEXÍVEL: KVO acima/abaixo da linha de sinal
+                if kvo > signal_line and prev_kvo > prev_signal:
+                    # KVO consistentemente acima da linha de sinal
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"kvo": kvo, "signal": signal_line, "condition": "above_signal"}
+                    return _build_details(signal, kvo, result)
+                elif kvo < signal_line and prev_kvo < prev_signal:
+                    # KVO consistentemente abaixo da linha de sinal
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"kvo": kvo, "signal": signal_line, "condition": "below_signal"}
+                    return _build_details(signal, kvo, result)
+
+            elif indicator_type == 'mass_index':
+                # Mass Index - sinal de reversão quando > 27
+                if not isinstance(values, pd.Series) or len(values) < 1:
+                    return None
+                
+                mi_value = float(values.iloc[-1])
+                price = candles[-1].close
+                
+                # Mass Index > 27 sugere possível reversão
+                if mi_value > 27.0:
+                    # Determinar direção baseado na tendência recente
+                    price_change = (candles[-1].close - candles[-5].close) / candles[-5].close if len(candles) >= 5 else 0
+                    
+                    if price_change > 0:  # Tendência de alta = possível reversão para baixo
+                        signal = Signal(
+                            signal_type=SignalType.SELL,
+                            confidence=0.6,
+                            price=price
+                        )
+                        result = {"mass_index": mi_value, "condition": "reversal_bulge_up"}
+                        return _build_details(signal, mi_value, result)
+                    elif price_change < 0:  # Tendência de baixa = possível reversão para cima
+                        signal = Signal(
+                            signal_type=SignalType.BUY,
+                            confidence=0.6,
+                            price=price
+                        )
+                        result = {"mass_index": mi_value, "condition": "reversal_bulge_down"}
+                        return _build_details(signal, mi_value, result)
+                
+                # SINAL FLEXÍVEL: Mass Index entre 25-27 (zona de alerta)
+                if 25.0 <= mi_value <= 27.0:
+                    price_change = (candles[-1].close - candles[-5].close) / candles[-5].close if len(candles) >= 5 else 0
+                    
+                    if price_change > 0:
+                        signal = Signal(
+                            signal_type=SignalType.SELL,
+                            confidence=0.52,
+                            price=price
+                        )
+                        result = {"mass_index": mi_value, "condition": "reversal_warning_up"}
+                        return _build_details(signal, mi_value, result)
+                    elif price_change < 0:
+                        signal = Signal(
+                            signal_type=SignalType.BUY,
+                            confidence=0.52,
+                            price=price
+                        )
+                        result = {"mass_index": mi_value, "condition": "reversal_warning_down"}
+                        return _build_details(signal, mi_value, result)
+
+            elif indicator_type == 'true_strength_index':
+                # TSI - sinal em cruzamento da linha de sinal em território extremo
+                if not isinstance(values, pd.DataFrame) or values.empty or len(values) < 2:
+                    return None
+                
+                tsi = float(values['tsi'].iloc[-1])
+                signal_line = float(values['signal'].iloc[-1])
+                prev_tsi = float(values['tsi'].iloc[-2])
+                prev_signal = float(values['signal'].iloc[-2])
+                price = candles[-1].close
+                
+                # Cruzamento em território negativo = BUY
+                if prev_tsi < prev_signal and tsi > signal_line and tsi < -10:
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.65,
+                        price=price
+                    )
+                    result = {"tsi": tsi, "signal": signal_line, "condition": "bullish_cross_oversold"}
+                    return _build_details(signal, tsi, result)
+                # Cruzamento em território positivo = SELL
+                elif prev_tsi > prev_signal and tsi < signal_line and tsi > 10:
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.65,
+                        price=price
+                    )
+                    result = {"tsi": tsi, "signal": signal_line, "condition": "bearish_cross_overbought"}
+                    return _build_details(signal, tsi, result)
+                
+                # SINAL FLEXÍVEL: Cruzamento da linha de sinal em território normal
+                if prev_tsi < prev_signal and tsi > signal_line:
+                    # Cruzamento para cima
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"tsi": tsi, "signal": signal_line, "condition": "bullish_cross"}
+                    return _build_details(signal, tsi, result)
+                elif prev_tsi > prev_signal and tsi < signal_line:
+                    # Cruzamento para baixo
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"tsi": tsi, "signal": signal_line, "condition": "bearish_cross"}
+                    return _build_details(signal, tsi, result)
+
+            elif indicator_type == 'ultimate_oscillator':
+                # Ultimate Oscillator - sinal em níveis extremos
+                if not isinstance(values, pd.Series) or len(values) < 1:
+                    return None
+                
+                uo_value = float(values.iloc[-1])
+                price = candles[-1].close
+                
+                # UO < 30 = oversold = BUY
+                if uo_value < 30:
+                    confidence = max(0.6, 0.7 + (30 - uo_value) / 100 * 0.3)
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=min(confidence, 0.85),
+                        price=price
+                    )
+                    result = {"ultimate_oscillator": uo_value, "condition": "oversold"}
+                    return _build_details(signal, uo_value, result)
+                # UO > 70 = overbought = SELL
+                elif uo_value > 70:
+                    confidence = max(0.6, 0.7 + (uo_value - 70) / 100 * 0.3)
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=min(confidence, 0.85),
+                        price=price
+                    )
+                    result = {"ultimate_oscillator": uo_value, "condition": "overbought"}
+                    return _build_details(signal, uo_value, result)
+                
+                # SINAL FLEXÍVEL: UO em território normal (30-70)
+                if 30 <= uo_value < 45:  # Zona de compra fraca
+                    signal = Signal(
+                        signal_type=SignalType.BUY,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"ultimate_oscillator": uo_value, "condition": "weak_buy_zone"}
+                    return _build_details(signal, uo_value, result)
+                elif 55 < uo_value <= 70:  # Zona de venda fraca
+                    signal = Signal(
+                        signal_type=SignalType.SELL,
+                        confidence=0.55,
+                        price=price
+                    )
+                    result = {"ultimate_oscillator": uo_value, "condition": "weak_sell_zone"}
+                    return _build_details(signal, uo_value, result)
 
             # Add more indicator types as needed
             # ...

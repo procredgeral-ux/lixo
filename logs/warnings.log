@@ -1,12 +1,346 @@
-2026-03-06 15:37:36 | WARNING  |                 |        |      | api.cache:connect:54 | ⚠️ Redis não disponível: Error 22 connecting to localhost:6379. 22.
-2026-03-06 15:37:40 | ERROR    |                 |        |      | core.cache.redis_client:initialize:78 | [REDIS] Falha na conexão: Error 22 connecting to localhost:6379. 22.
-2026-03-06 15:37:40 | WARNING  |                 |        |      | core.security.unified:initialize:104 | [SECURITY] Sistema inicializado em modo fallback (sem Redis)
-2026-03-06 15:37:40 | WARNING  |                 |        |      | api.main:lifespan:276 | ⚠️ Security system initialized in fallback mode (Redis unavailable)
-2026-03-06 15:37:54 | WARNING  |                 |        |      | services.data_collector.realtime:_start_ativos_monitoring:1076 | Ativos indisponíveis ignorados: ['#AMZN_otc']
-2026-03-06 15:38:38 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_send_handshake:384 | Erro ao solicitar trades fechados: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
-2026-03-06 15:38:38 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_ping_loop:434 | ✗ Connection closed during ping
-2026-03-06 15:38:45 | WARNING  |                 |        |      | services.trade_executor:_choose_account_config:1422 | ⚠️ [TradeExecutor] Nenhuma configuração ativa encontrada para a conta 986ab179-e28a-4b65-8921-e043c7519f5b
-2026-03-06 15:38:45 | WARNING  |                 |        |      | services.trade_executor:execute_trade:1051 | ⚠️ [TradeExecutor] Configuração de autotrade não encontrada para conta Leandro Souza
-2026-03-06 15:38:45 | WARNING  |                 |        |      | services.data_collector.realtime:_process_account_trade:2031 | [WARNING] [ADA-USD_otc] Trade não foi executado
-2026-03-06 15:38:54 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1295 | [Rebalance] #CITI_otc: NUNCA recebeu ticks desde a inscrição
-2026-03-06 15:38:54 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1342 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:23:33 | WARNING  |                 |        |      | api.cache:connect:54 | ⚠️ Redis não disponível: Error 22 connecting to localhost:6379. 22.
+2026-03-08 06:23:33 | WARNING  |                 |        |      | core.security.unified:initialize:104 | [SECURITY] Sistema inicializado em modo fallback (sem Redis)
+2026-03-08 06:23:33 | WARNING  |                 |        |      | api.main:lifespan:295 | ⚠️ Security system initialized in fallback mode (Redis unavailable)
+2026-03-08 06:23:54 | WARNING  |                 |        |      | services.notifications.queue_manager:_get_redis:63 | [NotificationQueue] Redis não disponível: object NoneType can't be used in 'await' expression
+2026-03-08 06:23:54 | WARNING  |                 |        |      | services.notifications.queue_manager:initialize:78 | [NotificationQueue] Usando fila em memória (sem persistência)
+2026-03-08 06:24:54 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:24:54 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:24:55 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 2: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:24:55 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:24:55 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:25:55 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:25:55 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:25:55 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 2: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:25:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:25:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-08 06:26:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:26:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 2: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:26:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:26:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:27:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:27:56 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 2: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-08 06:27:57 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:27:57 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 7 ativos monitorados, precisa de 3 mais
+2026-03-08 06:28:57 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:28:57 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:28:57 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-08 06:29:06 | WARNING  |                 |        |      | api.routers.admin:toggle_log_level:1467 | [ADMIN LOG] Nível de log INFO DESLIGADO por admin@gmail.com
+2026-03-08 06:29:11 | WARNING  |                 |        |      | api.routers.admin:toggle_log_level:1467 | [ADMIN LOG] Nível de log DEBUG DESLIGADO por admin@gmail.com
+2026-03-08 06:29:14 | WARNING  |                 |        |      | api.routers.admin:toggle_log_level:1467 | [ADMIN LOG] Nível de log WARNING DESLIGADO por admin@gmail.com
+2026-03-08 06:29:15 | WARNING  |                 |        |      | api.routers.admin:toggle_log_level:1467 | [ADMIN LOG] Nível de log SUCCESS DESLIGADO por admin@gmail.com
+2026-03-08 06:29:20 | WARNING  |                 |        |      | api.routers.admin:toggle_log_level:1467 | [ADMIN LOG] Nível de log ERROR LIGADO por admin@gmail.com
+2026-03-08 06:29:26 | WARNING  |                 |        |      | api.routers.admin:toggle_log_level:1467 | [ADMIN LOG] Nível de log DEBUG LIGADO por admin@gmail.com
+2026-03-08 06:29:31 | WARNING  |                 |        |      | api.routers.admin:toggle_log_level:1467 | [ADMIN LOG] Nível de log WARNING LIGADO por admin@gmail.com
+2026-03-08 06:29:32 | WARNING  |                 |        |      | api.routers.admin:toggle_log_level:1467 | [ADMIN LOG] Nível de log SUCCESS LIGADO por admin@gmail.com
+2026-03-08 06:29:51 | WARNING  |                 |        |      | core.system_manager:toggle_system:139 | [SYSTEM] Sistema desligado por 5ff7fd45-7f8f-4e88-a9a8-560ac39a0065. Módulos desabilitados: ['notifications']. Trades em andamento: 0 continuarão
+2026-03-08 06:29:51 | WARNING  |                 |        |      | api.routers.admin:toggle_system:1364 | [ADMIN SYSTEM] Sistema DESLIGADO por admin@gmail.com | Módulos: ['notifications'] | Trades em andamento: 0
+2026-03-08 06:29:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:29:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:29:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-08 06:30:02 | WARNING  |                 |        |      | core.system_manager:toggle_system:139 | [SYSTEM] Sistema desligado por 5ff7fd45-7f8f-4e88-a9a8-560ac39a0065. Módulos desabilitados: ['trade_execution']. Trades em andamento: 0 continuarão
+2026-03-08 06:30:02 | WARNING  |                 |        |      | api.routers.admin:toggle_system:1364 | [ADMIN SYSTEM] Sistema DESLIGADO por admin@gmail.com | Módulos: ['trade_execution'] | Trades em andamento: 0
+2026-03-08 06:30:22 | WARNING  |                 |        |      | core.system_manager:toggle_system:139 | [SYSTEM] Sistema desligado por 5ff7fd45-7f8f-4e88-a9a8-560ac39a0065. Módulos desabilitados: ['analysis']. Trades em andamento: 0 continuarão
+2026-03-08 06:30:22 | WARNING  |                 |        |      | api.routers.admin:toggle_system:1364 | [ADMIN SYSTEM] Sistema DESLIGADO por admin@gmail.com | Módulos: ['analysis'] | Trades em andamento: 0
+2026-03-08 06:30:44 | WARNING  |                 |        |      | core.system_manager:toggle_system:139 | [SYSTEM] Sistema desligado por 5ff7fd45-7f8f-4e88-a9a8-560ac39a0065. Módulos desabilitados: ['data_collection']. Trades em andamento: 0 continuarão
+2026-03-08 06:30:44 | WARNING  |                 |        |      | api.routers.admin:toggle_system:1364 | [ADMIN SYSTEM] Sistema DESLIGADO por admin@gmail.com | Módulos: ['data_collection'] | Trades em andamento: 0
+2026-03-08 06:30:57 | WARNING  |                 |        |      | api.routers.admin:toggle_system:1364 | [ADMIN SYSTEM] Sistema LIGADO por admin@gmail.com | Módulos: ['data_collection'] | Trades em andamento: 0
+2026-03-08 06:30:57 | WARNING  |                 |        |      | api.routers.admin:toggle_system:1364 | [ADMIN SYSTEM] Sistema LIGADO por admin@gmail.com | Módulos: ['trade_execution'] | Trades em andamento: 0
+2026-03-08 06:30:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:30:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:30:58 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 7 ativos monitorados, precisa de 3 mais
+2026-03-08 06:31:06 | WARNING  |                 |        |      | api.routers.admin:toggle_system:1364 | [ADMIN SYSTEM] Sistema LIGADO por admin@gmail.com | Módulos: ['analysis'] | Trades em andamento: 0
+2026-03-08 06:31:59 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:31:59 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:31:59 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-08 06:33:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:33:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:33:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-08 06:33:41 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_send_handshake:384 | Erro ao solicitar trades fechados: received 1005 (no status received [internal]); then sent 1005 (no status received [internal])
+2026-03-08 06:33:41 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_ping_loop:434 | ✗ Connection closed during ping
+2026-03-08 06:34:00 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2532 | 🚨 Redução Inteligente ATIVADA (nível cascata=1) após 2 losses. Redução de 50.0% aplicada.
+2026-03-08 06:34:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 2: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:34:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:34:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:34:00 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 7 ativos monitorados, precisa de 3 mais
+2026-03-08 06:34:01 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:34:01 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:34:11 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:34:11 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:34:11 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 2 após 3 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:34:12 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:34:12 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:34:18 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:34:29 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:34:32 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2489 | ❌ Soros resetado após perda, valor acumulado perdido: $1.92
+2026-03-08 06:34:32 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:34:32 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 3 após 4 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:34:33 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:34:33 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:34:39 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:34:41 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:34:43 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:34:43 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 4 após 5 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:34:43 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:34:43 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:34:51 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:34:55 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:34:55 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 5 após 6 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:34:56 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:34:56 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:35:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:35:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:35:02 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-08 06:35:02 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:35:05 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:35:05 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 6 após 7 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:35:06 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:35:06 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:35:11 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:35:13 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:35:17 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:35:17 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 7 após 8 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:35:18 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:35:18 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:35:25 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:35:36 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:35:39 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2489 | ❌ Soros resetado após perda, valor acumulado perdido: $1.92
+2026-03-08 06:35:39 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:35:39 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 8 após 9 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:35:39 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:35:39 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:35:41 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:35:48 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:35:50 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:35:50 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 9 após 10 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:35:50 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:35:50 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:35:58 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:36:02 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:36:02 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 10 após 11 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:36:02 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:36:03 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:36:03 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:36:03 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 2: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:36:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:36:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:36:04 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-08 06:36:09 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:36:12 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:36:19 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:36:23 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2489 | ❌ Soros resetado após perda, valor acumulado perdido: $1.92
+2026-03-08 06:36:23 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:36:23 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 11 após 12 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:36:24 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:36:24 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:36:32 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:36:42 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:36:43 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:36:46 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2423 | ✅ Soros atingiu limite 1! Resetando para valor base efetivo
+2026-03-08 06:36:47 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Gain atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:37:00 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:37:00 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:37:05 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:37:05 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 2: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:37:05 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:37:05 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:37:05 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-08 06:37:12 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:37:21 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2489 | ❌ Soros resetado após perda, valor acumulado perdido: $3.84
+2026-03-08 06:37:22 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:37:22 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:37:42 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:37:42 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2423 | ✅ Soros atingiu limite 1! Resetando para valor base efetivo
+2026-03-08 06:37:43 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Gain atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:38:03 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2423 | ✅ Soros atingiu limite 1! Resetando para valor base efetivo
+2026-03-08 06:38:03 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Gain atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:38:06 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:38:06 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 2: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:38:07 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:38:07 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:38:07 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-08 06:38:12 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:38:16 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:38:16 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:38:42 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:38:44 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2423 | ✅ Soros atingiu limite 1! Resetando para valor base efetivo
+2026-03-08 06:38:45 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Gain atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:38:59 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:38:59 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:39:01 | WARNING  |                 |        |      | services.trade_executor:_choose_account_config:1465 | ⚠️ [TradeExecutor] Nenhuma configuração ativa encontrada para a conta 986ab179-e28a-4b65-8921-e043c7519f5b
+2026-03-08 06:39:01 | WARNING  |                 |        |      | services.trade_executor:execute_trade:1093 | ⚠️ [TradeExecutor] Configuração de autotrade não encontrada para conta Leandro Souza
+2026-03-08 06:39:01 | WARNING  |                 |        |      | services.data_collector.realtime:_process_account_trade:2047 | [WARNING] [GBPUSD_otc] Trade não foi executado
+2026-03-08 06:39:08 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:39:08 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 2: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:39:08 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:39:08 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:39:08 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-08 06:39:12 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:39:21 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2532 | 🚨 Redução Inteligente ATIVADA (nível cascata=1) após 2 losses. Redução de 50.0% aplicada.
+2026-03-08 06:39:21 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:39:22 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:39:34 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 2 após 3 losses. Novo valor: $1.25 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:39:35 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:39:35 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:39:40 | WARNING  |                 |        |      | services.data_collector.realtime:_process_account_trade:1867 | [WARNING] [QARCNY_otc] Payout muito baixo (79.0%), trade não executado (mínimo: 92%)
+2026-03-08 06:39:42 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:39:51 | WARNING  |                 |        |      | services.data_collector.realtime:_process_account_trade:1867 | [WARNING] [QARCNY_otc] Payout muito baixo (79.0%), trade não executado (mínimo: 92%)
+2026-03-08 06:40:09 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:40:10 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:40:10 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 2: apenas 8 ativos monitorados, precisa de 2 mais
+2026-03-08 06:40:10 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:40:10 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:40:10 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 6 ativos monitorados, precisa de 4 mais
+2026-03-08 06:40:12 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:40:20 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2423 | ✅ Soros atingiu limite 1! Resetando para valor base efetivo
+2026-03-08 06:40:21 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Gain atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:40:42 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2489 | ❌ Soros resetado após perda, valor acumulado perdido: $9.60
+2026-03-08 06:40:42 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:40:42 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:40:42 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:40:48 | WARNING  |                 |        |      | services.data_collector.realtime:_process_account_trade:2047 | [WARNING] [USDCAD_otc] Trade não foi executado
+2026-03-08 06:41:13 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:41:13 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 1: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:41:14 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 2: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:41:14 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:41:14 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:41:14 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:41:14 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 6 ativos monitorados, precisa de 4 mais
+2026-03-08 06:41:26 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2489 | ❌ Soros resetado após perda, valor acumulado perdido: $9.60
+2026-03-08 06:41:27 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:41:27 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:41:43 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2532 | 🚨 Redução Inteligente ATIVADA (nível cascata=1) após 2 losses. Redução de 50.0% aplicada.
+2026-03-08 06:41:43 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:41:43 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:41:44 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:42:06 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2489 | ❌ Soros resetado após perda, valor acumulado perdido: $4.80
+2026-03-08 06:42:06 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 2 após 3 losses. Novo valor: $1.25 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:42:06 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:42:06 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:42:13 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:42:16 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:42:16 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:42:16 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:42:16 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 7 ativos monitorados, precisa de 3 mais
+2026-03-08 06:42:17 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:42:17 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 3 após 4 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:42:18 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:42:18 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:42:23 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:42:33 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:42:38 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2423 | ✅ Soros atingiu limite 1! Resetando para valor base efetivo
+2026-03-08 06:42:39 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Gain atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:42:43 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:43:01 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2489 | ❌ Soros resetado após perda, valor acumulado perdido: $9.60
+2026-03-08 06:43:02 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:43:02 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:43:13 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:43:14 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2532 | 🚨 Redução Inteligente ATIVADA (nível cascata=1) após 2 losses. Redução de 50.0% aplicada.
+2026-03-08 06:43:14 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:43:14 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:43:17 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 2: apenas 9 ativos monitorados, precisa de 1 mais
+2026-03-08 06:43:17 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:43:17 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:43:17 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:43:17 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 6 ativos monitorados, precisa de 4 mais
+2026-03-08 06:43:25 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 2 após 3 losses. Novo valor: $1.25 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:43:26 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:43:26 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:43:43 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:43:48 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2489 | ❌ Soros resetado após perda, valor acumulado perdido: $3.65
+2026-03-08 06:43:48 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:43:48 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 3 após 4 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:43:49 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:43:49 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:43:54 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:44:05 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:44:11 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2423 | ✅ Soros atingiu limite 1! Resetando para valor base efetivo
+2026-03-08 06:44:12 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Gain atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:44:13 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:44:19 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:44:19 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:44:19 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:44:19 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 6 ativos monitorados, precisa de 4 mais
+2026-03-08 06:44:23 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:44:23 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:44:33 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2532 | 🚨 Redução Inteligente ATIVADA (nível cascata=1) após 2 losses. Redução de 50.0% aplicada.
+2026-03-08 06:44:33 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:44:33 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:44:43 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:44:43 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 2 após 3 losses. Novo valor: $1.25 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:44:44 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:44:44 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:45:05 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2423 | ✅ Soros atingiu limite 1! Resetando para valor base efetivo
+2026-03-08 06:45:05 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Gain atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:45:13 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:45:17 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:45:17 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:45:20 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:45:20 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:45:20 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:45:20 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 5 ativos monitorados, precisa de 5 mais
+2026-03-08 06:45:27 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2532 | 🚨 Redução Inteligente ATIVADA (nível cascata=1) após 2 losses. Redução de 50.0% aplicada.
+2026-03-08 06:45:27 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:45:27 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:45:38 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 2 após 3 losses. Novo valor: $1.25 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:45:38 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:45:38 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:45:43 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:45:58 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2489 | ❌ Soros resetado após perda, valor acumulado perdido: $3.65
+2026-03-08 06:45:58 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:45:58 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 3 após 4 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:45:59 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:45:59 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:46:03 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:46:09 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:46:09 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 4 após 5 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:46:09 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:46:09 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:46:13 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:46:14 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:46:22 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:46:22 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:46:22 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:46:22 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 7 ativos monitorados, precisa de 3 mais
+2026-03-08 06:46:25 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:46:31 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2489 | ❌ Soros resetado após perda, valor acumulado perdido: $3.42
+2026-03-08 06:46:31 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:46:31 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 5 após 6 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:46:31 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:46:32 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:46:37 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:46:43 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:46:48 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:46:53 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2489 | ❌ Soros resetado após perda, valor acumulado perdido: $3.42
+2026-03-08 06:46:53 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:46:53 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 6 após 7 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:46:53 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:46:53 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:46:59 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:47:04 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:47:04 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 7 após 8 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:47:05 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:47:05 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:47:11 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:47:13 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:47:16 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2554 | ⚠️ Redução Cascata limitada ao mínimo de $1.0
+2026-03-08 06:47:16 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2556 | 🚨🚨 REDUÇÃO CASCATA ATIVADA! Nível 8 após 9 losses. Novo valor: $1.00 (redução 50.0% sobre valor já reduzido)
+2026-03-08 06:47:16 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:47:16 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:47:21 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:47:23 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] Tesla_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:47:23 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #VISA_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:47:23 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1305 | [Rebalance] #AMZN_otc: NUNCA recebeu ticks desde a inscrição
+2026-03-08 06:47:23 | WARNING  |                 |        |      | services.data_collector.realtime:_rebalance_assets:1352 | [Rebalance] ATIVOS Client 3: apenas 7 ativos monitorados, precisa de 3 mais
+2026-03-08 06:47:33 | WARNING  |                 |        |      | services.trade_executor:_calculate_trade_amount:2321 | ⚠️ Valor reduzido abaixo do mínimo ($1.0). Ajustado para: $1.00
+2026-03-08 06:47:39 | WARNING  |                 |        |      | services.trade_executor:_update_autotrade_counters_after_trade:2423 | ✅ Soros atingiu limite 1! Resetando para valor base efetivo
+2026-03-08 06:47:39 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Gain atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:47:43 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost
+2026-03-08 06:47:51 | WARNING  |                 |        |      | services.trade_executor:_check_stop_loss:2051 | 🛑 Stop Loss atingido: 1 perdas totais
+2026-03-08 06:47:51 | WARNING  |                 |        |      | services.trade_executor:_apply_consecutive_stop_cooldown:1570 | ⏸️ [Leandro Souza] Stop Loss atingido. Contadores resetados (cooldown=0, não hibernar ativo).
+2026-03-08 06:47:57 | WARNING  |                 |        |      | services.data_collector.connection_manager:_on_balance_data:683 | [USUÁRIO: Leandro Souza] [986ab179-e28a-4b65-8921-e043c7519f5b] ⚠️ SALDO INSUFICIENTE: $3.65 <= $5.00 - DESATIVANDO AUTOTRADE
+2026-03-08 06:47:57 | ERROR    |                 |        |      | services.data_collector.connection_manager:_on_balance_data:702 | [USUÁRIO: Leandro Souza] [986ab179-e28a-4b65-8921-e043c7519f5b] 🛑 AUTOTRADE DESATIVADO por saldo insuficiente
+2026-03-08 06:47:57 | WARNING  |                 |        |      | services.data_collector.connection_manager:_on_balance_data:765 | [USUÁRIO: Leandro Souza] [986ab179-e28a-4b65-8921-e043c7519f5b] Erro ao enviar notificação Telegram: cannot access local variable 'telegram_service' where it is not associated with a value
+2026-03-08 06:47:57 | WARNING  |                 |        |      | services.data_collector.connection_manager:_on_balance_data:770 | [USUÁRIO: Leandro Souza] [986ab179-e28a-4b65-8921-e043c7519f5b] 🚫 PERMANENT_DISCONNECT ativado por saldo insuficiente - autotrade desabilitado
+2026-03-08 06:47:57 | WARNING  |                 |        |      | services.trade_executor:_choose_account_config:1465 | ⚠️ [TradeExecutor] Nenhuma configuração ativa encontrada para a conta 986ab179-e28a-4b65-8921-e043c7519f5b
+2026-03-08 06:48:08 | WARNING  |                 |        |      | services.data_collector.realtime:_process_account_trade:1902 | [WARNING] [USDEGP_otc] Sem conexão WS ativa para Leandro Souza; trade não executado
+2026-03-08 06:48:13 | WARNING  |                 |        |      | services.pocketoption.keep_alive:_health_monitor_loop:536 | ✗ Health check: Connection lost

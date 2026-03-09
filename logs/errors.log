@@ -1,1 +1,1 @@
-2026-03-06 15:37:40 | ERROR    |                 |        |      | core.cache.redis_client:initialize:78 | [REDIS] Falha na conexão: Error 22 connecting to localhost:6379. 22.
+2026-03-08 06:47:57 | ERROR    |                 |        |      | services.data_collector.connection_manager:_on_balance_data:702 | [USUÁRIO: Leandro Souza] [986ab179-e28a-4b65-8921-e043c7519f5b] 🛑 AUTOTRADE DESATIVADO por saldo insuficiente

@@ -175,13 +175,65 @@ async def update_indicator(
     
     # Update fields
     update_data = indicator_update.model_dump()
-    for field, value in update_data.items():
-        setattr(indicator, field, value)
     
+    # Remove updated_at if present (let DB handle it)
+    if 'updated_at' in update_data:
+        del update_data['updated_at']
+    
+    for field, value in update_data.items():
+        if value is not None:  # Only update non-None values
+            setattr(indicator, field, value)
+    
+    # Let database handle updated_at automatically
     await db.commit()
     await db.refresh(indicator)
     
     return indicator
+
+
+@router.post("/{indicator_id}/toggle", response_model=MessageResponse)
+async def toggle_indicator_status(
+    indicator_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """Toggle indicator active status and remove from strategies if deactivated"""
+    from models import strategy_indicators
+    from sqlalchemy import delete
+    
+    stmt = select(Indicator).where(Indicator.id == indicator_id)
+    result = await db.execute(stmt)
+    indicator = result.scalar_one_or_none()
+    
+    if not indicator:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Indicator with ID {indicator_id} not found"
+        )
+    
+    # Toggle status
+    new_status = not indicator.is_active
+    indicator.is_active = new_status
+    
+    # If deactivating, remove from all strategies
+    if not new_status:
+        # Delete from association table
+        delete_stmt = delete(strategy_indicators).where(
+            strategy_indicators.c.indicator_id == indicator_id
+        )
+        result = await db.execute(delete_stmt)
+        removed_count = result.rowcount
+        
+        await db.commit()
+        
+        return MessageResponse(
+            message=f"Indicator '{indicator.name}' deactivated. Removed from {removed_count} strategies."
+        )
+    
+    await db.commit()
+    
+    return MessageResponse(
+        message=f"Indicator '{indicator.name}' activated. Available for use in strategies."
+    )
 
 
 @router.delete("/{indicator_id}", response_model=MessageResponse)

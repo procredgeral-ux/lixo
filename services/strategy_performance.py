@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 import math
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, DateTime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import Account, StrategyPerformanceSnapshot, Trade, TradeStatus
@@ -85,6 +85,15 @@ def _calculate_monthly_returns(trades: List[Trade], year: int) -> List[float]:
     return returns
 
 
+def _ensure_naive(dt: Optional[datetime]) -> Optional[datetime]:
+    """Converte datetime aware para naive (UTC)"""
+    if dt is None:
+        return None
+    if dt.tzinfo is not None:
+        return dt.replace(tzinfo=None)
+    return dt
+
+
 async def _fetch_trades(
     db: AsyncSession,
     user_id: str,
@@ -92,7 +101,15 @@ async def _fetch_trades(
     start_date: datetime,
     end_date: datetime,
 ) -> List[Trade]:
-    trade_date = func.coalesce(Trade.closed_at, Trade.placed_at)
+    # Converter datas para naive para evitar problema de timezone
+    start_date = _ensure_naive(start_date)
+    end_date = _ensure_naive(end_date)
+    
+    # Usar cast para garantir comparação sem timezone
+    trade_date = func.coalesce(
+        func.cast(Trade.closed_at, DateTime),
+        func.cast(Trade.placed_at, DateTime)
+    )
     query = (
         select(Trade)
         .join(Account)
@@ -117,7 +134,7 @@ async def get_strategy_performance_snapshot(
     cache_ttl_minutes: int = CACHE_TTL_MINUTES,
 ) -> StrategyPerformanceSnapshot:
     period_days = _resolve_period_days(period)
-    now = datetime.utcnow()
+    now = datetime.utcnow().replace(tzinfo=None)  # Garantir naive
     start_date = now - timedelta(days=period_days) if period_days else datetime(1970, 1, 1)
 
     snapshot_result = await db.execute(

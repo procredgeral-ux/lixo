@@ -1287,3 +1287,290 @@ async def get_cache_stats(
             "connected": False,
             "error": str(e)
         }
+
+
+# ============================================================================
+# SYSTEM CONTROL ENDPOINTS - Controle do estado do backend
+# ============================================================================
+
+from core.system_manager import get_system_manager, SystemModule
+from pydantic import BaseModel, Field
+from typing import List, Literal
+
+
+class SystemToggleRequest(BaseModel):
+    """Request para alternar estado do sistema"""
+    enabled: bool = Field(..., description="True para ligar, False para desligar")
+    modules: List[Literal["data_collection", "analysis", "trade_execution", "signal_generation", "notifications"]] = Field(
+        default=["data_collection", "analysis", "trade_execution"],
+        description="Módulos afetados pela operação"
+    )
+
+
+class SystemToggleResponse(BaseModel):
+    """Response do toggle do sistema"""
+    success: bool
+    enabled: bool
+    modules: dict
+    message: str
+    trades_in_progress: int
+    disabled_at: str | None
+    enabled_at: str
+    last_toggle_by: str | None
+
+
+class SystemStatusResponse(BaseModel):
+    """Response do status do sistema"""
+    enabled: bool
+    status: str
+    modules: dict
+    trades_in_progress: int
+    can_execute_new_trades: bool
+    can_generate_signals: bool
+    disabled_at: str | None
+    enabled_at: str
+    last_toggle_by: str | None
+
+
+@router.post("/system/toggle", response_model=SystemToggleResponse)
+async def toggle_system(
+    request: SystemToggleRequest,
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    Ligar ou desligar o sistema (coleta, análise, execução de trades).
+    
+    Quando desligado:
+    - Novos trades NÃO serão executados
+    - Coleta de dados pode ser pausada
+    - Trades em andamento CONTINUAM funcionando normalmente
+    - Acompanhamento/monitoramento permanece ativo
+    
+    Quando ligado:
+    - Todos os módulos voltam a operar normalmente
+    """
+    try:
+        system_manager = get_system_manager()
+        
+        # Alternar estado do sistema
+        new_state = await system_manager.toggle_system(
+            enabled=request.enabled,
+            modules=request.modules,
+            user_id=str(current_user.id)
+        )
+        
+        # Log da operação
+        action = "LIGADO" if request.enabled else "DESLIGADO"
+        logger.warning(
+            f"[ADMIN SYSTEM] Sistema {action} por {current_user.email} | "
+            f"Módulos: {request.modules} | "
+            f"Trades em andamento: {new_state.trades_in_progress}"
+        )
+        
+        return SystemToggleResponse(
+            success=True,
+            enabled=new_state.enabled,
+            modules={
+                "data_collection": system_manager.is_data_collection_enabled(),
+                "analysis": system_manager.is_analysis_enabled(),
+                "trade_execution": system_manager.is_trade_execution_enabled(),
+                "signal_generation": system_manager.is_signal_generation_enabled(),
+                "notifications": system_manager.is_notifications_enabled()
+            },
+            message=f"Sistema {action} com sucesso. Trades em andamento: {new_state.trades_in_progress}",
+            trades_in_progress=new_state.trades_in_progress,
+            disabled_at=new_state.disabled_at.isoformat() if new_state.disabled_at else None,
+            enabled_at=new_state.enabled_at.isoformat(),
+            last_toggle_by=new_state.last_toggle_by
+        )
+        
+    except Exception as e:
+        logger.error(f"[ADMIN SYSTEM] Erro ao alternar sistema: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Erro ao alternar estado do sistema: {str(e)}"
+        )
+
+
+@router.get("/system/status", response_model=SystemStatusResponse)
+async def get_system_status(
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    Obter status atual do sistema.
+    
+    Retorna:
+    - Estado atual (ligado/desligado)
+    - Status dos módulos
+    - Trades em andamento
+    - Capacidade de executar novos trades
+    """
+    try:
+        system_manager = get_system_manager()
+        status = system_manager.get_status()
+        
+        return SystemStatusResponse(
+            enabled=status["enabled"],
+            status=status["status"],
+            modules=status["modules"],
+            trades_in_progress=status["trades_in_progress"],
+            can_execute_new_trades=status["can_execute_new_trades"],
+            can_generate_signals=status["can_generate_signals"],
+            disabled_at=status["disabled_at"],
+            enabled_at=status["enabled_at"],
+            last_toggle_by=status["last_toggle_by"]
+        )
+        
+    except Exception as e:
+        logger.error(f"[ADMIN SYSTEM] Erro ao obter status: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Erro ao obter status do sistema: {str(e)}"
+        )
+
+
+class LogLevelToggleRequest(BaseModel):
+    """Request para alternar nível de log"""
+    level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "SUCCESS"] = Field(..., description="Nível de log")
+    enabled: bool = Field(..., description="True para ligar, False para desligar")
+
+
+class LogLevelToggleResponse(BaseModel):
+    """Response do toggle de nível de log"""
+    success: bool
+    level: str
+    enabled: bool
+    message: str
+
+
+@router.post("/log-levels/toggle", response_model=LogLevelToggleResponse)
+async def toggle_log_level(
+    request: LogLevelToggleRequest,
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    Ligar ou desligar nível de log específico.
+    
+    DEBUG: Logs detalhados de desenvolvimento
+    INFO: Informações gerais do sistema
+    WARNING: Avisos e alertas
+    ERROR: Erros críticos
+    """
+    try:
+        # Importar o logger_manager
+        from core.system_manager import get_logger_manager
+        
+        logger_manager = get_logger_manager()
+        success = logger_manager.set_log_level_enabled(request.level, request.enabled)
+        
+        action = "LIGADO" if request.enabled else "DESLIGADO"
+        logger.warning(
+            f"[ADMIN LOG] Nível de log {request.level} {action} por {current_user.email}"
+        )
+        
+        return LogLevelToggleResponse(
+            success=success,
+            level=request.level,
+            enabled=request.enabled,
+            message=f"Nível de log {request.level} {action.lower()} com sucesso"
+        )
+        
+    except Exception as e:
+        logger.error(f"[ADMIN LOG] Erro ao alternar nível de log: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao alternar nível de log: {str(e)}"
+        )
+
+
+@router.get("/log-levels")
+async def get_log_levels(
+    current_user: User = Depends(get_current_superuser),
+):
+    """Obter status atual dos níveis de log"""
+    try:
+        from core.system_manager import get_logger_manager
+        
+        logger_manager = get_logger_manager()
+        levels = logger_manager.get_log_levels()
+        
+        return {
+            "DEBUG": levels.get("DEBUG", True),
+            "INFO": levels.get("INFO", True),
+            "WARNING": levels.get("WARNING", True),
+            "ERROR": levels.get("ERROR", True),
+            "SUCCESS": levels.get("SUCCESS", True)
+        }
+        
+    except Exception as e:
+        logger.error(f"[ADMIN LOG] Erro ao obter níveis de log: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao obter níveis de log: {str(e)}"
+        )
+
+
+class RestartRequest(BaseModel):
+    """Request para reiniciar aplicação"""
+    confirm: bool = Field(..., description="Confirmar reinicialização")
+
+
+class RestartResponse(BaseModel):
+    """Response do reinício da aplicação"""
+    success: bool
+    message: str
+    restart_initiated: bool
+
+
+@router.post("/restart", response_model=RestartResponse)
+async def restart_application(
+    request: RestartRequest,
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    Reiniciar aplicação backend.
+    
+    Equivalente a Ctrl+C + reinicialização.
+    No Railway, isso faz o container ser recriado automaticamente.
+    """
+    try:
+        if not request.confirm:
+            return RestartResponse(
+                success=False,
+                message="Confirmação necessária para reiniciar",
+                restart_initiated=False
+            )
+        
+        logger.warning(
+            f"[ADMIN RESTART] Reinicialização solicitada por {current_user.email}"
+        )
+        
+        # Responder primeiro para o cliente receber confirmação
+        response = RestartResponse(
+            success=True,
+            message="Reinicialização iniciada. A aplicação será reiniciada em breve.",
+            restart_initiated=True
+        )
+        
+        # Agendar reinício em background após responder
+        import asyncio
+        import os
+        import signal
+        
+        async def delayed_restart():
+            await asyncio.sleep(2)  # Aguardar 2 segundos para enviar resposta
+            logger.critical("[ADMIN RESTART] Executando reinicialização...")
+            # Enviar SIGTERM para iniciar graceful shutdown
+            os.kill(os.getpid(), signal.SIGTERM)
+        
+        # Iniciar reinício em background
+        asyncio.create_task(delayed_restart())
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"[ADMIN RESTART] Erro ao reiniciar aplicação: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao reiniciar aplicação: {str(e)}"
+        )

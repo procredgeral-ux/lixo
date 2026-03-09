@@ -93,7 +93,7 @@ def clear_logs():
 
 
 def configure_loguru():
-    """Configurar loguru handlers com LOG_LEVEL do .env"""
+    """Configurar loguru handlers com LOG_LEVEL do .env e filtro dinâmico"""
     import sys
     import io
     
@@ -102,6 +102,12 @@ def configure_loguru():
     
     # IMPORTANTE: Remover handlers padrão do Loguru para que o LOG_LEVEL funcione
     logger.remove()
+    
+    # Adicionar nível SUCCESS customizado ao loguru (se não existir)
+    try:
+        logger.level("SUCCESS")
+    except ValueError:
+        logger.level("SUCCESS", no=25, color="<green>", icon="✅")
     
     # Configure default extra fields for all log records
     logger.configure(
@@ -113,7 +119,20 @@ def configure_loguru():
         }
     )
 
-    # Console handler - usa LOG_LEVEL do .env
+    # Filtro global que verifica LoggerManager
+    def log_filter(record):
+        """Filtra logs baseado no LoggerManager"""
+        try:
+            from core.system_manager import get_logger_manager
+            logger_manager = get_logger_manager()
+            level = record["level"].name
+            enabled = logger_manager.is_level_enabled(level)
+            return enabled
+        except Exception:
+            # Se houver erro, permite o log passar
+            return True
+
+    # Console handler - usa LOG_LEVEL do .env + filtro dinâmico
     class UTF8Stdout:
         def __init__(self):
             self.buffer = sys.stdout.buffer
@@ -123,7 +142,6 @@ def configure_loguru():
                 sys.stdout.write(text)
                 sys.stdout.flush()
             except UnicodeEncodeError:
-                # Fallback: replace problematic characters
                 sys.stdout.write(text.encode('ascii', errors='replace').decode('ascii'))
                 sys.stdout.flush()
         
@@ -133,7 +151,8 @@ def configure_loguru():
     logger.add(
         sink=UTF8Stdout(),
         level=log_level,
-        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | <level>{message}</level>"
+        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | <level>{message}</level>",
+        filter=log_filter
     )
 
     # File handler - app.log (usa LOG_LEVEL do .env) - ROTAÇÃO: ~20k linhas (500KB)

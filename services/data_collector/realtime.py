@@ -36,6 +36,7 @@ from services.trade_timing_manager import TradeTimingManager
 from services.candle_close_tracker import CandleCloseTracker
 from services.user_logger import user_logger
 from services.l1_cache import autotrade_config_l1_cache, user_data_l1_cache, get_with_l1_l2_cache
+from core.system_manager import get_system_manager
 
 
 class DataCollectorService:
@@ -158,6 +159,11 @@ class DataCollectorService:
         self._max_reconnect_retries = 5  # Máximo de tentativas de reconexão
         self._reconnect_backoff_base = 2  # Base para backoff exponencial (2^retry)
         self._reconnect_lock = asyncio.Lock()  # Lock para evitar reconexões simultâneas
+        
+        # Rastreamento de contas desativadas por saldo insuficiente (evitar flood)
+        # Formato: {account_id: timestamp}
+        self._accounts_disabled_by_balance: Dict[str, float] = {}
+        self._balance_disable_cooldown = 60  # Segundos entre notificações
         
     def _get_account_name(self, account_idx: int) -> str:
         """Obter o nome do usuário/conta associado ao account_idx"""
@@ -764,6 +770,8 @@ class DataCollectorService:
         self._configured_timeframes = None
         self._configured_timeframe = None
         self._config_last_updated = 0
+        # Limpar estado de contas desativadas para permitir reativação
+        self._accounts_disabled_by_balance.clear()
         # Invalidar L1 cache também - aguardar a operação completar
         try:
             await autotrade_config_l1_cache.delete("all_autotrade_configs")
@@ -1003,8 +1011,10 @@ class DataCollectorService:
             except Exception as e:
                 logger.error(f"[MONITORAMENTO #{idx+1}] Falha ao conectar cliente ATIVOS #{idx+1}: {e}")
 
-        # Buscar todos os assets com payout >= 92% (mesmo critério do rebalanceamento)
-        all_assets = await self._get_top_assets_by_payout(min_payout=92.0)
+        # Buscar todos os assets com payout >= 92% (suficientes para todas as contas)
+        num_accounts = len(self.ativos_clients)
+        total_assets_needed = settings.MAX_ASSETS_PER_ACCOUNT * num_accounts
+        all_assets = await self._get_top_assets_by_payout(limit=total_assets_needed, min_payout=92.0)
 
         if not all_assets:
             logger.warning("Nenhum asset encontrado no banco de dados")
@@ -1013,52 +1023,50 @@ class DataCollectorService:
         logger.info(f"[INIT] Encontrados {len(all_assets)} assets com payout >= 92%")
         logger.info(f"[INIT] Top ativos: {[asset.symbol for asset in all_assets[:15]]}")
 
-        # Distribuir assets entre as contas (10 por conta)
-        assets_per_account = 10
+        # Criar lista de ativos disponíveis (filtrar indisponíveis UMA VEZ)
+        available_assets = []
+        unavailable_assets = []
+        
+        for asset in all_assets:
+            # Pular ativos conhecidos como indisponíveis
+            if asset.symbol in ["#AMZN_otc", "#FDX_otc"]:
+                unavailable_assets.append(asset.symbol)
+                continue
+            available_assets.append(asset)
+        
+        logger.info(f"[INIT] Total de ativos disponíveis após filtro: {len(available_assets)}")
+        if unavailable_assets:
+            logger.info(f"[INIT] Ativos indisponíveis ignorados: {unavailable_assets}")
+
+        # NOVA DISTRIBUIÇÃO: Dividir ativos igualmente entre contas
+        # Cada conta recebe até MAX_ASSETS_PER_ACCOUNT ativos, sem duplicação
+        assets_per_account = settings.MAX_ASSETS_PER_ACCOUNT
         num_accounts = len(self.ativos_clients)
         
         logger.info(f"[INIT] Número de contas ATIVOS: {num_accounts}")
-
+        logger.info(f"[INIT] Limite de ativos por conta: {assets_per_account}")
+        logger.info(f"[INIT] Total de ativos disponíveis: {len(available_assets)}")
+        
+        # Calcular quantos ativos cada conta vai monitorar
+        # Conta 1: índices 0-9, Conta 2: índices 10-19, Conta 3: índices 20-29, etc.
         for account_idx in range(num_accounts):
-            # Selecionar assets disponíveis (pular ativos indisponíveis)
-            available_assets = []
-            unavailable_assets = []
-            
-            for asset in all_assets:
-                # Pular ativos conhecidos como indisponíveis
-                if asset.symbol in ["#AMZN_otc", "#FDX_otc"]:
-                    unavailable_assets.append(asset.symbol)
-                    continue
-                
-                available_assets.append(asset)
-                
-                if len(available_assets) >= assets_per_account:
-                    break
-            
-            logger.info(f"[INIT] Conta {account_idx}: {len(available_assets)} ativos disponíveis após filtro")
-            
-            if len(available_assets) < assets_per_account:
-                account_name = self._get_account_name(account_idx)
-                logger.warning(
-                    f"[INIT] {account_name}: apenas {len(available_assets)} assets disponíveis "
-                    f"(indisponíveis: {unavailable_assets})"
-                )
-            
+            # Calcular o slice de ativos para esta conta
             start_idx = account_idx * assets_per_account
-            end_idx = start_idx + min(assets_per_account, len(available_assets))
+            end_idx = start_idx + assets_per_account
             
-            logger.info(f"[INIT] Conta {account_idx}: start_idx={start_idx}, end_idx={end_idx}")
-
-            if start_idx >= len(available_assets):
+            # Pegar o slice de ativos (pode ser menor que assets_per_account se acabarem os ativos)
+            account_assets = available_assets[start_idx:end_idx]
+            
+            if not account_assets:
                 account_name = self._get_account_name(account_idx)
-                logger.info(f"[INIT] {account_name}: sem assets suficientes para monitorar")
+                logger.warning(f"[INIT] {account_name}: nenhum ativo alocado (sem ativos disponíveis)")
                 continue
 
-            account_assets = available_assets[start_idx:end_idx]
             client = self.ativos_clients[account_idx]
-
             account_name = self._get_account_name(account_idx)
-            logger.info(f"[INIT] {account_name}: selecionados {len(account_assets)} assets: {[a.symbol for a in account_assets]}")
+            
+            logger.info(f"[INIT] {account_name}: alocados {len(account_assets)} ativos (índices {start_idx}-{start_idx + len(account_assets) - 1})")
+            logger.info(f"[INIT] {account_name}: ativos: {[a.symbol for a in account_assets[:10]]}{'...' if len(account_assets) > 10 else ''}")
 
             # Rastrear ativos monitorados por conta
             self._monitored_assets_by_account[account_idx] = [asset.symbol for asset in account_assets]
@@ -1067,15 +1075,13 @@ class DataCollectorService:
             subscribed_count = await self._subscribe_account_assets(account_idx, client)
 
             if subscribed_count < len(account_assets):
-                account_name = self._get_account_name(account_idx)
                 logger.warning(
                     f"{account_name}: apenas {subscribed_count}/{len(account_assets)} assets inscritos"
                 )
-            
-            if unavailable_assets:
-                logger.warning(f"Ativos indisponíveis ignorados: {unavailable_assets}")
 
-        logger.success(f"Monitoramento de ativos iniciado com {num_accounts} contas")
+        # Log do total distribuído
+        total_monitored = sum(len(assets) for assets in self._monitored_assets_by_account.values())
+        logger.success(f"Monitoramento de ativos iniciado com {num_accounts} contas, total de {total_monitored} ativos distribuídos")
 
         # Iniciar tarefa de monitoramento contínuo
         self._ativos_monitoring_task = asyncio.create_task(self._ativos_monitoring_loop())
@@ -1208,22 +1214,26 @@ class DataCollectorService:
         
         Lógica:
         1. Identificar ativos ruins (payout < 92%) e SEMPRE removê-los
-        2. Adicionar novos ativos bons apenas se necessário e disponíveis
+        2. Adicionar novos ativos bons até atingir MAX_ASSETS_PER_ACCOUNT
         """
         try:
             logger.info("[Rebalance] Iniciando rebalanceamento de ativos...")
 
-            # Buscar top 30 ativos com payout >= 92%
-            top_30_assets = await self._get_top_assets_by_payout(limit=30, min_payout=92.0)
+            max_assets = settings.MAX_ASSETS_PER_ACCOUNT
+            num_accounts = len(self.ativos_clients)
+            total_assets_needed = max_assets * num_accounts
+            
+            # Buscar top ativos com payout >= 92% (suficientes para todas as contas)
+            top_assets = await self._get_top_assets_by_payout(limit=total_assets_needed, min_payout=92.0)
 
-            if not top_30_assets:
+            if not top_assets:
                 logger.warning("[Rebalance] Nenhum asset encontrado no banco de dados com payout >= 92%")
                 return
 
-            logger.info(f"[Rebalance] Top 30 ativos encontrados: {[asset.symbol for asset in top_30_assets[:5]]}...")
+            logger.info(f"[Rebalance] Top {len(top_assets)} ativos encontrados: {[asset.symbol for asset in top_assets[:5]]}...")
 
-            # Criar conjunto de todos os símbolos no top 30
-            top_30_symbols = set(asset.symbol for asset in top_30_assets)
+            # Criar conjunto de todos os símbolos disponíveis
+            available_symbols = set(asset.symbol for asset in top_assets)
 
             # Criar conjunto de todos os ativos monitorados por todas as contas
             all_monitored_symbols = set()
@@ -1242,7 +1252,7 @@ class DataCollectorService:
                 logger.info(f"[Rebalance] {account_name}: monitorando {len(monitored_symbols)} ativos: {monitored_symbols}")
 
                 # === FASE 1: REMOVER ATIVOS RUINS (SEMPRE) ===
-                bad_assets = [symbol for symbol in monitored_symbols if symbol not in top_30_symbols]
+                bad_assets = [symbol for symbol in monitored_symbols if symbol not in available_symbols]
                 
                 if bad_assets:
                     logger.info(f"[Rebalance] {account_name}: {len(bad_assets)} ativos ruins encontrados: {bad_assets}")
@@ -1337,19 +1347,19 @@ class DataCollectorService:
                 # === FASE 3: ADICIONAR NOVOS ATIVOS BONS (se necessário) ===
                 current_count = len(self._monitored_assets_by_account[account_idx])
                 
-                if current_count < 10:
-                    needed = 10 - current_count
+                if current_count < max_assets:
+                    needed = max_assets - current_count
                     logger.warning(f"[Rebalance] {account_name}: apenas {current_count} ativos monitorados, precisa de {needed} mais")
                     
                     # Identificar ativos disponíveis (bons e não monitorados)
-                    available_symbols = list(top_30_symbols - all_monitored_symbols)
+                    not_monitored = list(available_symbols - all_monitored_symbols)
                     
-                    if available_symbols:
-                        logger.info(f"[Rebalance] {account_name}: {len(available_symbols)} ativos bons disponíveis: {available_symbols[:5]}...")
+                    if not_monitored:
+                        logger.info(f"[Rebalance] {account_name}: {len(not_monitored)} ativos bons disponíveis: {not_monitored[:5]}...")
                         
-                        # Adicionar até completar 10
-                        for i in range(min(needed, len(available_symbols))):
-                            better_symbol = available_symbols[i]
+                        # Adicionar até completar o limite
+                        for i in range(min(needed, len(not_monitored))):
+                            better_symbol = not_monitored[i]
                             
                             try:
                                 # Adicionar ao rastreamento
@@ -1384,6 +1394,12 @@ class DataCollectorService:
     async def _on_ativos_stream_update(self, data: Any, account_idx: int):
         """Processar atualizações de stream de preços dos ativos"""
         try:
+            # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se coleta de dados está habilitada
+            system_manager = get_system_manager()
+            if not system_manager.is_data_collection_enabled():
+                # Sistema desligado - não processar novos ticks, mas manter conexão para acompanhamento
+                return
+            
             # Verificar diferentes formatos de dados
             
             # Formato 1: Lista de ticks [["symbol", timestamp, price], ...]
@@ -2076,19 +2092,56 @@ class DataCollectorService:
             timeframe_seconds: Timeframe em segundos
             collect_only: Se True, apenas coleta sinais sem executar trades
         """
+        import time  # Import local para garantir disponibilidade
         try:
-            # 🚨 VALIDAÇÃO: Ativos oficiais (sem _otc) só aceitam trades >= 60s
+            # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se análise está habilitada
+            system_manager = get_system_manager()
+            if not system_manager.is_analysis_enabled():
+                # Sistema desligado - não executar estratégias
+                logger.debug(f"⏹️ [{symbol}] Análise bloqueada - sistema desligado")
+                return None
+            
+            # 🚨 VALIDAÇÃO ANTES DE CARREGAR CONFIGS: Verificar se todas as contas relevantes estão em cooldown
+            # Isso evita processamento desnecessário quando o usuário foi desativado
+            current_time_early = time.time()
+            
+            # Se não há contas no sistema, pular rapidamente
+            if not hasattr(self, '_accounts_disabled_by_balance'):
+                self._accounts_disabled_by_balance = {}
+            
+            # 🚨 Ativos oficiais (sem _otc) só aceitam trades >= 60s
             from services.pocketoption.constants import is_otc_asset
             if not is_otc_asset(symbol) and timeframe_seconds < 60:
-                logger.debug(f"⏭️ [{symbol}] Ativo oficial (não-OTC) ignorado: timeframe {timeframe_seconds}s < 60s mínimo")
                 return None
 
             # Carregar todas as configurações de autotrade ativas
             all_configs = await self._get_all_autotrade_configs()
 
             if not all_configs:
-                logger.debug(f"[WARNING] [{symbol}] Nenhuma configuração de autotrade ativa")
                 return None
+            
+            # 🚨 FILTRAR: Remover configs de contas que estão em cooldown de desativação
+            # Isso evita processamento desnecessário e logs excessivos
+            current_time_filter = time.time()
+            filtered_configs = {}
+            
+            for account_id, configs in all_configs.items():
+                # Verificar se conta está em cooldown
+                if account_id in self._accounts_disabled_by_balance:
+                    last_disabled = self._accounts_disabled_by_balance[account_id]
+                    cooldown_remaining = self._balance_disable_cooldown - (current_time_filter - last_disabled)
+                    if cooldown_remaining > 0:
+                        # Conta em cooldown, pular completamente
+                        continue
+                # Conta ativa ou cooldown expirado, incluir configs
+                filtered_configs[account_id] = configs
+            
+            # Se todas as contas foram filtradas (todas em cooldown), retornar cedo
+            if not filtered_configs:
+                return None
+            
+            # Usar configs filtradas
+            all_configs = filtered_configs
 
             # Log para debug
             total_configs = sum(len(configs) for configs in all_configs.values())
@@ -2108,11 +2161,57 @@ class DataCollectorService:
                 logger.debug(f"[WARNING] [{symbol}] Nenhuma configuração ativa para timeframe {timeframe_seconds}s")
                 return None
 
+            # Verificar se TODAS as contas estão em cooldown de desativação
+            # Se sim, pular completamente o processamento para economizar recursos
+            current_time = time.time()
+            all_accounts_in_cooldown = True
+            active_account_ids = set()
+            
+            for user_config in configs_for_timeframe:
+                account_id = user_config['account_id']
+                if account_id in self._accounts_disabled_by_balance:
+                    last_disabled = self._accounts_disabled_by_balance[account_id]
+                    cooldown_remaining = self._balance_disable_cooldown - (current_time - last_disabled)
+                    if cooldown_remaining <= 0:
+                        # Cooldown expirado, esta conta pode ser processada
+                        all_accounts_in_cooldown = False
+                        active_account_ids.add(account_id)
+                else:
+                    # Conta não está em cooldown
+                    all_accounts_in_cooldown = False
+                    active_account_ids.add(account_id)
+            
+            # Se todas as contas estiverem em cooldown, pular completamente
+            if all_accounts_in_cooldown:
+                # Log apenas uma vez por minuto para evitar flood
+                if not hasattr(self, '_last_all_cooldown_log'):
+                    self._last_all_cooldown_log = {}
+                last_log = self._last_all_cooldown_log.get(symbol, 0)
+                if current_time - last_log > 60:  # Log a cada 60 segundos
+                    logger.debug(f"[SKIP] [{symbol}] Todas as contas em cooldown, pulando processamento")
+                    self._last_all_cooldown_log[symbol] = current_time
+                return None
+
             # Verificar saldo de cada conta antes de gerar sinais
             configs_with_sufficient_balance = []
             for user_config in configs_for_timeframe:
                 account_id = user_config['account_id']
                 config = user_config['config']
+                
+                # Pular se conta não está na lista de ativas (todas em cooldown)
+                if account_id not in active_account_ids:
+                    continue
+                
+                # Verificar se está no cooldown de desativação (já verificado acima, mas double-check)
+                if account_id in self._accounts_disabled_by_balance:
+                    last_disabled = self._accounts_disabled_by_balance[account_id]
+                    cooldown_remaining = self._balance_disable_cooldown - (current_time - last_disabled)
+                    if cooldown_remaining > 0:
+                        continue
+                    else:
+                        # Cooldown expirado, remover do set
+                        logger.info(f"[COOLDOWN] Conta {account_id[:8]}... cooldown expirado, removendo")
+                        del self._accounts_disabled_by_balance[account_id]
 
                 try:
                     async with get_db_context() as db:
@@ -2148,8 +2247,10 @@ class DataCollectorService:
                                     f"saldo insuficiente (${current_balance:.2f} <= ${min_balance:.2f}), DESATIVANDO AUTOTRADE"
                                 )
                                 # 🚨 DESATIVAR AUTOTRADE por saldo insuficiente
+                                strategy_id_to_notify = None
+                                user_id_to_notify = None
                                 try:
-                                    from models import AutoTradeConfig
+                                    from models import AutoTradeConfig, Strategy, User
                                     result_configs = await db.execute(
                                         select(AutoTradeConfig).where(AutoTradeConfig.account_id == account_id)
                                     )
@@ -2157,17 +2258,50 @@ class DataCollectorService:
                                     for cfg in configs_to_disable:
                                         cfg.is_active = False
                                         cfg.updated_at = datetime.utcnow()
+                                        if cfg.strategy_id:
+                                            strategy_id_to_notify = cfg.strategy_id
                                     await db.commit()
                                     logger.warning(f"🛑 Autotrade DESATIVADO para {account_name} por saldo insuficiente")
                                     
+                                    # Buscar user_id para notificação
+                                    if strategy_id_to_notify:
+                                        user_result = await db.execute(
+                                            select(Account.user_id).where(Account.id == account_id)
+                                        )
+                                        user_id_to_notify = user_result.scalar_one_or_none()
+                                    
                                     # Desconectar WebSocket
                                     if hasattr(self, 'connection_manager') and self.connection_manager:
-                                        await self.connection_manager.disconnect_connection(account_id, 'demo')
-                                        await self.connection_manager.disconnect_connection(account_id, 'real')
+                                        await self.connection_manager.disconnect_connection(account_id, 'demo', permanent=True)
+                                        await self.connection_manager.disconnect_connection(account_id, 'real', permanent=True)
                                         logger.info(f"✓ Conexões desconectadas para {account_name}")
+                                    
+                                    # Invalidar cache para evitar que o loop continue processando
+                                    self.invalidate_autotrade_configs_cache()
+                                    
+                                    # Registrar desativação com timestamp (evitar flood)
+                                    self._accounts_disabled_by_balance[account_id] = time.time()
+                                    
+                                    # Notificar frontend sobre mudança de status da estratégia
+                                    if strategy_id_to_notify and user_id_to_notify:
+                                        try:
+                                            logger.info(f"[WEBSOCKET] Preparando notificação para user={user_id_to_notify[:8]}, strategy={strategy_id_to_notify[:8]}, is_active=False")
+                                            from api.routers.websocket import broadcast_strategy_status_update
+                                            await broadcast_strategy_status_update(
+                                                user_id=user_id_to_notify,
+                                                strategy_id=strategy_id_to_notify,
+                                                is_active=False,
+                                                reason=f"Saldo insuficiente (${current_balance:.2f})"
+                                            )
+                                            logger.info(f"✓ Notificação WebSocket ENVIADA para usuário {user_id_to_notify[:8]}...")
+                                        except Exception as e:
+                                            logger.error(f"[WEBSOCKET ERROR] Erro ao enviar notificação: {e}", exc_info=True)
+                                    else:
+                                        logger.warning(f"[WEBSOCKET] Não enviado: strategy_id={strategy_id_to_notify}, user_id={user_id_to_notify}")
                                 except Exception as e:
                                     logger.error(f"Erro ao desativar autotrade por saldo insuficiente: {e}")
-                                continue
+                                # Retornar None para parar processamento deste ativo
+                                return None
 
                             configs_with_sufficient_balance.append(user_config)
                         else:
@@ -2180,7 +2314,13 @@ class DataCollectorService:
                     continue
 
             if not configs_with_sufficient_balance:
-                logger.debug(f"[WARNING] [{symbol}] Nenhuma configuração com saldo suficiente")
+                # Log apenas uma vez a cada 60 segundos para evitar flood
+                if not hasattr(self, '_last_no_balance_log'):
+                    self._last_no_balance_log = {}
+                last_log = self._last_no_balance_log.get(symbol, 0)
+                if current_time - last_log > 60:
+                    logger.debug(f"[WARNING] [{symbol}] Nenhuma configuração com saldo suficiente")
+                    self._last_no_balance_log[symbol] = current_time
                 return None
 
             # logger.info(f"[MONEY] [{symbol}] {len(configs_with_sufficient_balance)} configuração(ões) com saldo suficiente")
@@ -2299,6 +2439,10 @@ class DataCollectorService:
                 indicator_types = [ind.get('type', 'unknown') for ind in indicators_config]
                 # logger.info(f"📊 [USUÁRIO: {user_name}] Indicadores configurados: {indicator_types}")
                 
+                # 🚀 MODO FORCE: Sempre forçar análise com todos os indicadores
+                # Não esperar o mercado "responder" - forçar sinais imediatamente
+                force_mode = config.get('force_mode', True)  # Default: sempre forçar
+                
                 strategy = CustomStrategy(
                     name=strategy_display_name,
                     strategy_type="custom",
@@ -2306,20 +2450,22 @@ class DataCollectorService:
                     parameters={
                         'min_confidence': config.get('min_confidence', strategy_params.get('min_confidence', 0.7)),
                         'required_signals': strategy_params.get('required_signals', 1),
-                        'timeframe': config.get('timeframe', strategy_params.get('timeframe', 60))
+                        'timeframe': config.get('timeframe', strategy_params.get('timeframe', 60)),
+                        'force_mode': force_mode,  # 🚀 Passar modo FORCE para a estratégia
+                        'execute_all_signals': config.get('execute_all_signals', True)  # Sempre executar
                     },
                     assets=[symbol],
                     indicators=indicators_config,
                     user_name=user_name,
                     strategy_display_name=strategy_display_name
                 )
-                strategy_name = "CustomStrategy"
+                strategy_name = "CustomStrategy-FORCE" if force_mode else "CustomStrategy"
 
                 timeframe_name = next((k for k, v in self.timeframes.items() if v == timeframe_seconds), f"{timeframe_seconds}s")
 
 
-                # Executar estratégia
-                signal = await strategy.analyze(candle_data_list, symbol)
+                # 🚀 Executar estratégia com FORCE MODE
+                signal = await strategy.analyze(candle_data_list, symbol, force_mode=force_mode)
 
                 # Logar resultado da análise
                 if signal:
@@ -2380,7 +2526,8 @@ class DataCollectorService:
                             num_indicators=total_indicators
                         )
                 else:
-                    logger.debug(f" [{symbol}] Nenhum sinal gerado por {strategy_name}")
+                    # Não logar quando não houver sinal para evitar flooding
+                    pass
 
             # Retornar o melhor sinal por conta
             if best_by_account:
@@ -2450,14 +2597,20 @@ class DataCollectorService:
 
                             # Apenas coletar sinais e executar para timeframes configurados
                             if configured_timeframes and timeframe_seconds in configured_timeframes:
-                                logger.info(f"🎯 Timeframe configurado: {timeframe_seconds}s - Coletando sinais...")
-                                await self._collect_all_signals_and_execute_best(timeframe_seconds)
-                                
-                                # 🎯 EXECUTAR TRADES PENDENTES NO FECHAMENTO DA VELA
-                                for symbol in symbols:
-                                    await self._execute_pending_trades_on_candle_close(
-                                        symbol, timeframe_seconds, float(close_time_str)
-                                    )
+                                # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se análise/execução está habilitada
+                                system_manager = get_system_manager()
+                                if not system_manager.is_analysis_enabled():
+                                    # Sistema desligado - não coletar sinais nem executar trades
+                                    logger.debug(f"⏹️ Timeframe {timeframe_seconds}s ignorado - sistema desligado")
+                                else:
+                                    logger.info(f"🎯 Timeframe configurado: {timeframe_seconds}s - Coletando sinais...")
+                                    await self._collect_all_signals_and_execute_best(timeframe_seconds)
+                                    
+                                    # 🎯 EXECUTAR TRADES PENDENTES NO FECHAMENTO DA VELA
+                                    for symbol in symbols:
+                                        await self._execute_pending_trades_on_candle_close(
+                                            symbol, timeframe_seconds, float(close_time_str)
+                                        )
                             else:
                                 logger.debug(f"⏭️ Timeframe {timeframe_seconds}s não configurado, ignorando")
 
@@ -2919,6 +3072,12 @@ class DataCollectorService:
     async def _on_ativos_stream_update(self, data: Any, account_idx: int):
         """Processar atualizações de dados de ativos"""
         try:
+            # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se coleta de dados está habilitada
+            system_manager = get_system_manager()
+            if not system_manager.is_data_collection_enabled():
+                # Sistema desligado - não processar novos ticks, mas manter conexão para acompanhamento
+                return
+            
             # Atualizar health do cliente (tick recebido!)
             self._update_client_health(account_idx)
             
@@ -2966,6 +3125,12 @@ class DataCollectorService:
     async def _on_json_data(self, data: Any, account_idx: int):
         """Processar dados JSON recebidos - pode conter ticks"""
         try:
+            # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se coleta de dados está habilitada
+            system_manager = get_system_manager()
+            if not system_manager.is_data_collection_enabled():
+                # Sistema desligado - não processar novos ticks
+                return
+            
             # Verificar se é uma lista de ticks [["symbol", timestamp, price], ...]
             if isinstance(data, list) and len(data) > 0:
                 # Verificar se é lista de ticks (primeiro item é lista com 3 elementos)
@@ -3040,6 +3205,13 @@ class DataCollectorService:
                 if not self.is_running:
                     break
                 
+                # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se coleta de dados está habilitada
+                system_manager = get_system_manager()
+                if not system_manager.is_data_collection_enabled():
+                    # Sistema desligado - não tentar reconectar, apenas monitorar
+                    logger.debug("[WATCHDOG] Coleta de dados desligada - pulando verificação de reconexão")
+                    continue
+                
                 current_time = time.time()
                 
                 for account_idx, client in enumerate(self.ativos_clients):
@@ -3101,6 +3273,12 @@ class DataCollectorService:
 
     async def _reconnect_client_with_retry(self, account_idx: int):
         """Reconectar um cliente de ativos com retry e backoff exponencial"""
+        # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se coleta de dados está habilitada
+        system_manager = get_system_manager()
+        if not system_manager.is_data_collection_enabled():
+            logger.debug(f"[RECONNECT] Coleta de dados desligada - ignorando reconexão da conta {account_idx}")
+            return
+        
         async with self._reconnect_lock:
             if account_idx >= len(self.ativos_clients):
                 logger.error(f"[RECONNECT] Índice de conta inválido: {account_idx}")
@@ -3277,6 +3455,8 @@ class DataCollectorService:
                             # Atualizar o nome para o símbolo correto
                             asset.name = asset_data['symbol']
                             asset.updated_at = datetime.utcnow()
+                            # GARANTIR que o ativo fique ativo
+                            asset.is_active = True
                         else:
                             # Criar novo asset
                             asset = Asset(
@@ -3314,10 +3494,26 @@ class DataCollectorService:
 
     async def get_status(self) -> Dict[str, Any]:
         """Obter status do coletor de dados"""
+        # Status de todas as contas ATIVOS
+        ativos_status = []
+        for idx, client in enumerate(self.ativos_clients):
+            health = self._client_health_status.get(idx, {})
+            monitored = self._monitored_assets_by_account.get(idx, [])
+            ativos_status.append({
+                "account_idx": idx,
+                "name": self._get_account_name(idx),
+                "connected": getattr(client, 'is_connected', False),
+                "health": health.get('is_connected', False),
+                "monitored_assets": len(monitored),
+                "last_tick_gap": time.time() - health.get('last_tick', 0) if health else None
+            })
+        
         return {
             "is_running": self.is_running,
             "payout_connected": self.payout_client.is_connected if self.payout_client else False,
-            "assets_count": await self._get_assets_count()
+            "assets_count": await self._get_assets_count(),
+            "ativos_accounts": ativos_status,
+            "total_monitored_assets": sum(len(assets) for assets in self._monitored_assets_by_account.values())
         }
 
 

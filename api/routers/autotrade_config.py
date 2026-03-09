@@ -24,6 +24,105 @@ class AvailableTimeframesResponse(BaseModel):
     """Response schema for available timeframes"""
     available_timeframes: List[dict]
 
+
+class CooldownStatusResponse(BaseModel):
+    """Response schema for cooldown status"""
+    config_id: str
+    strategy_id: Optional[str]
+    account_id: str
+    is_active: bool
+    cooldown_seconds: int
+    consecutive_stop_cooldown_until: Optional[datetime]
+    time_remaining_seconds: int
+    message: str
+    cooldown_expires_at: Optional[str]  # ISO8601 UTC timestamp para sincronização frontend
+
+
+@router.get("/cooldown-status", response_model=List[CooldownStatusResponse])
+async def get_cooldown_status(
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Retorna o status de cooldown de todas as configs do usuário"""
+    try:
+        from datetime import datetime
+        
+        result = await db.execute(
+            select(AutoTradeConfig).join(Account).where(Account.user_id == current_user.id)
+        )
+        configs = result.scalars().all()
+        
+        cooldown_status_list = []
+        now = datetime.utcnow()
+        
+        for config in configs:
+            time_remaining = 0
+            message = "Pronto para operar"
+            cooldown_until = None  # Inicializar para evitar erro de escopo
+            
+            # 🚨 COOLDOWN DE STOP CONSECUTIVO (prioridade máxima)
+            if config.consecutive_stop_cooldown_until:
+                # FIX: Garantir que seja datetime, não string
+                stop_cooldown = config.consecutive_stop_cooldown_until
+                if isinstance(stop_cooldown, str):
+                    try:
+                        stop_cooldown = datetime.fromisoformat(stop_cooldown.replace('Z', '+00:00'))
+                    except Exception:
+                        stop_cooldown = None
+                
+                if stop_cooldown and isinstance(stop_cooldown, datetime) and stop_cooldown > now:
+                    cooldown_until = stop_cooldown
+                    time_remaining = int((stop_cooldown - now).total_seconds())
+                    message = f"Aguardando cooldown de stop: {time_remaining}s"
+            
+            # 🕐 COOLDOWN ENTRE TRADES (se não houver cooldown de stop)
+            if not cooldown_until and config.cooldown_seconds and config.last_trade_time:
+                # Converter cooldown_seconds para int (pode vir como string do banco)
+                cooldown_secs = int(config.cooldown_seconds) if isinstance(config.cooldown_seconds, (int, float, str)) else 0
+                if cooldown_secs > 0:
+                    # Converter last_trade_time se necessário
+                    last_trade = config.last_trade_time
+                    if isinstance(last_trade, str):
+                        try:
+                            last_trade = datetime.fromisoformat(last_trade.replace('Z', '+00:00'))
+                        except Exception:
+                            last_trade = None
+                    
+                    if isinstance(last_trade, datetime):
+                        # Calcular quando o cooldown entre trades expira
+                        from datetime import timedelta
+                        trade_cooldown_until = last_trade + timedelta(seconds=cooldown_secs)
+                        
+                        if trade_cooldown_until > now:
+                            cooldown_until = trade_cooldown_until
+                            time_remaining = int((trade_cooldown_until - now).total_seconds())
+                            message = f"Cooldown entre trades: {time_remaining}s"
+            
+            if not config.is_active:
+                message = "Desativado"
+            
+            cooldown_status_list.append(CooldownStatusResponse(
+                config_id=config.id,
+                strategy_id=config.strategy_id,
+                account_id=config.account_id,
+                is_active=config.is_active,
+                cooldown_seconds=config.cooldown_seconds or 0,
+                consecutive_stop_cooldown_until=config.consecutive_stop_cooldown_until,
+                time_remaining_seconds=time_remaining,
+                message=message,
+                cooldown_expires_at=cooldown_until.isoformat() + 'Z' if isinstance(cooldown_until, datetime) else None
+            ))
+        
+        return cooldown_status_list
+        
+    except Exception as e:
+        logger.error(f"Erro ao obter status de cooldown: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao obter status de cooldown: {str(e)}"
+        )
+
+
 @router.get("/available-timeframes", response_model=AvailableTimeframesResponse)
 async def get_available_timeframes(
     current_user: User = Depends(get_current_active_user)
@@ -370,6 +469,8 @@ async def update_autotrade_config(
     
     # DEBUG: Log execute_all_signals value
     logger.info(f"[DEBUG] update_autotrade_config - Received execute_all_signals: {update_payload.get('execute_all_signals')}")
+    logger.info(f"[DEBUG] update_autotrade_config - Received min_confidence: {update_payload.get('min_confidence')}, type: {type(update_payload.get('min_confidence'))}")
+    logger.info(f"[DEBUG] update_autotrade_config - Current config min_confidence before: {config.min_confidence}")
     logger.info(f"[DEBUG] update_autotrade_config - Full payload keys: {list(update_payload.keys())}")
     
     # DEBUG: Log amount specifically
@@ -396,6 +497,7 @@ async def update_autotrade_config(
     
     # DEBUG: Log after setting values
     logger.info(f"[DEBUG] update_autotrade_config - Config amount after setattr: {config.amount}")
+    logger.info(f"[DEBUG] update_autotrade_config - Config min_confidence after setattr: {config.min_confidence}")
     logger.info(f"[DEBUG] update_autotrade_config - Config execute_all_signals after setattr: {config.execute_all_signals}")
 
     if reset_consecutive:
@@ -451,6 +553,7 @@ async def update_autotrade_config(
     await db.refresh(config)
     
     logger.info(f"[DEBUG] update_autotrade_config - Config amount after commit: {config.amount}")
+    logger.info(f"[DEBUG] update_autotrade_config - Config min_confidence after commit: {config.min_confidence}")
     logger.info(f"AutoTrade config {config_id} updated")
 
     try:

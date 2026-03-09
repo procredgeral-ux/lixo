@@ -7,6 +7,7 @@ from loguru import logger
 
 from services.pocketoption.client import AsyncPocketOptionClient
 from core.database import get_db_context
+from core.system_manager import get_system_manager
 from models import Account, AutoTradeConfig
 from sqlalchemy import select, text, and_, or_, exists, update
 from utils.retry import retry_on_db_lock
@@ -285,6 +286,12 @@ class UserConnection:
     async def _send_zero_balance_notification(self, balance_value: float, is_demo: bool):
         """Enviar notificação via Telegram sobre saldo zero"""
         try:
+            # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se notificações estão habilitadas
+            system_manager = get_system_manager()
+            if not system_manager.is_notifications_enabled():
+                logger.debug(f"🔕 Notificação de saldo zero bloqueada - módulo de notificações desligado")
+                return
+                
             from services.notifications.telegram_v2 import telegram_service_v2
 
             account_type = "Demo" if is_demo else "Real"
@@ -703,8 +710,13 @@ Por favor, adicione saldo à sua conta para continuar usando o AutoTrade."""
                         
                         # Notificar usuário via Telegram
                         try:
-                            from services.notifications.telegram import TelegramNotificationService
-                            telegram_service = TelegramNotificationService()
+                            # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se notificações estão habilitadas
+                            system_manager = get_system_manager()
+                            if not system_manager.is_notifications_enabled():
+                                logger.debug(f"🔕 Notificação de saldo insuficiente bloqueada - módulo de notificações desligado")
+                            else:
+                                from services.notifications.telegram import TelegramNotificationService
+                                telegram_service = TelegramNotificationService()
                             
                             # Buscar chat_id do usuário via JOIN (mais eficiente que subquery)
                             result = await db.execute(
@@ -1407,6 +1419,50 @@ class UserConnectionManager:
             'ws_connections': total_connections,  # Total de conexões WS
         }
     
+    async def get_user_connections(self, user_id: str) -> list[UserConnection]:
+        """Obter todas as conexões ativas de um usuário específico
+        
+        Args:
+            user_id: ID do usuário
+            
+        Returns:
+            Lista de conexões ativas do usuário
+        """
+        from core.database import get_db_context
+        from sqlalchemy import text
+        
+        user_connections = []
+        
+        try:
+            # Buscar account_ids do usuário no banco de dados (async)
+            async with get_db_context() as db:
+                result = await db.execute(
+                    text("SELECT id FROM accounts WHERE user_id = :user_id"),
+                    {"user_id": user_id}
+                )
+                account_ids = [row[0] for row in result.fetchall()]
+            
+            # Buscar conexões para cada account_id
+            for account_id in account_ids:
+                demo_key = self._get_connection_key(account_id, 'demo')
+                real_key = self._get_connection_key(account_id, 'real')
+                
+                if demo_key in self.connections:
+                    conn = self.connections[demo_key]
+                    if conn.is_connected:
+                        user_connections.append(conn)
+                
+                if real_key in self.connections:
+                    conn = self.connections[real_key]
+                    if conn.is_connected:
+                        user_connections.append(conn)
+            
+            return user_connections
+            
+        except Exception as e:
+            logger.error(f"[ADMIN] Erro ao buscar conexões do usuário {user_id}: {e}")
+            return []
+    
     async def disconnect_connection(self, account_id: str, connection_type: str, permanent: bool = False):
         """Desconectar imediatamente uma conexão específica
         
@@ -1448,6 +1504,16 @@ class UserConnectionManager:
 
         key = self._get_connection_key(account_id, connection_type)
         existing = self.connections.get(key)
+        
+        # Verificar se foi marcado como desconexão permanente (stop amount, etc.)
+        if existing and getattr(existing, '_permanent_disconnect', False):
+            logger.info(f"[{account_id[:8]}...] Conexão {connection_type} bloqueada por desconexão permanente", extra={
+                "user_name": "",
+                "account_id": account_id[:8] if account_id else "",
+                "account_type": connection_type
+            })
+            return False
+        
         if existing and existing.is_connected:
             return True
 

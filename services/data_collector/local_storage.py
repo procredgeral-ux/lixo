@@ -11,20 +11,33 @@ from typing import Dict, List, Any, Optional
 from loguru import logger
 from collections import defaultdict
 import aiofiles
+import time
 
 
 class LocalStorageService:
     """Serviço para salvar dados de mercado em arquivos locais"""
 
-    def __init__(self, base_path: str = "data/actives", max_ticks_per_file: int = 10000):
+    def __init__(self, base_path: str = "data/actives", max_file_size_mb: int = 50):
         self.base_path = Path(base_path)
         self._running = False
         # Locks para evitar race condition por arquivo
         self._file_locks: Dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
-        # Limite máximo de ticks por arquivo para evitar crescimento excessivo
-        self._max_ticks_per_file = max_ticks_per_file
-        # Contador de escritas por arquivo para verificação periódica de truncagem
+        # Limite máximo de tamanho por arquivo em bytes (50MB default)
+        self._max_file_size_bytes = max_file_size_mb * 1024 * 1024
+        # Buffers de batch para cada ativo
+        self._tick_batches: Dict[str, List[Dict]] = defaultdict(list)
+        # Timestamps da última flush para cada ativo
+        self._last_flush_time: Dict[str, float] = {}
+        # Intervalo de flush em segundos (1 segundo)
+        self._flush_interval = 1.0
+        # Tamanho máximo do batch antes de flush (100 ticks)
+        self._max_batch_size = 100
+        # Task de flush periódico
+        self._flush_task: Optional[asyncio.Task] = None
+        # Contador de escritas para verificação de truncagem
         self._write_counters: Dict[str, int] = {}
+        # Último tamanho verificado por arquivo (evitar stat excessivo)
+        self._last_file_sizes: Dict[str, int] = {}
 
     async def start(self, clear_on_start: bool = True):
         """Iniciar serviço de armazenamento local
@@ -41,90 +54,69 @@ class LocalStorageService:
         # Criar pasta se não existir
         self.base_path.mkdir(parents=True, exist_ok=True)
         
-        logger.info(f"[OK] Local Storage iniciado em {self.base_path} (clear_on_start={clear_on_start}, max_ticks={self._max_ticks_per_file})")
+        # Iniciar task de flush periódico
+        self._flush_task = asyncio.create_task(self._periodic_flush())
+        
+        logger.info(f"[OK] Local Storage iniciado em {self.base_path} (clear_on_start={clear_on_start}, max_file_size={self._max_file_size_bytes / (1024*1024):.0f}MB por arquivo, batch_size={self._max_batch_size})")
 
     async def stop(self):
         """Parar serviço"""
         self._running = False
+        
+        # Cancelar task de flush
+        if self._flush_task and not self._flush_task.done():
+            self._flush_task.cancel()
+            try:
+                await asyncio.wait_for(self._flush_task, timeout=5.0)
+            except (asyncio.TimeoutError, asyncio.CancelledError):
+                pass
+        
+        # Flush final de todos os batches pendentes
+        await self._flush_all_batches()
+        
         logger.info("[OK] Local Storage parado")
 
-    async def _clear_actives_folder(self):
-        """Limpar pasta actives ao iniciar"""
-        if self.base_path.exists():
+    async def _periodic_flush(self):
+        """Flush periódico dos batches pendentes"""
+        while self._running:
             try:
-                # Usar loop.run_in_executor para operações síncronas de arquivo
-                loop = asyncio.get_event_loop()
+                await asyncio.sleep(self._flush_interval)
                 
-                # Tentar deletar cada arquivo individualmente para evitar erros de arquivos em uso
-                files = await loop.run_in_executor(None, lambda: list(self.base_path.glob("*.txt")))
-                for file_path in files:
-                    try:
-                        await loop.run_in_executor(None, file_path.unlink)
-                    except Exception as e:
-                        # Ignorar arquivos que não podem ser deletados (provavelmente em uso)
-                        pass
+                if not self._running:
+                    break
+                    
+                # Flush todos os batches que precisam ser salvos
+                await self._flush_all_batches()
                 
-                logger.info(f"[OK] Pasta {self.base_path} limpa")
+            except asyncio.CancelledError:
+                break
             except Exception as e:
-                logger.warning(f"Aviso: Não foi possível limpar pasta {self.base_path}: {e}")
-        
-        # Criar pasta de forma assíncrona
-        try:
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, lambda: self.base_path.mkdir(exist_ok=True))
-        except Exception as e:
-            logger.warning(f"Aviso ao criar pasta: {e}")
+                logger.error(f"[LocalStorage] Erro no flush periódico: {e}")
+                await asyncio.sleep(0.1)
 
-    async def save_tick(self, asset_symbol: str, price: float, timestamp: float):
-        """Salvar tick direto no disco"""
-        tick_data = {
-            "timestamp": timestamp,
-            "datetime": datetime.fromtimestamp(timestamp).isoformat(),
-            "price": price
-        }
+    async def _flush_all_batches(self):
+        """Flush todos os batches pendentes"""
+        current_time = time.time()
+        tasks = []
         
-        await self._append_to_file(asset_symbol, tick_data)
-
-    async def save_history(self, asset_symbol: str, period: int, candles: List[List[float]]):
-        """Salvar histórico de candles como ticks direto no disco"""
-        # Converter todos os candles para tick_data de uma vez
-        tick_data_list = []
-        for candle in candles:
-            tick_data_list.append({
-                "timestamp": candle[0],
-                "datetime": datetime.fromtimestamp(candle[0]).isoformat(),
-                "price": candle[1]
-            })
+        for asset_symbol, batch in list(self._tick_batches.items()):
+            if batch:
+                # Verificar se é hora de flush ou batch está cheio
+                last_flush = self._last_flush_time.get(asset_symbol, 0)
+                time_since_flush = current_time - last_flush
+                
+                if time_since_flush >= self._flush_interval or len(batch) >= self._max_batch_size:
+                    tasks.append(self._flush_batch(asset_symbol, batch.copy()))
+                    self._tick_batches[asset_symbol] = []
+                    self._last_flush_time[asset_symbol] = current_time
         
-        # Salvar todos os ticks de uma vez
-        await self._append_to_file_batch(asset_symbol, tick_data_list)
+        # Executar todos os flushes em paralelo
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
 
-    async def _append_to_file(self, asset_symbol: str, tick_data: Dict):
-        """Adicionar tick direto ao arquivo usando append mode - MUITO MAIS RÁPIDO"""
-        lock = self._file_locks[asset_symbol]
-        
-        async with lock:
-            try:
-                file_path = self.base_path / f"{asset_symbol}.txt"
-                
-                # Usar append mode ('a') em vez de reescrever tudo!
-                # Formato: Line-delimited JSON (JSONL) - uma linha por tick, sem indentação
-                line = json.dumps(tick_data, separators=(',', ':'))
-                
-                async with aiofiles.open(file_path, "a", encoding="utf-8") as f:
-                    await f.write(line + "\n")
-                
-                # Verificar se precisa truncar periodicamente (a cada 100 escritas)
-                self._write_counters[asset_symbol] = self._write_counters.get(asset_symbol, 0) + 1
-                if self._write_counters[asset_symbol] % 100 == 0:
-                    await self._truncate_if_needed(asset_symbol, file_path)
-                
-            except Exception as e:
-                logger.error(f"Erro ao salvar tick para {asset_symbol}: {e}")
-
-    async def _append_to_file_batch(self, asset_symbol: str, tick_data_list: List[Dict]):
-        """Adicionar múltiplos ticks em batch usando append mode - MUITO MAIS RÁPIDO"""
-        if not tick_data_list:
+    async def _flush_batch(self, asset_symbol: str, batch: List[Dict]):
+        """Flush um batch específico para o arquivo"""
+        if not batch:
             return
             
         lock = self._file_locks[asset_symbol]
@@ -133,89 +125,143 @@ class LocalStorageService:
             try:
                 file_path = self.base_path / f"{asset_symbol}.txt"
                 
-                # Verificar último timestamp apenas se arquivo existir (leitura parcial)
-                last_timestamp = 0
-                if file_path.exists():
-                    try:
-                        async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
-                            await f.seek(0, 2)  # SEEK_END
-                            file_size = await f.tell()
-                            if file_size > 0:
-                                # Ler últimos 1KB para encontrar última linha
-                                read_size = min(1024, file_size)
-                                await f.seek(file_size - read_size)
-                                last_chunk = await f.read()
-                                lines = last_chunk.strip().split('\n')
-                                if lines:
-                                    last_line = lines[-1]
-                                    try:
-                                        last_tick = json.loads(last_line)
-                                        last_timestamp = last_tick.get("timestamp", 0)
-                                    except:
-                                        pass
-                    except Exception:
-                        pass
+                # Preparar todas as linhas
+                lines = [json.dumps(tick, separators=(',', ':')) for tick in batch]
+                content = "\n".join(lines) + "\n"
                 
-                # Filtrar apenas ticks novos
-                new_ticks = [tick for tick in tick_data_list if tick["timestamp"] > last_timestamp]
+                # Verificar tamanho do arquivo antes de escrever (usar cache)
+                should_truncate = False
+                current_size = self._last_file_sizes.get(asset_symbol, 0)
                 
-                if new_ticks:
-                    # Escrever todas as linhas de uma vez usando append mode
-                    lines = [json.dumps(tick, separators=(',', ':')) for tick in new_ticks]
-                    content = "\n".join(lines) + "\n"
-                    
-                    async with aiofiles.open(file_path, "a", encoding="utf-8") as f:
-                        await f.write(content)
-                    
-                    # Verificar truncagem periodicamente
-                    self._write_counters[asset_symbol] = self._write_counters.get(asset_symbol, 0) + len(new_ticks)
-                    if self._write_counters[asset_symbol] % 100 == 0:
-                        await self._truncate_if_needed(asset_symbol, file_path)
-                    
-                    logger.debug(f"[OK] [{asset_symbol}] Adicionados {len(new_ticks)} ticks via append")
-                else:
-                    logger.debug(f"[SKIP] [{asset_symbol}] Nenhum tick novo")
+                # Atualizar tamanho a cada 50 escritas ou se desconhecido
+                write_count = self._write_counters.get(asset_symbol, 0)
+                if write_count % 50 == 0 or current_size == 0:
+                    if file_path.exists():
+                        try:
+                            loop = asyncio.get_event_loop()
+                            stat = await loop.run_in_executor(None, file_path.stat)
+                            current_size = stat.st_size
+                            self._last_file_sizes[asset_symbol] = current_size
+                        except:
+                            current_size = 0
+                    else:
+                        current_size = 0
+                        self._last_file_sizes[asset_symbol] = 0
+                
+                content_size = len(content.encode('utf-8'))
+                new_size = current_size + content_size
+                
+                # Verificar se precisa truncar ANTES de escrever
+                if new_size > self._max_file_size_bytes:
+                    should_truncate = True
+                
+                # Se precisa truncar, fazer antes de escrever
+                if should_truncate:
+                    await self._truncate_file(asset_symbol, file_path)
+                    # Resetar tamanho após truncagem
+                    self._last_file_sizes[asset_symbol] = 0
+                
+                # Escrever o batch
+                async with aiofiles.open(file_path, "a", encoding="utf-8") as f:
+                    await f.write(content)
+                
+                # Atualizar tamanho cacheado
+                self._last_file_sizes[asset_symbol] = new_size if not should_truncate else content_size
+                self._write_counters[asset_symbol] = write_count + len(batch)
                 
             except Exception as e:
-                logger.error(f"Erro ao salvar ticks em lote para {asset_symbol}: {e}")
+                logger.error(f"[LocalStorage] Erro ao flush batch para {asset_symbol}: {e}")
 
-    async def _truncate_if_needed(self, asset_symbol: str, file_path: Path):
-        """Truncar arquivo se exceder limite de ticks"""
+    async def _truncate_file(self, asset_symbol: str, file_path: Path):
+        """Truncar arquivo mantendo apenas últimos 70% dos dados"""
         try:
             if not file_path.exists():
                 return
+                
+            logger.info(f"[TRUNCATE] [{asset_symbol}] Truncando arquivo (limite: {self._max_file_size_bytes / (1024*1024):.0f}MB)...")
             
-            # Obter tamanho do arquivo de forma assíncrona via aiofiles
-            # Usar loop.run_in_executor para evitar bloqueio
-            loop = asyncio.get_event_loop()
-            file_size = await loop.run_in_executor(None, file_path.stat)
-            file_size = file_size.st_size
-            
-            if file_size < self._max_ticks_per_file * 50:  # Estimativa: ~50 bytes por linha
-                return
-            
-            line_count = 0
+            # Ler todas as linhas
             async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
-                async for _ in f:
-                    line_count += 1
-                    if line_count > self._max_ticks_per_file:
-                        break
+                all_lines = await f.readlines()
             
-            if line_count > self._max_ticks_per_file:
-                # Manter apenas últimos N ticks
-                lines_to_keep = []
-                async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
-                    all_lines = await f.readlines()
-                    lines_to_keep = all_lines[-self._max_ticks_per_file:]
+            if not all_lines:
+                return
                 
-                # Reescrever com dados truncados
-                async with aiofiles.open(file_path, "w", encoding="utf-8") as f:
-                    await f.writelines(lines_to_keep)
-                
-                logger.info(f"[TRUNCATE] [{asset_symbol}] Arquivo truncado para {len(lines_to_keep)} ticks")
-                
+            # Manter apenas últimos 70% das linhas
+            total_lines = len(all_lines)
+            keep_from = int(total_lines * 0.3)
+            lines_to_keep = all_lines[keep_from:]
+            
+            # Reescrever arquivo
+            async with aiofiles.open(file_path, "w", encoding="utf-8") as f:
+                await f.writelines(lines_to_keep)
+            
+            # Atualizar cache de tamanho
+            new_size = sum(len(line.encode('utf-8')) for line in lines_to_keep)
+            self._last_file_sizes[asset_symbol] = new_size
+            
+            logger.info(f"[TRUNCATE] [{asset_symbol}] {total_lines} -> {len(lines_to_keep)} linhas ({new_size / (1024*1024):.2f}MB)")
+            
         except Exception as e:
-            logger.warning(f"Erro ao verificar/truncar arquivo {asset_symbol}: {e}")
+            logger.warning(f"[TRUNCATE] Erro ao truncar {asset_symbol}: {e}")
+
+    async def save_tick(self, asset_symbol: str, price: float, timestamp: float):
+        """Salvar tick no batch (não escreve imediatamente no disco)"""
+        if not self._running:
+            return
+            
+        tick_data = {
+            "timestamp": timestamp,
+            "datetime": datetime.fromtimestamp(timestamp).isoformat(),
+            "price": price
+        }
+        
+        # Adicionar ao batch
+        self._tick_batches[asset_symbol].append(tick_data)
+        
+        # Se batch atingir tamanho máximo, fazer flush imediato
+        if len(self._tick_batches[asset_symbol]) >= self._max_batch_size:
+            batch = self._tick_batches[asset_symbol].copy()
+            self._tick_batches[asset_symbol] = []
+            self._last_flush_time[asset_symbol] = time.time()
+            # Não await - deixar rodar em background
+            asyncio.create_task(self._flush_batch(asset_symbol, batch))
+
+    async def save_history(self, asset_symbol: str, period: int, candles: List[List[float]]):
+        """Salvar histórico de candles como ticks"""
+        tick_data_list = []
+        for candle in candles:
+            tick_data_list.append({
+                "timestamp": candle[0],
+                "datetime": datetime.fromtimestamp(candle[0]).isoformat(),
+                "price": candle[1]
+            })
+        
+        # Adicionar ao batch
+        self._tick_batches[asset_symbol].extend(tick_data_list)
+
+    async def _clear_actives_folder(self):
+        """Limpar pasta actives ao iniciar"""
+        if self.base_path.exists():
+            try:
+                loop = asyncio.get_event_loop()
+                
+                files = await loop.run_in_executor(None, lambda: list(self.base_path.glob("*.txt")))
+                for file_path in files:
+                    try:
+                        await loop.run_in_executor(None, file_path.unlink)
+                    except:
+                        pass
+                
+                logger.info(f"[OK] Pasta {self.base_path} limpa")
+            except Exception as e:
+                logger.warning(f"Aviso: Não foi possível limpar pasta {self.base_path}: {e}")
+        
+        try:
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, lambda: self.base_path.mkdir(exist_ok=True))
+        except Exception as e:
+            logger.warning(f"Aviso ao criar pasta: {e}")
 
     async def _load_ticks_optimized(self, asset_symbol: str, limit: int = 1000) -> List[Dict[str, Any]]:
         """Carregar ticks do arquivo de forma otimizada (linha por linha)"""
@@ -266,16 +312,7 @@ class LocalStorageService:
         return self._convert_ticks_to_ohlc(ticks, timeframe, limit)
     
     def _convert_ticks_to_ohlc(self, ticks: List[Dict], timeframe: int, limit: int) -> List[Dict[str, Any]]:
-        """Converter ticks em candles OHLC para um timeframe específico
-        
-        Args:
-            ticks: Lista de ticks com timestamp e price
-            timeframe: Timeframe em segundos
-            limit: Número máximo de candles a retornar
-            
-        Returns:
-            Lista de candles no formato OHLC
-        """
+        """Converter ticks em candles OHLC para um timeframe específico"""
         if not ticks:
             return []
         
@@ -323,18 +360,7 @@ class LocalStorageService:
         start_time: Optional[float] = None,
         end_time: Optional[float] = None
     ) -> List[Dict[str, Any]]:
-        """Obter candles para um símbolo e timeframe específicos
-        
-        Args:
-            symbol: Símbolo do ativo
-            timeframe: Timeframe em segundos
-            limit: Número máximo de candles a retornar
-            start_time: Timestamp inicial (opcional)
-            end_time: Timestamp final (opcional)
-            
-        Returns:
-            Lista de candles no formato OHLC
-        """
+        """Obter candles para um símbolo e timeframe específicos"""
         candles = await self.load_candles_from_file(symbol, timeframe, limit)
         
         # Filtrar por intervalo de tempo se especificado
@@ -385,11 +411,7 @@ class LocalStorageService:
             return None
     
     async def get_available_assets(self) -> List[str]:
-        """Obter lista de ativos com dados disponíveis
-        
-        Returns:
-            Lista de símbolos de ativos
-        """
+        """Obter lista de ativos com dados disponíveis"""
         if not self.base_path.exists():
             return []
         
@@ -400,21 +422,12 @@ class LocalStorageService:
         return assets
 
     async def delete_asset_file(self, asset_symbol: str) -> bool:
-        """Apagar arquivo de dados de um ativo específico
-        
-        Args:
-            asset_symbol: Símbolo do ativo a ser apagado
-            
-        Returns:
-            True se arquivo foi apagado, False se não existia ou houve erro
-        """
+        """Apagar arquivo de dados de um ativo específico"""
         file_path = self.base_path / f"{asset_symbol}.txt"
         
         if not file_path.exists():
-            logger.debug(f"Arquivo não encontrado para {asset_symbol}")
             return False
         
-        # Obter lock para este arquivo específico
         lock = self._file_locks[asset_symbol]
         
         async with lock:
@@ -423,14 +436,16 @@ class LocalStorageService:
             for attempt in range(max_retries):
                 try:
                     file_path.unlink()
+                    # Limpar cache
+                    self._last_file_sizes.pop(asset_symbol, None)
+                    self._write_counters.pop(asset_symbol, None)
                     logger.info(f"[OK] Arquivo apagado: {file_path}")
                     return True
                 except PermissionError as e:
                     if attempt < max_retries - 1:
-                        logger.warning(f"Arquivo {asset_symbol} em uso, tentando novamente em 100ms...")
-                        await asyncio.sleep(0.1 * (attempt + 1))  # Backoff crescente
+                        await asyncio.sleep(0.1 * (attempt + 1))
                     else:
-                        logger.error(f"Erro ao apagar arquivo de {asset_symbol} após {max_retries} tentativas: {e}")
+                        logger.error(f"Erro ao apagar arquivo de {asset_symbol}: {e}")
                         return False
                 except Exception as e:
                     logger.error(f"Erro ao apagar arquivo de {asset_symbol}: {e}")

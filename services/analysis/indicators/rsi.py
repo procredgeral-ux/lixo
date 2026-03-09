@@ -12,7 +12,7 @@ from .cache import cached_indicator
 class RSI(TechnicalIndicator):
     """Relative Strength Index indicator"""
 
-    def __init__(self, period: int = 5, smooth: int = 1, dynamic_levels: bool = False, use_true_levels: bool = False):
+    def __init__(self, period: int = 14, smooth: int = 1, dynamic_levels: bool = False, use_true_levels: bool = False):
         """
         Initialize RSI indicator
 

@@ -2,7 +2,7 @@
 Authentication utilities for JWT tokens and password hashing
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date, time
 from typing import Optional, Dict, Any
 import hashlib
 import re
@@ -42,6 +42,11 @@ def _is_vip_expired_cached(user_id: str, vip_end_date: datetime | None) -> bool:
         return cached['is_expired']
 
     now = datetime.utcnow()
+    
+    # Converter date para datetime se necessário para comparação
+    if isinstance(vip_end_date, date) and not isinstance(vip_end_date, datetime):
+        vip_end_date = datetime.combine(vip_end_date, time.min)
+    
     is_expired = vip_end_date < now
 
     _VIP_EXPIRATION_CACHE[cache_key] = {

@@ -7,6 +7,7 @@ from loguru import logger
 
 from core.database import get_db_context
 from core.config import settings
+from core.system_manager import get_system_manager
 from models import AutoTradeConfig, User
 from services.pocketoption.maintenance_checker import maintenance_checker
 from services.notifications.telegram import telegram_service
@@ -309,6 +310,12 @@ class MaintenanceHandler:
 
     async def _notify_maintenance_start(self) -> None:
         """Enviar notificação Telegram quando a manutenção começa"""
+        # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se notificações estão habilitadas
+        system_manager = get_system_manager()
+        if not system_manager.is_notifications_enabled():
+            logger.debug(f"🔕 Notificação de manutenção bloqueada - módulo de notificações desligado")
+            return
+            
         async with get_db_context() as db:
             try:
                 from sqlalchemy import select
@@ -336,6 +343,12 @@ class MaintenanceHandler:
 
     async def _notify_maintenance_end(self) -> None:
         """Enviar notificação Telegram quando a manutenção termina"""
+        # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se notificações estão habilitadas
+        system_manager = get_system_manager()
+        if not system_manager.is_notifications_enabled():
+            logger.debug(f"🔕 Notificação de fim de manutenção bloqueada - módulo de notificações desligado")
+            return
+            
         async with get_db_context() as db:
             try:
                 from sqlalchemy import select

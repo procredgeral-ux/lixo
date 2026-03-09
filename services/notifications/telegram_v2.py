@@ -9,6 +9,7 @@ from enum import Enum
 import httpx
 from loguru import logger
 from core.config import settings
+from services.notifications.queue_manager import notification_queue_manager, NotificationMessage
 
 
 class TelegramErrorCode(Enum):
@@ -111,7 +112,7 @@ Horario: {timestamp}"""
         self._metrics = TelegramMetrics()
         self._metrics_lock = asyncio.Lock()
         self._session: Optional[httpx.AsyncClient] = None
-        self._processing_task: Optional[asyncio.Task] = None
+        self._processing_tasks: List[asyncio.Task] = []  # Worker Pool: múltiplos workers
         self._rate_limit_delay = 0.0
         self._rate_limit_lock = asyncio.Lock()
         self._offline_mode = False
@@ -121,12 +122,28 @@ Horario: {timestamp}"""
         self.retry_base_delay = 1.0
         self.retry_max_delay = 30.0
         self.retry_exponential_base = 2.0
+        
+        # 🔄 Worker Pool: número de workers (configurável)
+        self._num_workers = getattr(settings, 'TELEGRAM_WORKERS', 5)
+        self._worker_semaphore = asyncio.Semaphore(self._num_workers)
+        
+        # 📦 Batch Processing: agrupar notificações não-urgentes
+        self._batch_enabled = getattr(settings, 'TELEGRAM_BATCH_ENABLED', True)
+        self._batch_interval = getattr(settings, 'TELEGRAM_BATCH_INTERVAL', 5)  # segundos
+        self._batch_size = getattr(settings, 'TELEGRAM_BATCH_SIZE', 10)
+        self._batch_buffer: List[NotificationMessage] = []
+        self._batch_lock = asyncio.Lock()
+        self._batch_task: Optional[asyncio.Task] = None
 
         if self.enabled:
-            logger.info(f"[TelegramV2] Servico inicializado | Token: {self.bot_token[:10]}... | Enabled: {self.enabled}")
-            # NÃO iniciar o processador aqui - será iniciado quando o event loop estiver disponível
+            logger.info(f"[TelegramV2] Servico inicializado | Token: {self.bot_token[:10]}... | Enabled: {self.enabled} | Workers: {self._num_workers}")
         else:
             logger.warning("[TelegramV2] Servico DESABILITADO - token nao configurado")
+            self._session = httpx.AsyncClient(
+                timeout=httpx.Timeout(10.0, connect=5.0),
+                limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
+                headers={"Content-Type": "application/json"}
+            )
 
     async def _get_session(self) -> httpx.AsyncClient:
         """Obtem ou cria sessao HTTP compartilhada"""
@@ -139,16 +156,101 @@ Horario: {timestamp}"""
         return self._session
 
     def _start_queue_processor(self):
-        """Inicia o processador de fila de mensagens"""
-        if self._processing_task is None or self._processing_task.done():
-            self._processing_task = asyncio.create_task(self._process_message_queue())
-            logger.info("[TelegramV2] Processador de fila iniciado")
+        """Inicia o pool de workers para processar fila de mensagens"""
+        # Parar workers existentes se houver
+        self._stop_workers()
+        
+        # Iniciar múltiplos workers
+        for i in range(self._num_workers):
+            task = asyncio.create_task(self._worker_loop(f"worker-{i+1}"))
+            self._processing_tasks.append(task)
+        
+        logger.info(f"[TelegramV2] Pool de {self._num_workers} workers iniciado")
+
+    def _stop_workers(self):
+        """Para todos os workers"""
+        for task in self._processing_tasks:
+            if not task.done():
+                task.cancel()
+        self._processing_tasks.clear()
+
+    async def _worker_loop(self, worker_id: str):
+        """Loop de worker individual para processar mensagens"""
+        while True:
+            try:
+                # 🔄 Usar semáforo para controlar concorrência
+                async with self._worker_semaphore:
+                    # Obter mensagem da fila
+                    priority, message = await self._message_queue.get()
+                    
+                    if message.retry_count >= message.max_retries:
+                        logger.error(f"[TelegramV2] [{worker_id}] Max retries atingido para chat {message.chat_id[:8]}...")
+                        async with self._metrics_lock:
+                            self._metrics.total_failed += 1
+                        continue
+
+                    # Verificar rate limit
+                    async with self._rate_limit_lock:
+                        if self._rate_limit_delay > 0:
+                            await asyncio.sleep(self._rate_limit_delay)
+                            self._rate_limit_delay = 0
+
+                    # Tentar enviar
+                    success = await self._send_message_internal(message)
+
+                    if not success:
+                        # Reenfileirar com prioridade mais baixa
+                        message.retry_count += 1
+                        message.priority += 1
+                        await self._message_queue.put((message.priority, message))
+                        async with self._metrics_lock:
+                            self._metrics.total_retries += 1
+
+            except asyncio.CancelledError:
+                logger.info(f"[TelegramV2] [{worker_id}] Worker cancelado")
+                break
+            except Exception as e:
+                logger.error(f"[TelegramV2] [{worker_id}] Erro no worker: {e}")
+                await asyncio.sleep(1)
+
+    async def _batch_processor(self):
+        """Processa notificações em batch (agrupa mensagens de baixa prioridade)"""
+        await asyncio.sleep(self._batch_interval)
+        
+        async with self._batch_lock:
+            if not self._batch_buffer:
+                return
+            
+            # Obter todas as mensagens do buffer
+            messages = self._batch_buffer[:self._batch_size]
+            self._batch_buffer = self._batch_buffer[self._batch_size:]
+        
+        # Enfileirar mensagens do batch
+        for msg in messages:
+            await notification_queue_manager.enqueue(msg)
+            await self._message_queue.put((msg.priority, msg))
+        
+        logger.debug(f"[TelegramV2] Batch de {len(messages)} notificações processado")
+        
+        # Se ainda houver mensagens no buffer, agendar próximo batch
+        if self._batch_buffer:
+            self._batch_task = asyncio.create_task(self._batch_processor())
 
     async def start(self):
         """Inicia o processador de fila (deve ser chamado dentro de um event loop)"""
-        if self.enabled and (self._processing_task is None or self._processing_task.done()):
+        if self.enabled and len(self._processing_tasks) == 0:
+            # Inicializar queue manager (restaura do Redis se necessário)
+            await notification_queue_manager.initialize()
+            
+            # Iniciar workers
             self._start_queue_processor()
-            logger.info("[TelegramV2] Processador de fila iniciado via start()")
+            logger.info("[TelegramV2] Pool de workers iniciado via start()")
+            self._start_queue_processor()
+            logger.info("[TelegramV2] Pool de workers iniciado via start()")
+
+    async def _process_message_queue(self):
+        """DEPRECATED: Mantido para compatibilidade - usar _worker_loop"""
+        pass
 
     async def _process_message_queue(self):
         """Processa mensagens na fila com retry e controle de rate limit"""
@@ -482,8 +584,8 @@ Horario: {timestamp}"""
             logger.error(f"[TelegramV2] Erro capturando Chat IDs: {e}")
             return {}
 
-    async def send_message(self, message: str, chat_id: str, priority: int = 1) -> bool:
-        """Envia mensagem via fila (nao-bloqueante)"""
+    async def send_message(self, message: str, chat_id: str, priority: int = 1, notification_type: str = "general") -> bool:
+        """Envia mensagem via fila com persistência Redis (nao-bloqueante)"""
         if not self.enabled:
             return False
 
@@ -497,9 +599,29 @@ Horario: {timestamp}"""
             logger.warning(f"[TelegramV2] Chat ID invalido: {chat_id}")
             return False
 
-        msg = TelegramMessage(text=message, chat_id=chat_id, priority=priority)
-        await self._message_queue.put((priority, msg))
-        return True
+        # Criar mensagem para fila persistente
+        msg = NotificationMessage(
+            text=message, 
+            chat_id=chat_id, 
+            priority=priority,
+            notification_type=notification_type
+        )
+        
+        # 📦 Se batch estiver habilitado e for prioridade baixa, adicionar ao buffer
+        if self._batch_enabled and priority >= 3:
+            async with self._batch_lock:
+                self._batch_buffer.append(msg)
+                # Iniciar batch processor se não estiver rodando
+                if self._batch_task is None or self._batch_task.done():
+                    self._batch_task = asyncio.create_task(self._batch_processor())
+            return True
+        
+        # 🚀 Enfileirar imediatamente (persiste em Redis automaticamente)
+        success = await notification_queue_manager.enqueue(msg)
+        if success:
+            # Adicionar à fila local para processamento
+            await self._message_queue.put((priority, msg))
+        return success
 
     async def send_message_sync(self, message: str, chat_id: str) -> bool:
         """Envia mensagem de forma sincrona (bloqueante) - para compatibilidade"""
@@ -647,7 +769,7 @@ Horario: {timestamp}"""
         if required_amount:
             msg += f"\nValor da operacao: ${required_amount:.2f}"
         msg += f"\n\nHorario: {self._format_time()}"
-        return await self.send_message(msg, chat_id, priority=2)
+        return await self.send_message(msg, chat_id, priority=2, notification_type="insufficient_balance")
 
     async def send_error(self, account_name: str, error_message: str,
                          chat_id: str = None, account_type: str = None) -> bool:
@@ -662,7 +784,7 @@ Horario: {timestamp}"""
             error_message=error_message,
             timestamp=self._format_time()
         )
-        return await self.send_message(msg, chat_id, priority=3)
+        return await self.send_message(msg, chat_id, priority=3, notification_type="error")
 
     # ============ METODOS SYNC (para compatibilidade) ============
 
@@ -827,12 +949,8 @@ Horario: {timestamp}"""
 
     async def close(self):
         """Fecha recursos do servico"""
-        if self._processing_task and not self._processing_task.done():
-            self._processing_task.cancel()
-            try:
-                await self._processing_task
-            except asyncio.CancelledError:
-                pass
+        # Parar todos os workers do pool
+        self._stop_workers()
 
         if self._session and not self._session.is_closed:
             await self._session.aclose()

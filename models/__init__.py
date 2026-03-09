@@ -54,8 +54,8 @@ class User(Base):
     vip_start_date = Column(DateTime(timezone=False), nullable=True)  # Data de início do VIP (naive para compatibilidade)
     vip_end_date = Column(DateTime(timezone=False), nullable=True)  # Data de término do VIP (naive para compatibilidade)
     maintenance_logout_at = Column(DateTime, nullable=True)  # Timestamp quando usuário foi deslogado por manutenção
-    created_at = Column(DateTime, default=get_brasilia_time)
-    updated_at = Column(DateTime, default=get_brasilia_time, onupdate=get_brasilia_time)
+    created_at = Column(DateTime, default=get_brasilia_time_naive)
+    updated_at = Column(DateTime, default=get_brasilia_time_naive, onupdate=get_brasilia_time_naive)
 
     # Relationships
     accounts = relationship("Account", back_populates="user", cascade="all, delete-orphan")
@@ -80,8 +80,8 @@ class Account(Base):
     currency = Column(String, default="USD")
     is_active = Column(Boolean, default=True, index=True)
     last_connected = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=get_brasilia_time)
-    updated_at = Column(DateTime, default=get_brasilia_time, onupdate=get_brasilia_time)
+    created_at = Column(DateTime, default=get_brasilia_time_naive)
+    updated_at = Column(DateTime, default=get_brasilia_time_naive, onupdate=get_brasilia_time_naive)
 
     # Relationships
     user = relationship("User", back_populates="accounts")
@@ -104,8 +104,8 @@ class Asset(Base):
     min_duration = Column(Integer, default=5)
     max_duration = Column(Integer, default=43200)
     available_timeframes = Column(JSON, nullable=True)  # Available timeframes from payout
-    created_at = Column(DateTime, default=get_brasilia_time)
-    updated_at = Column(DateTime, default=get_brasilia_time, onupdate=get_brasilia_time)
+    created_at = Column(DateTime, default=get_brasilia_time_naive)
+    updated_at = Column(DateTime, default=get_brasilia_time_naive, onupdate=get_brasilia_time_naive)
 
     # Relationships
     trades = relationship("Trade", back_populates="asset")
@@ -153,7 +153,7 @@ class Trade(Base):
     profit = Column(Float, nullable=True)
     payout = Column(Float, nullable=True)
     
-    placed_at = Column(DateTime, default=get_brasilia_time, nullable=False, index=True)
+    placed_at = Column(DateTime, default=get_brasilia_time_naive, nullable=False, index=True)
     expires_at = Column(DateTime, nullable=True, index=True)
     closed_at = Column(DateTime, nullable=True, index=True)
     
@@ -256,8 +256,8 @@ class StrategyPerformanceSnapshot(Base):
     monthly_returns = Column(JSON, nullable=False, default=list)
 
     calculated_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=get_brasilia_time)
-    updated_at = Column(DateTime, default=get_brasilia_time, onupdate=get_brasilia_time)
+    created_at = Column(DateTime, default=get_brasilia_time_naive)
+    updated_at = Column(DateTime, default=get_brasilia_time_naive, onupdate=get_brasilia_time_naive)
 
     strategy = relationship("Strategy", back_populates="performance_snapshots")
 
@@ -312,8 +312,8 @@ class MonitoringAccount(Base):
     is_active = Column(Boolean, default=True)
     uid = Column(Integer, nullable=True)
     platform = Column(Integer, default=1)
-    created_at = Column(DateTime, default=get_brasilia_time)
-    updated_at = Column(DateTime, default=get_brasilia_time, onupdate=get_brasilia_time)
+    created_at = Column(DateTime, default=get_brasilia_time_naive)
+    updated_at = Column(DateTime, default=get_brasilia_time_naive, onupdate=get_brasilia_time_naive)
 
 
 class AutoTradeConfig(Base):
@@ -385,8 +385,8 @@ class AutoTradeConfig(Base):
     smart_reduction_cascading = Column(Boolean, default=False)  # Redução recursiva/cascata: aplica redução sobre redução
     smart_reduction_cascade_level = Column(Integer, default=0)  # Nível atual da cascata de redução (0 = não em cascata)
     
-    created_at = Column(DateTime, default=get_brasilia_time)
-    updated_at = Column(DateTime, default=get_brasilia_time, onupdate=get_brasilia_time)
+    created_at = Column(DateTime, default=get_brasilia_time_naive)
+    updated_at = Column(DateTime, default=get_brasilia_time_naive, onupdate=get_brasilia_time_naive)
 
     # Relationships
     account = relationship("Account", backref="autotrade_config")
@@ -441,8 +441,8 @@ class Indicator(Base):
 
     # Metadata
     version = Column(String, default="1.0")
-    created_at = Column(DateTime, default=get_brasilia_time)
-    updated_at = Column(DateTime, default=get_brasilia_time, onupdate=get_brasilia_time)
+    created_at = Column(DateTime, default=get_brasilia_time_naive)
+    updated_at = Column(DateTime, default=get_brasilia_time_naive, onupdate=get_brasilia_time_naive)
 
     # Relationships
     strategies = relationship("Strategy", secondary="strategy_indicators", back_populates="indicators")

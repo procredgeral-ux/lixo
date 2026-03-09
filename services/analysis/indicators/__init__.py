@@ -23,6 +23,13 @@ from .supertrend import Supertrend
 from .fibonacci_retracement import FibonacciRetracement
 from .vwap import VWAP
 from .obv import OBV
+from .awesome_oscillator import AwesomeOscillator
+from .detrended_price_oscillator import DetrendedPriceOscillator
+from .force_index import ForceIndex
+from .klinger_oscillator import KlingerOscillator
+from .mass_index import MassIndex
+from .true_strength_index import TrueStrengthIndex
+from .ultimate_oscillator import UltimateOscillator
 
 __all__ = [
     "RSI",
@@ -47,5 +54,12 @@ __all__ = [
     "Supertrend",
     "FibonacciRetracement",
     "VWAP",
-    "OBV"
+    "OBV",
+    "AwesomeOscillator",
+    "DetrendedPriceOscillator",
+    "ForceIndex",
+    "KlingerOscillator",
+    "MassIndex",
+    "TrueStrengthIndex",
+    "UltimateOscillator"
 ]

@@ -32,6 +32,7 @@ from .confluence_categorized import (
     SignalDirection,
     IndicatorCategory
 )
+from core.system_manager import get_system_manager
 
 
 @dataclass
@@ -168,6 +169,12 @@ class AsyncAssetProcessorV2:
         Returns:
             Signal se gerado (None se filtrado)
         """
+        # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se geração de sinais está habilitada
+        system_manager = get_system_manager()
+        if not system_manager.can_generate_signal():
+            # Sistema desligado - não gerar novos sinais
+            return None
+        
         async with self._lock:
             self.ticks_processed += 1
         

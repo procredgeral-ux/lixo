@@ -26,9 +26,7 @@ from schemas import (
     StrategyUpdate,
     StrategyWithPerformance,
     StrategyPerformance,
-    StrategyPerformanceSnapshotResponse,
-    BacktestRequest,
-    BacktestResponse
+    StrategyPerformanceSnapshotResponse
 )
 
 router = APIRouter()
@@ -448,7 +446,9 @@ async def update_strategy(
                 connection_type = None
                 ssid = None
 
-                if account.autotrade_demo:
+                # Verificar se há SSID cadastrado (mesmo que o modo não esteja ativo)
+                # Priorizar demo, depois real
+                if account.ssid_demo:
                     connection_type = 'demo'
                     ssid = account.ssid_demo
                     # Extrair apenas o session ID do SSID completo se necessário
@@ -463,12 +463,11 @@ async def update_strategy(
                                 ssid = data.get("session", ssid)
                         except:
                             pass
-                    if not ssid:
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="SSID demo não cadastrado para esta conta"
-                        )
-                elif account.autotrade_real:
+                    # Reativar modo demo se não estiver ativo
+                    if not account.autotrade_demo:
+                        account.autotrade_demo = True
+                        logger.info(f"Modo demo reativado automaticamente para conta {account.id}")
+                elif account.ssid_real:
                     connection_type = 'real'
                     ssid = account.ssid_real
                     # Extrair apenas o session ID do SSID completo se necessário
@@ -483,26 +482,20 @@ async def update_strategy(
                                 ssid = data.get("session", ssid)
                         except:
                             pass
-                    if not ssid:
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="SSID real não cadastrado para esta conta"
-                        )
+                    # Reativar modo real se não estiver ativo
+                    if not account.autotrade_real:
+                        account.autotrade_real = True
+                        logger.info(f"Modo real reativado automaticamente para conta {account.id}")
                 else:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Nenhum modo de operação ativo. Ative o modo demo ou real antes de ligar a estratégia."
+                        detail="Nenhum SSID cadastrado. Configure o SSID demo ou real antes de ligar a estratégia."
                     )
-                # Validar que o modo selecionado corresponde ao SSID usado
-                if connection_type == 'demo' and not account.autotrade_demo:
+                
+                if not ssid:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Modo demo não está ativo. Ative o modo demo antes de ligar a estratégia."
-                    )
-                if connection_type == 'real' and not account.autotrade_real:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Modo real não está ativo. Ative o modo real antes de ligar a estratégia."
+                        detail=f"SSID {connection_type} não cadastrado para esta conta"
                     )
 
                 from services.data_collector.realtime import data_collector
@@ -703,56 +696,3 @@ async def delete_strategy(
         logger.info("✓ Cache de configs invalidado após exclusão de estratégia")
 
 
-@router.post("/{strategy_id}/backtest", response_model=BacktestResponse)
-async def backtest_strategy(
-    strategy_id: str,
-    request: BacktestRequest,
-    current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
-):
-    """Backtest a strategy"""
-    # Verify strategy ownership
-    result = await db.execute(
-        select(Strategy).where(
-            Strategy.id == strategy_id,
-            Strategy.user_id == current_user.id
-        )
-    )
-    strategy = result.scalar_one_or_none()
-
-    if not strategy:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Strategy not found"
-        )
-
-    # Import strategy manager
-    from services.strategies.manager import StrategyManager
-
-    try:
-        # Run backtest
-        strategy_manager = StrategyManager()
-        results = await strategy_manager.backtest_strategy(
-            strategy_id=strategy_id,
-            start_date=request.start_date,
-            end_date=request.end_date
-        )
-
-        return BacktestResponse(
-            strategy_id=strategy_id,
-            start_date=request.start_date,
-            end_date=request.end_date,
-            results=results
-        )
-
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    except Exception as e:
-        logger.error(f"Backtest failed for strategy {strategy_id}: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao executar backtest. Entre em contato com o suporte."
-        )

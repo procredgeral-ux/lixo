@@ -4,6 +4,7 @@ import httpx
 from datetime import datetime, timedelta
 from loguru import logger
 from core.config import settings
+from core.system_manager import get_system_manager
 
 
 class TelegramNotificationService:
@@ -131,6 +132,12 @@ class TelegramNotificationService:
     
     async def send_message(self, message: str, chat_id: str = None, user_name: str = None, account_id: str = None, account_type: str = None) -> bool:
         """Enviar mensagem via Telegram para um chat_id específico"""
+        # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se notificações estão habilitadas
+        system_manager = get_system_manager()
+        if not system_manager.is_notifications_enabled():
+            logger.debug(f"🔕 Notificação bloqueada - módulo de notificações desligado")
+            return False
+        
         if not self.enabled or not self.bot_token:
             logger.warning("Telegram não configurado, notificação não enviada", extra={
                 "user_name": user_name or "",
@@ -228,15 +235,23 @@ class TelegramNotificationService:
             })
             return False
     
-    async def send_stop_loss_notification(self, account_name: str, loss_consecutive: int, stop2: int, chat_id: str = None, account_type: str | None = None):
+    async def send_stop_loss_notification(self, account_name: str, loss_consecutive: int, stop2: int, chat_id: str = None, account_type: str | None = None, no_hibernate: bool = False):
         """Enviar notificação de stop loss atingido"""
+        if no_hibernate:
+            status_msg = "🔄 Estratégia permanece ATIVA (Não Hibernar ligado)"
+            action_msg = "⏳ Cooldown aplicado - aguardando próximo ciclo"
+        else:
+            status_msg = "⚠️ Autotrade foi desativado automaticamente"
+            action_msg = "🛑 Estratégia desligada"
+        
         message = f"""
 🛑 <b>STOP LOSS ATINGIDO!</b>
 
 👤 Conta: {account_name}{self._format_account_type(account_type)}
 📊 Perdas consecutivas: {loss_consecutive}/{stop2}
 
-⚠️ Autotrade foi desativado automaticamente.
+{status_msg}
+{action_msg}
 
 ⏰ {self._format_time()}
 """
@@ -303,15 +318,23 @@ class TelegramNotificationService:
 """
         return await self.send_message(message, chat_id, user_name=account_name, account_id=None, account_type=account_type)
     
-    async def send_stop_gain_notification(self, account_name: str, win_consecutive: int, stop1: int, chat_id: str = None, account_type: str | None = None):
+    async def send_stop_gain_notification(self, account_name: str, win_consecutive: int, stop1: int, chat_id: str = None, account_type: str | None = None, no_hibernate: bool = False):
         """Enviar notificação de stop gain atingido"""
+        if no_hibernate:
+            status_msg = "🔄 Estratégia permanece ATIVA (Não Hibernar ligado)"
+            action_msg = "⏳ Cooldown aplicado - aguardando próximo ciclo"
+        else:
+            status_msg = "✅ Autotrade foi desativado automaticamente"
+            action_msg = "🎯 Stop gain realizado com sucesso"
+        
         message = f"""
 🎯 <b>STOP GAIN ATINGIDO!</b>
 
 👤 Conta: {account_name}{self._format_account_type(account_type)}
 📊 Vitórias consecutivas: {win_consecutive}/{stop1}
 
-✅ Autotrade foi desativado automaticamente.
+{status_msg}
+{action_msg}
 
 ⏰ {self._format_time()}
 """
@@ -470,6 +493,11 @@ class TelegramNotificationService:
 
     def send_signal_notification_sync(self, asset: str, direction: str, confidence: float, timeframe: int, account_name: str = None, chat_id: str = None, trade_amount: float = None, martingale_level: int = None, soros_level: int = None, strategy_name: str = None, account_type: str | None = None, user_name: str | None = None):
         """Enviar notificação de trade executado (versão síncrona)"""
+        # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se notificações estão habilitadas
+        system_manager = get_system_manager()
+        if not system_manager.is_notifications_enabled():
+            return False
+        
         try:
             if not self.enabled or not self.bot_token:
                 return False
@@ -588,7 +616,7 @@ class TelegramNotificationService:
             logger.error(f"Erro ao enviar notificação de resultado sync: {e}")
             return False
 
-    def send_stop_loss_notification_sync(self, account_name: str, loss_consecutive: int, stop2: int, chat_id: str = None, account_type: str | None = None):
+    def send_stop_loss_notification_sync(self, account_name: str, loss_consecutive: int, stop2: int, chat_id: str = None, account_type: str | None = None, no_hibernate: bool = False):
         """Enviar notificação de stop loss (versão síncrona usando httpx síncrono)"""
         try:
             if not self.enabled or not self.bot_token:
@@ -618,12 +646,21 @@ class TelegramNotificationService:
                 })
                 return False
 
+            if no_hibernate:
+                status_msg = "🔄 Estratégia permanece ATIVA (Não Hibernar ligado)"
+                action_msg = "⏳ Cooldown aplicado - aguardando próximo ciclo"
+            else:
+                status_msg = "⚠️ Autotrade foi desativado automaticamente"
+                action_msg = "🛑 Estratégia desligada"
+
             message = f"""
 🛑 <b>STOP LOSS ATINGIDO!</b>
 
 👤 Conta: {account_name}{self._format_account_type(account_type)}
-❌ Perdas consecutivas: {loss_consecutive}
-🎯 Stop Loss configurado: {stop2}
+📊 Perdas consecutivas: {loss_consecutive}/{stop2}
+
+{status_msg}
+{action_msg}
 
 ⏰ {self._format_time()}
 """
@@ -660,7 +697,7 @@ class TelegramNotificationService:
             })
             return False
 
-    def send_stop_gain_notification_sync(self, account_name: str, win_consecutive: int, stop1: int, chat_id: str = None, account_type: str | None = None):
+    def send_stop_gain_notification_sync(self, account_name: str, win_consecutive: int, stop1: int, chat_id: str = None, account_type: str | None = None, no_hibernate: bool = False):
         """Enviar notificação de stop gain (versão síncrona usando httpx síncrono)"""
         try:
             if not self.enabled or not self.bot_token:
@@ -690,12 +727,21 @@ class TelegramNotificationService:
                 })
                 return False
 
+            if no_hibernate:
+                status_msg = "🔄 Estratégia permanece ATIVA (Não Hibernar ligado)"
+                action_msg = "⏳ Cooldown aplicado - aguardando próximo ciclo"
+            else:
+                status_msg = "✅ Autotrade foi desativado automaticamente"
+                action_msg = "🎯 Stop gain realizado com sucesso"
+
             message = f"""
 🎯 <b>STOP GAIN ATINGIDO!</b>
 
 👤 Conta: {account_name}{self._format_account_type(account_type)}
-✅ Vitórias consecutivas: {win_consecutive}
-🎯 Stop Gain configurado: {stop1}
+📊 Vitórias consecutivas: {win_consecutive}/{stop1}
+
+{status_msg}
+{action_msg}
 
 ⏰ {self._format_time()}
 """

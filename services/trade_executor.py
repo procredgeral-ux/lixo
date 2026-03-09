@@ -13,6 +13,7 @@ from services.pocketoption.constants import ASSETS
 from services.pocketoption.maintenance_checker import maintenance_checker
 from services.pocketoption.models import OrderDirection, OrderStatus
 from services.notifications.telegram import telegram_service
+from core.system_manager import get_system_manager, SystemModule
 
 
 class TradeExecutor:
@@ -537,6 +538,10 @@ class TradeExecutor:
 
                     await db.commit()
 
+                    # 🔴 REGISTRAR FIM DE TRADE no system_manager
+                    system_manager = get_system_manager()
+                    system_manager.register_trade_end(trade.id)
+
                     # Buscar account_name para log
                     account_name_for_log = None
                     try:
@@ -634,26 +639,31 @@ class TradeExecutor:
                     # Enviar notificação de resultado via Telegram (async) - com deduplicação
                     if user_chat_id and notification_key not in self._sent_notifications:
                         try:
-                            logger.info(f"[NOTIFICATION] Enviando notificação de resultado para {user_name} (chat: {user_chat_id})")
-                            # YIELD: Cedendo controle ao event loop antes de enviar notificação
-                            await asyncio.sleep(0)
-                            # Executar notificação em task separada para não bloquear
-                            asyncio.create_task(
-                                telegram_service.send_trade_result_notification(
-                                    asset=asset_name,
-                                    direction=self._map_direction_to_signal(trade.direction.value),
-                                    result=trade.status.value,
-                                    profit=profit,
-                                    account_name=account_name,
-                                    chat_id=user_chat_id,
-                                    account_type=getattr(trade, "connection_type", None),
-                                    user_name=user_name,
-                                    balance_before=balance_before,
-                                    balance_after=balance_after
+                            # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se notificações estão habilitadas
+                            system_manager = get_system_manager()
+                            if not system_manager.is_notifications_enabled():
+                                logger.debug(f"🔕 Notificação de resultado bloqueada - módulo de notificações desligado")
+                            else:
+                                logger.info(f"[NOTIFICATION] Enviando notificação de resultado para {user_name} (chat: {user_chat_id})")
+                                # YIELD: Cedendo controle ao event loop antes de enviar notificação
+                                await asyncio.sleep(0)
+                                # Executar notificação em task separada para não bloquear
+                                asyncio.create_task(
+                                    telegram_service.send_trade_result_notification(
+                                        asset=asset_name,
+                                        direction=self._map_direction_to_signal(trade.direction.value),
+                                        result=trade.status.value,
+                                        profit=profit,
+                                        account_name=account_name,
+                                        chat_id=user_chat_id,
+                                        account_type=getattr(trade, "connection_type", None),
+                                        user_name=user_name,
+                                        balance_before=balance_before,
+                                        balance_after=balance_after
+                                    )
                                 )
-                            )
+                                logger.success(f"[NOTIFICATION] Notificação enviada com sucesso: {notification_key}")
                             self._sent_notifications.add(notification_key)
-                            logger.success(f"[NOTIFICATION] Notificação enviada com sucesso: {notification_key}")
                         except Exception as e:
                             logger.error(
                                 f"[NOTIFICATION ERROR] Falha ao enviar notificação: {e}",
@@ -708,6 +718,10 @@ class TradeExecutor:
 
                     await db.commit()
 
+                    # 🔴 REGISTRAR FIM DE TRADE no system_manager
+                    system_manager = get_system_manager()
+                    system_manager.register_trade_end(trade.id)
+
                     logger.warning(
                         f"[{trade.id[:8]}...] Trade cancelado",
                         extra={
@@ -752,25 +766,30 @@ class TradeExecutor:
                     notification_key = f"{trade.id}_{trade.status.value}"
                     if user_chat_id and notification_key not in self._sent_notifications:
                         try:
-                            # YIELD: Cedendo controle ao event loop antes de enviar notificação
-                            await asyncio.sleep(0)
-                            # Executar notificação em task separada para não bloquear
-                            asyncio.create_task(
-                                telegram_service.send_trade_result_notification(
-                                    asset=asset_name,
-                                    direction=self._map_direction_to_signal(trade.direction.value),
-                                    result=trade.status.value,
-                                    profit=0,
-                                    account_name=account_name,
-                                    chat_id=user_chat_id,
-                                    account_type=getattr(trade, "connection_type", None),
-                                    user_name=user_name,
-                                    balance_before=None,
-                                    balance_after=None
+                            # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se notificações estão habilitadas
+                            system_manager = get_system_manager()
+                            if not system_manager.is_notifications_enabled():
+                                logger.debug(f"🔕 Notificação de cancelamento bloqueada - módulo de notificações desligado")
+                            else:
+                                # YIELD: Cedendo controle ao event loop antes de enviar notificação
+                                await asyncio.sleep(0)
+                                # Executar notificação em task separada para não bloquear
+                                asyncio.create_task(
+                                    telegram_service.send_trade_result_notification(
+                                        asset=asset_name,
+                                        direction=self._map_direction_to_signal(trade.direction.value),
+                                        result=trade.status.value,
+                                        profit=0,
+                                        account_name=account_name,
+                                        chat_id=user_chat_id,
+                                        account_type=getattr(trade, "connection_type", None),
+                                        user_name=user_name,
+                                        balance_before=None,
+                                        balance_after=None
+                                    )
                                 )
-                            )
+                                logger.debug(f"[NOTIFICATION] Notificação de cancelamento enviada: {notification_key}")
                             self._sent_notifications.add(notification_key)
-                            logger.debug(f"[NOTIFICATION] Notificação de cancelamento enviada e rastreada: {notification_key}")
                         except Exception as e:
                             logger.error(f"Erro ao enviar notificação de resultado: {e}")
                     elif notification_key in self._sent_notifications:
@@ -802,6 +821,10 @@ class TradeExecutor:
                         trade.payout = 0
 
                         await db.commit()
+
+                        # 🔴 REGISTRAR FIM DE TRADE no system_manager
+                        system_manager = get_system_manager()
+                        system_manager.register_trade_end(trade.id)
 
                         logger.warning(
                             f"{log_prefix} [{trade.id[:8]}...] Trade fechado sem resultado definido após {max_retries} tentativas",
@@ -847,25 +870,30 @@ class TradeExecutor:
                         notification_key = f"{trade.id}_{trade.status.value}"
                         if user_chat_id and notification_key not in self._sent_notifications:
                             try:
-                                # YIELD: Cedendo controle ao event loop antes de enviar notificação
-                                await asyncio.sleep(0)
-                                # Executar notificação em task separada para não bloquear
-                                asyncio.create_task(
-                                    telegram_service.send_trade_result_notification(
-                                        asset=asset_name,
-                                        direction=self._map_direction_to_signal(trade.direction.value),
-                                        result=trade.status.value,
-                                        profit=trade.profit if trade.profit else 0,
-                                        account_name=account_name,
-                                        chat_id=user_chat_id,
-                                        account_type=getattr(trade, "connection_type", None),
-                                        user_name=user_name,
-                                        balance_before=None,
-                                        balance_after=None
+                                # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se notificações estão habilitadas
+                                system_manager = get_system_manager()
+                                if not system_manager.is_notifications_enabled():
+                                    logger.debug(f"🔕 Notificação de fechamento bloqueada - módulo de notificações desligado")
+                                else:
+                                    # YIELD: Cedendo controle ao event loop antes de enviar notificação
+                                    await asyncio.sleep(0)
+                                    # Executar notificação em task separada para não bloquear
+                                    asyncio.create_task(
+                                        telegram_service.send_trade_result_notification(
+                                            asset=asset_name,
+                                            direction=self._map_direction_to_signal(trade.direction.value),
+                                            result=trade.status.value,
+                                            profit=trade.profit if trade.profit else 0,
+                                            account_name=account_name,
+                                            chat_id=user_chat_id,
+                                            account_type=getattr(trade, "connection_type", None),
+                                            user_name=user_name,
+                                            balance_before=None,
+                                            balance_after=None
+                                        )
                                     )
-                                )
+                                    logger.debug(f"[NOTIFICATION] Notificação de fechamento enviada: {notification_key}")
                                 self._sent_notifications.add(notification_key)
-                                logger.debug(f"[NOTIFICATION] Notificação de fechamento enviada e rastreada: {notification_key}")
                             except Exception as e:
                                 logger.error(f"Erro ao enviar notificação de resultado: {e}")
                         elif notification_key in self._sent_notifications:
@@ -891,6 +919,11 @@ class TradeExecutor:
                     trade.profit = 0
                     trade.payout = 0
                     await db.commit()
+
+                    # 🔴 REGISTRAR FIM DE TRADE no system_manager
+                    system_manager = get_system_manager()
+                    system_manager.register_trade_end(trade.id)
+
                     logger.error(f"[{trade.id[:8]}...] Trade fechado sem resultado após erro: {e}", extra={
                         "user_name": user_name or "",
                         "account_id": trade.account_id[:8] if trade.account_id else "",
@@ -922,6 +955,15 @@ class TradeExecutor:
             Trade criado ou None se falhar
         """
         try:
+            # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se execução de novos trades está habilitada
+            system_manager = get_system_manager()
+            if not system_manager.can_execute_new_trade():
+                logger.warning(
+                    f"🛑 [TradeExecutor] NOVO TRADE BLOQUEADO - Sistema desligado (modo acompanhamento apenas). "
+                    f"Trades em andamento: {system_manager.state.trades_in_progress}"
+                )
+                return None
+            
             logger.success(f"🎯 [TradeExecutor] Iniciando execução de trade | {symbol} | {strategy_name} | {timeframe_seconds}s | {signal.signal_type.upper()} | confiança={signal.confidence:.2f}")
             
             # 🚨 VALIDAÇÃO DE SEGURANÇA: Ativos oficiais (sem _otc) só aceitam trades >= 60s
@@ -1237,27 +1279,32 @@ class TradeExecutor:
                                     user_chat_id = account_row[2]
                             
                             if user_chat_id:
-                                logger.info(f"[NOTIFICATION] Enviando notificação de trade executado para {user_name_notify} (chat: {user_chat_id})")
-                                # Converter direção do formato do banco (CALL/PUT) para BUY/SELL
-                                direction_mapped = "BUY" if signal.signal_type.value.upper() in ["CALL", "BUY"] else "SELL"
-                                
-                                # YIELD: Cedendo controle ao event loop antes de enviar notificação
-                                await asyncio.sleep(0)
-                                
-                                # Executar notificação em task separada para não bloquear
-                                asyncio.create_task(
-                                    telegram_service.send_signal_notification(
-                                        asset=symbol,
-                                        direction=direction_mapped,
-                                        confidence=signal.confidence,
-                                        timeframe=duration,
-                                        account_name=account_name_notify,
-                                        chat_id=user_chat_id,
-                                        trade_amount=trade.amount if hasattr(trade, 'amount') else None,
-                                        account_type=getattr(trade, "connection_type", None),
+                                # 🚨 VERIFICAÇÃO DO SISTEMA: Verificar se notificações estão habilitadas para NOVOS sinais
+                                system_manager = get_system_manager()
+                                if not system_manager.is_notifications_enabled():
+                                    logger.debug(f"🔕 Notificação de novo trade bloqueada - módulo de notificações desligado")
+                                else:
+                                    logger.info(f"[NOTIFICATION] Enviando notificação de trade executado para {user_name_notify} (chat: {user_chat_id})")
+                                    # Converter direção do formato do banco (CALL/PUT) para BUY/SELL
+                                    direction_mapped = "BUY" if signal.signal_type.value.upper() in ["CALL", "BUY"] else "SELL"
+                                    
+                                    # YIELD: Cedendo controle ao event loop antes de enviar notificação
+                                    await asyncio.sleep(0)
+                                    
+                                    # Executar notificação em task separada para não bloquear
+                                    asyncio.create_task(
+                                        telegram_service.send_signal_notification(
+                                            asset=symbol,
+                                            direction=direction_mapped,
+                                            confidence=signal.confidence,
+                                            timeframe=duration,
+                                            account_name=account_name_notify,
+                                            chat_id=user_chat_id,
+                                            trade_amount=trade.amount if hasattr(trade, 'amount') else None,
+                                            account_type=getattr(trade, "connection_type", None),
+                                        )
                                     )
-                                )
-                                logger.success(f"[NOTIFICATION] Notificação de trade executado enviada com sucesso")
+                                    logger.success(f"[NOTIFICATION] Notificação de trade executado enviada com sucesso")
                             else:
                                 logger.warning(f"[NOTIFICATION] Não enviado - user_chat_id é None para conta {account.id[:8]}")
                         except Exception as e:
@@ -1329,6 +1376,7 @@ class TradeExecutor:
                     return connection, account
 
             # Determinar qual conexão deve ser usada/reativada
+            # Só reativar se autotrade estiver ativo para o tipo correspondente
             connection_type = None
             ssid = None
             if account.autotrade_real and account.ssid_real:
@@ -1337,12 +1385,7 @@ class TradeExecutor:
             elif account.autotrade_demo and account.ssid_demo:
                 connection_type = "demo"
                 ssid = account.ssid_demo
-            elif account.ssid_demo:
-                connection_type = "demo"
-                ssid = account.ssid_demo
-            elif account.ssid_real:
-                connection_type = "real"
-                ssid = account.ssid_real
+            # Não reconectar se autotrade_demo e autotrade_real estão desativados
 
             if connection_type and ssid:
                 await self.connection_manager.ensure_connection(account.id, connection_type, ssid)
@@ -1527,6 +1570,50 @@ class TradeExecutor:
                 logger.warning(
                     f"⏸️ [{account_name or config.account_id}] {reason}. Contadores resetados (cooldown=0, não hibernar ativo)."
                 )
+            
+            # Enviar notificação Telegram sobre stop gain/loss consecutivo
+            try:
+                async with get_db_context() as db:
+                    # Buscar chat_id do usuário
+                    result = await db.execute(
+                        select(Account.user_id).where(Account.id == config.account_id)
+                    )
+                    user_id = result.scalar_one_or_none()
+                    
+                    if user_id:
+                        from models import User
+                        user_result = await db.execute(
+                            select(User.telegram_chat_id).where(User.id == user_id)
+                        )
+                        chat_id = user_result.scalar_one_or_none()
+                        
+                        if chat_id:
+                            # Verificar se no_hibernate está ativo
+                            no_hibernate = getattr(config, 'no_hibernate_on_consecutive_stop', False)
+                            
+                            if "Stop Loss" in reason:
+                                await telegram_service.send_stop_loss_notification(
+                                    account_name or "Desconhecida",
+                                    config.total_losses or 0,
+                                    config.stop2 or 0,
+                                    chat_id,
+                                    account_type=account_type,
+                                    no_hibernate=no_hibernate
+                                )
+                                logger.info(f"✓ Notificação Telegram de Stop Loss enviada para {chat_id[:8]}...")
+                            elif "Stop Gain" in reason:
+                                await telegram_service.send_stop_gain_notification(
+                                    account_name or "Desconhecida",
+                                    config.total_wins or 0,
+                                    config.stop1 or 0,
+                                    chat_id,
+                                    account_type=account_type,
+                                    no_hibernate=no_hibernate
+                                )
+                                logger.info(f"✓ Notificação Telegram de Stop Gain enviada para {chat_id[:8]}...")
+            except Exception as e:
+                logger.error(f"Erro ao enviar notificação de stop consecutivo: {e}")
+                
         except Exception as e:
             logger.error(f"Erro ao aplicar cooldown do stop consecutivo: {e}", exc_info=True)
 
@@ -1654,14 +1741,25 @@ class TradeExecutor:
         # Verificar cooldown de stop consecutivo (quando no_hibernate está ativo e stop foi atingido)
         if config.consecutive_stop_cooldown_until:
             now = datetime.utcnow()
-            if now < config.consecutive_stop_cooldown_until:
-                remaining_time = (config.consecutive_stop_cooldown_until - now).total_seconds()
+            
+            # 🚨 FIX: Garantir que consecutive_stop_cooldown_until seja datetime, não string
+            cooldown_until = config.consecutive_stop_cooldown_until
+            if isinstance(cooldown_until, str):
+                try:
+                    from datetime import datetime as dt
+                    cooldown_until = dt.fromisoformat(cooldown_until.replace('Z', '+00:00'))
+                except Exception:
+                    # Se não conseguir converter, ignorar cooldown
+                    cooldown_until = None
+            
+            if cooldown_until and now < cooldown_until:
+                remaining_time = (cooldown_until - now).total_seconds()
                 logger.info(f"⏸️ [TradeExecutor] Cooldown de stop consecutivo ativo: {remaining_time:.1f}s restantes")
                 # BUG FIX: Não bloquear trades completamente, apenas respeitar cooldown entre trades
                 # O cooldown deve impedir trades muito próximos, não bloquear todos os trades
                 # Isso permite que o sistema continue operando mesmo após um stop consecutivo
                 pass
-            else:
+            elif cooldown_until:
                 # Cooldown expirou, limpar o campo
                 async with get_db_context() as db:
                     await db.execute(
@@ -1691,7 +1789,22 @@ class TradeExecutor:
 
         # Calcular tempo desde o último trade
         now = datetime.utcnow()
-        time_since_last_trade = (now - config.last_trade_time).total_seconds()
+        
+        # 🚨 FIX: Garantir que last_trade_time seja datetime, não string
+        last_trade = config.last_trade_time
+        if isinstance(last_trade, str):
+            try:
+                from datetime import datetime as dt
+                last_trade = dt.fromisoformat(last_trade.replace('Z', '+00:00'))
+            except Exception:
+                # Se não conseguir converter, permitir trade
+                return True
+        
+        if not isinstance(last_trade, datetime):
+            # Tipo inesperado, permitir trade
+            return True
+            
+        time_since_last_trade = (now - last_trade).total_seconds()
 
         # Verificar se passou o tempo mínimo configurado
         if time_since_last_trade < cooldown_duration:
@@ -1720,12 +1833,17 @@ class TradeExecutor:
         """Desativar autotrade da conta"""
         try:
             async with get_db_context() as db:
-                # Atualizar timestamp da conta sem zerar o modo selecionado
+                # Desativar autotrade_demo e autotrade_real na conta
                 await db.execute(
                     update(Account)
                     .where(Account.id == account_id)
-                    .values(updated_at=datetime.utcnow())
+                    .values(
+                        autotrade_demo=False,
+                        autotrade_real=False,
+                        updated_at=datetime.utcnow()
+                    )
                 )
+                logger.info(f"✓ autotrade_demo e autotrade_real desativados na conta {account_id}")
                 
                 # Desativar configuração de autotrade e resetar contadores
                 result = await db.execute(
@@ -1790,14 +1908,31 @@ class TradeExecutor:
                     await self.connection_manager.disconnect_connection(account_id, 'real', permanent=is_permanent)
                     logger.info(f"✓ Conexões WebSocket desconectadas para conta {account_id} (permanente={is_permanent})")
 
+                # Notificar frontend sobre mudança de status da estratégia
+                if autotrade_configs and autotrade_configs[0].strategy_id and account_user_id:
+                    try:
+                        # Importação tardia para evitar ciclo de importação
+                        from api.routers.websocket import broadcast_strategy_status_update
+                        await broadcast_strategy_status_update(
+                            user_id=account_user_id,
+                            strategy_id=autotrade_configs[0].strategy_id,
+                            is_active=False,
+                            reason=reason
+                        )
+                        logger.info(f"✓ Notificação WebSocket enviada para usuário {account_user_id[:8]}... sobre estratégia desativada")
+                    except Exception as e:
+                        logger.error(f"Erro ao enviar notificação WebSocket: {e}")
+
                 # Enviar notificação via Telegram para o usuário correto
+                # Nota: Quando _disable_autotrade é chamado, a estratégia foi desligada (no_hibernate=False)
                 if "Stop Loss" in reason and loss_consecutive is not None and stop2 is not None:
                     await telegram_service.send_stop_loss_notification(
                         account_name or "Desconhecida",
                         loss_consecutive,
                         stop2,
                         user_chat_id,
-                        account_type=account_type
+                        account_type=account_type,
+                        no_hibernate=False
                     )
                 elif "Stop Gain" in reason and win_consecutive is not None and stop1 is not None:
                     await telegram_service.send_stop_gain_notification(
@@ -1805,7 +1940,8 @@ class TradeExecutor:
                         win_consecutive,
                         stop1,
                         user_chat_id,
-                        account_type=account_type
+                        account_type=account_type,
+                        no_hibernate=False
                     )
                 elif stop_amount_type and stop_amount is not None and current_balance is not None:
                     await telegram_service.send_stop_amount_notification(
@@ -2719,6 +2855,10 @@ class TradeExecutor:
                 
                 db.add(trade)
                 await db.commit()
+                
+                # 🟢 REGISTRAR TRADE EM ANDAMENTO no system_manager
+                system_manager = get_system_manager()
+                system_manager.register_trade_start(trade.id)
                 
                 # YIELD: Cedendo controle após commit do banco
                 await asyncio.sleep(0)

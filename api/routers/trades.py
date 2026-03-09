@@ -170,7 +170,7 @@ async def get_indicator_rankings(
         # Criar lista de rankings
         rankings = []
         for combination, stats in combination_stats.items():
-            if stats['total_trades'] >= 10:  # Mínimo de 10 trades para exibir
+            if stats['total_trades'] >= 3:  # Mínimo de 3 trades para exibir (reduzido de 10)
                 winning_trades = stats['winning_trades']
                 losing_trades = stats['losing_trades']
                 total_trades = stats['total_trades']

@@ -308,27 +308,6 @@ class StrategyPerformanceSnapshotResponse(BaseModel):
     snapshot_date: datetime
 
 
-class BacktestRequest(BaseModel):
-    """Backtest request"""
-    start_date: datetime
-    end_date: datetime
-    initial_balance: float = 1000.0
-
-
-class BacktestResponse(BaseModel):
-    """Backtest response"""
-    strategy_id: str
-    start_date: datetime
-    end_date: datetime
-    initial_balance: float
-    final_balance: float
-    total_profit: float
-    total_trades: int
-    winning_trades: int
-    losing_trades: int
-    win_rate: float
-
-
 # ============================================
 # SIGNALS
 # ============================================
@@ -618,8 +597,6 @@ __all__ = [
     "StrategyWithPerformance",
     "StrategyPerformance",
     "StrategyPerformanceSnapshotResponse",
-    "BacktestRequest",
-    "BacktestResponse",
     
     # Signals
     "SignalResponse",

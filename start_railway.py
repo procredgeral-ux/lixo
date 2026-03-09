@@ -32,8 +32,8 @@ def main():
         host=settings.API_HOST,
         port=port,
         reload=False,  # Railway não usa reload
-        access_log=settings.LOG_LEVEL.upper() == "DEBUG",
-        log_level=settings.LOG_LEVEL.lower(),
+        access_log=False,  # Desabilitar access log no Railway
+        log_level="error",  # Só mostrar logs de erro no Railway
     )
 
 if __name__ == '__main__':

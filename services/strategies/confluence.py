@@ -307,14 +307,30 @@ class ConfluenceCalculator:
             # Agrupar indicadores por categoria
             if indicator_type in ['rsi', 'stochastic', 'williams_r', 'cci']:
                 indicator_types.add('oscillator')
-            elif indicator_type in ['macd', 'roc']:
+            elif indicator_type in ['macd', 'roc', 'momentum']:
                 indicator_types.add('momentum')
             elif indicator_type in ['sma', 'ema']:
                 indicator_types.add('trend')
-            elif indicator_type in ['bollinger_bands', 'atr']:
+            elif indicator_type in ['bollinger_bands', 'atr', 'keltner_channels', 'donchian_channels']:
                 indicator_types.add('volatility')
-            elif indicator_type in ['zonas']:
+            elif indicator_type in ['zonas', 'pivot_points', 'fibonacci_retracement']:
                 indicator_types.add('support_resistance')
+            elif indicator_type in ['parabolic_sar', 'supertrend', 'adx', 'average_directional_index', 'ichimoku_cloud']:
+                indicator_types.add('trend_following')
+            elif indicator_type in ['heiken_ashi']:
+                indicator_types.add('price_transformation')
+            elif indicator_type in ['money_flow_index']:
+                indicator_types.add('volume_oscillator')
+            elif indicator_type in ['vwap', 'obv']:
+                indicator_types.add('volume_based')
+            elif indicator_type in ['awesome_oscillator', 'klinger_oscillator']:
+                indicator_types.add('volume_momentum')
+            elif indicator_type in ['detrended_price_oscillator', 'mass_index']:
+                indicator_types.add('cycle_reversal')
+            elif indicator_type in ['force_index']:
+                indicator_types.add('volume_force')
+            elif indicator_type in ['true_strength_index', 'ultimate_oscillator']:
+                indicator_types.add('momentum_oscillator')
             else:
                 indicator_types.add(indicator_type)
 

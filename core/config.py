@@ -134,6 +134,7 @@ class Settings(BaseSettings):
     HISTORICAL_DATA_DAYS: int = 365
     MAX_CANDLES_PER_REQUEST: int = 1000
     DATA_COLLECTOR_ENABLED: bool = True
+    MAX_ASSETS_PER_ACCOUNT: int = Field(default=10, env="MAX_ASSETS_PER_ACCOUNT")
 
     # Railway Deployment
     RAILWAY_FAST_MODE: bool = Field(default=False, env="RAILWAY_FAST_MODE")
@@ -142,7 +143,6 @@ class Settings(BaseSettings):
     DEFAULT_TIMEFRAME: int = 60
     DEFAULT_AMOUNT: float = 10.0
     DEFAULT_DURATION: int = 60
-    STRATEGY_BACKTEST_INITIAL_BALANCE: float = 1000.0
 
     # WebSocket
     WS_HEARTBEAT_INTERVAL: int = 30

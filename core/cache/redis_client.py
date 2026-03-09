@@ -401,6 +401,11 @@ class RedisManager:
 redis_manager = RedisManager()
 
 
+def get_redis_client() -> Optional[Redis]:
+    """Retorna cliente Redis ou None (compatibility function)"""
+    return redis_manager.client
+
+
 async def initialize_redis() -> bool:
     """Inicializa Redis globalmente"""
     return await redis_manager.initialize()

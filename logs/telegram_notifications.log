@@ -1,11 +1,59 @@
-2026-03-06 15:37:54 | INFO     |                 |        |      | services.notifications.telegram_v2:_start_queue_processor:145 | [TelegramV2] Processador de fila iniciado
-2026-03-06 15:37:54 | INFO     |                 |        |      | services.notifications.telegram_v2:start:151 | [TelegramV2] Processador de fila iniciado via start()
-2026-03-06 15:38:40 | SUCCESS  |                 |        |      | services.notifications.telegram:send_message:177 | ✅ Notificação Telegram enviada para chat 54218640...: 
-🔄 <b>AUTOTRADE REABILITADO!</b>
-
-📊 Estratégia: Le...
-2026-03-06 15:38:45 | SUCCESS  |                 |        |      | services.notifications.telegram:send_message:177 | ✅ Notificação Telegram enviada para chat 54218640...: 
-⏸️ <b>AUTOTRADE DESATIVADO!</b>
-
-📊 Estratégia: Le...
-2026-03-06 15:39:02 | INFO     |                 |        |      | services.notifications.telegram_v2:_process_message_queue:186 | [TelegramV2] Processador de fila cancelado
+2026-03-08 06:23:54 | INFO     |                 |        |      | services.notifications.telegram_v2:_start_queue_processor:168 | [TelegramV2] Pool de 5 workers iniciado
+2026-03-08 06:23:54 | INFO     |                 |        |      | services.notifications.telegram_v2:start:247 | [TelegramV2] Pool de workers iniciado via start()
+2026-03-08 06:23:54 | INFO     |                 |        |      | services.notifications.telegram_v2:_start_queue_processor:168 | [TelegramV2] Pool de 5 workers iniciado
+2026-03-08 06:23:54 | INFO     |                 |        |      | services.notifications.telegram_v2:start:249 | [TelegramV2] Pool de workers iniciado via start()
+2026-03-08 06:33:41 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:34:01 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:34:12 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:34:33 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:34:44 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:34:56 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:35:06 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:35:18 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:35:40 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:35:50 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:36:03 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:36:25 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:36:47 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:37:00 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:37:22 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:37:43 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:38:03 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:38:16 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:38:46 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:38:59 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:39:03 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:39:22 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:39:35 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:40:21 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:40:43 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:41:27 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:41:44 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:42:07 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:42:18 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:42:39 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:43:02 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:43:14 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:43:26 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:43:49 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:44:12 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:44:24 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:44:34 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:44:44 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:45:06 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:45:17 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:45:28 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:45:39 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:45:59 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:46:10 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:46:32 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:46:53 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:47:05 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:47:17 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:47:40 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:47:51 | DEBUG    |                 |        |      | services.notifications.telegram:send_message:138 | 🔕 Notificação bloqueada - módulo de notificações desligado
+2026-03-08 06:48:18 | INFO     |                 |        |      | services.notifications.telegram_v2:_worker_loop:210 | [TelegramV2] [worker-4] Worker cancelado
+2026-03-08 06:48:18 | INFO     |                 |        |      | services.notifications.telegram_v2:_worker_loop:210 | [TelegramV2] [worker-5] Worker cancelado
+2026-03-08 06:48:18 | INFO     |                 |        |      | services.notifications.telegram_v2:_worker_loop:210 | [TelegramV2] [worker-3] Worker cancelado
+2026-03-08 06:48:18 | INFO     |                 |        |      | services.notifications.telegram_v2:_worker_loop:210 | [TelegramV2] [worker-2] Worker cancelado
+2026-03-08 06:48:18 | INFO     |                 |        |      | services.notifications.telegram_v2:_worker_loop:210 | [TelegramV2] [worker-1] Worker cancelado

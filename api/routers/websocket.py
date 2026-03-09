@@ -6,6 +6,7 @@ import asyncio
 from loguru import logger
 
 from services.data_collector.realtime import data_collector
+from core.security.auth import decode_token
 
 router = APIRouter()
 
@@ -273,6 +274,17 @@ class ConnectionManager:
         }
         await self.broadcast_to_user(user_id, message)
     
+    async def broadcast_strategy_status(self, user_id: str, strategy_id: str, is_active: bool, reason: str = None):
+        """Broadcast de mudança de status da estratégia para um usuário específico"""
+        message = {
+            "type": "strategy_status_update",
+            "user_id": user_id,
+            "strategy_id": strategy_id,
+            "is_active": is_active,
+            "reason": reason
+        }
+        await self.broadcast_to_user(user_id, message)
+    
     async def broadcast_maintenance_status(self, is_under_maintenance: bool):
         """Broadcast de status de manutenção para TODOS os clientes"""
         message = {
@@ -403,8 +415,13 @@ async def websocket_maintenance(
     Mensagens enviadas:
         - {"type": "connected", "connection_id": "..."}
         - {"type": "maintenance_status", "is_under_maintenance": true/false}
+        - {"type": "strategy_status_update", "strategy_id": "...", "is_active": false, "reason": "..."}
     """
-    connection_id = await manager.connect(websocket, "maintenance")
+    # Extrair user_id do token JWT
+    payload = decode_token(token)
+    user_id = payload.get("sub") if payload else None
+    
+    connection_id = await manager.connect(websocket, "maintenance", user_id=user_id)
     
     try:
         # Enviar mensagem de confirmação
@@ -546,3 +563,8 @@ async def broadcast_candle_update(symbol: str, candle_data: dict):
 async def broadcast_performance_update(user_id: str, strategy_id: str, performance_data: dict):
     """Envia atualização de performance para todos os clientes conectados"""
     await manager.broadcast_performance_update(user_id, strategy_id, performance_data)
+
+
+async def broadcast_strategy_status_update(user_id: str, strategy_id: str, is_active: bool, reason: str = None):
+    """Envia atualização de status da estratégia para o usuário"""
+    await manager.broadcast_strategy_status(user_id, strategy_id, is_active, reason)
