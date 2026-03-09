@@ -56,3 +56,30 @@ data/*.db
 # Outros
 .DS_Store
 Thumbs.db
+
+# Frontend (React Native)
+aplicativo/node_modules/
+aplicativo/*/node_modules/
+aplicativo/*/build/
+aplicativo/*/dist/
+aplicativo/*/.expo/
+aplicativo/*/.expo-shared/
+aplicativo/*/*.ipa
+aplicativo/*/*.apk
+aplicativo/*/*.aab
+aplicativo/*/.gradle/
+aplicativo/*/android/build/
+aplicativo/*/android/.gradle/
+aplicativo/*/android/app/build/
+aplicativo/*/ios/build/
+aplicativo/*/ios/Pods/
+aplicativo/*/ios/*.xcworkspace/xcuserdata/
+aplicativo/*/ios/*.xcodeproj/xcuserdata/
+aplicativo/*/ios/*.xcodeproj/project.xcworkspace/
+aplicativo/*/*.keystore
+aplicativo/*/*.jks
+aplicativo/*/package-lock.json
+aplicativo/*/yarn.lock
+aplicativo/*/.env.local
+aplicativo/*/.env.development
+aplicativo/*/.env.production
