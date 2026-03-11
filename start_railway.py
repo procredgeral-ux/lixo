@@ -5,17 +5,27 @@ Usa a variável de ambiente PORT corretamente
 """
 import os
 import sys
+import asyncio
+
+# Ensure production environment
+os.environ['ENVIRONMENT'] = 'production'
+
+# Run database setup first
+print("🚀 Iniciando setup do banco de dados...")
+try:
+    # Import and run the setup
+    from railway_prod_setup import setup_database
+    asyncio.run(setup_database())
+    print("✅ Setup do banco concluído!")
+except Exception as e:
+    print(f"⚠️  Setup do banco falhou ou já existe: {e}")
+    # Continue anyway - server might still work if tables exist
+
 import uvicorn
 from api.main import app
 from core.config import settings
-import sys
-import os
-from dotenv import load_dotenv
 
-def main():
-    # Carregar variáveis de ambiente do .env
-    load_dotenv()
-    
+def main():    
     print("=" * 60)
     print("Iniciando Backend AutoTrade - Railway")
     print("=" * 60)
