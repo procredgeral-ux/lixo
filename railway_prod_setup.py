@@ -39,6 +39,7 @@ async def setup_database():
             # Drop existing tables to ensure fresh structure
             logger.info("🗑️ Dropping existing tables if any...")
             await conn.execute(text("DROP TABLE IF EXISTS strategy_indicators CASCADE"))
+            await conn.execute(text("DROP TABLE IF EXISTS strategies CASCADE"))
             await conn.execute(text("DROP TABLE IF EXISTS indicators CASCADE"))
             await conn.execute(text("DROP TABLE IF EXISTS trades CASCADE"))
             await conn.execute(text("DROP TABLE IF EXISTS monitoring_accounts CASCADE"))
