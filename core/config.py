@@ -37,22 +37,29 @@ def get_database_url():
     # Auto-select based on environment
     if env == 'production':
         # In production, ONLY use Railway-provided variables
-        # Ignore DB_PROD_URL completely to avoid conflicts with .env
-        prod_url = (
-            os.getenv('DATABASE_URL') or          # Railway private (for internal connections)
-            os.getenv('DATABASE_PUBLIC_URL')      # Railway public proxy (fallback)
-        )
+        # DATABASE_URL is the private connection (resolved automatically by Railway)
+        prod_url = os.getenv('DATABASE_URL')
+        
         if prod_url:
-            source = 'DATABASE_URL' if os.getenv('DATABASE_URL') else 'DATABASE_PUBLIC_URL'
             # Debug: print the actual URL (masked)
             masked = prod_url.replace('://', '://***:***@').split('@')[0] + '@...' if '@' in prod_url else '***'
-            print(f"[CONFIG] Using PRODUCTION database (Railway via {source})")
+            print(f"[CONFIG] Using PRODUCTION database (Railway via DATABASE_URL)")
             print(f"[CONFIG] Database URL: {masked}")
             # Check if URL contains template variables (not resolved)
             if '${{' in prod_url:
                 print(f"[CONFIG] WARNING: URL contains unresolved template variables!")
+                print(f"[CONFIG] Falling back to manual database connection...")
+                # Build URL from individual PG* variables if available
+                pguser = os.getenv('PGUSER') or os.getenv('POSTGRES_USER')
+                pgpass = os.getenv('PGPASSWORD') or os.getenv('POSTGRES_PASSWORD')
+                pghost = os.getenv('PGHOST') or os.getenv('RAILWAY_PRIVATE_DOMAIN')
+                pgport = os.getenv('PGPORT') or '5432'
+                pgdb = os.getenv('PGDATABASE') or os.getenv('POSTGRES_DB')
+                if all([pguser, pgpass, pghost, pgdb]):
+                    prod_url = f"postgresql://{pguser}:{pgpass}@{pghost}:{pgport}/{pgdb}"
+                    print(f"[CONFIG] Built URL from individual vars: postgresql://{pguser}:***@{pghost}:{pgport}/{pgdb}")
             return prod_url
-        raise ValueError("ENVIRONMENT=production but Railway DATABASE_URL or DATABASE_PUBLIC_URL not found!")
+        raise ValueError("ENVIRONMENT=production but Railway DATABASE_URL not found!")
     else:
         # Development - check for DATABASE_URL_DEV first (backward compat)
         dev_url = os.getenv('DATABASE_URL_DEV') or os.getenv('DATABASE_URL_LOCAL')
