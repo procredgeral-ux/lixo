@@ -36,30 +36,29 @@ def get_database_url():
     
     # Auto-select based on environment
     if env == 'production':
-        # In production, ONLY use Railway-provided variables
-        # DATABASE_URL is the private connection (resolved automatically by Railway)
+        # In production, use Railway-provided variables
+        # Try DATABASE_URL first, then build from individual POSTGRES_* vars
         prod_url = os.getenv('DATABASE_URL')
         
+        if not prod_url or '${{' in prod_url:
+            # Build URL from individual Railway PostgreSQL variables
+            pguser = os.getenv('POSTGRES_USER') or os.getenv('PGUSER')
+            pgpass = os.getenv('POSTGRES_PASSWORD') or os.getenv('PGPASSWORD')
+            pghost = os.getenv('RAILWAY_PRIVATE_DOMAIN') or os.getenv('PGHOST')
+            pgport = os.getenv('PGPORT') or '5432'
+            pgdb = os.getenv('POSTGRES_DB') or os.getenv('PGDATABASE') or 'railway'
+            
+            if all([pguser, pgpass, pghost, pgdb]):
+                prod_url = f"postgresql://{pguser}:{pgpass}@{pghost}:{pgport}/{pgdb}"
+                print(f"[CONFIG] Built database URL from Railway variables")
+                print(f"[CONFIG] Host: {pghost}, DB: {pgdb}, User: {pguser}")
+        
         if prod_url:
-            # Debug: print the actual URL (masked)
             masked = prod_url.replace('://', '://***:***@').split('@')[0] + '@...' if '@' in prod_url else '***'
-            print(f"[CONFIG] Using PRODUCTION database (Railway via DATABASE_URL)")
-            print(f"[CONFIG] Database URL: {masked}")
-            # Check if URL contains template variables (not resolved)
-            if '${{' in prod_url:
-                print(f"[CONFIG] WARNING: URL contains unresolved template variables!")
-                print(f"[CONFIG] Falling back to manual database connection...")
-                # Build URL from individual PG* variables if available
-                pguser = os.getenv('PGUSER') or os.getenv('POSTGRES_USER')
-                pgpass = os.getenv('PGPASSWORD') or os.getenv('POSTGRES_PASSWORD')
-                pghost = os.getenv('PGHOST') or os.getenv('RAILWAY_PRIVATE_DOMAIN')
-                pgport = os.getenv('PGPORT') or '5432'
-                pgdb = os.getenv('PGDATABASE') or os.getenv('POSTGRES_DB')
-                if all([pguser, pgpass, pghost, pgdb]):
-                    prod_url = f"postgresql://{pguser}:{pgpass}@{pghost}:{pgport}/{pgdb}"
-                    print(f"[CONFIG] Built URL from individual vars: postgresql://{pguser}:***@{pghost}:{pgport}/{pgdb}")
+            print(f"[CONFIG] Using PRODUCTION database: {masked}")
             return prod_url
-        raise ValueError("ENVIRONMENT=production but Railway DATABASE_URL not found!")
+            
+        raise ValueError("ENVIRONMENT=production but no Railway database variables found! Check POSTGRES_USER, POSTGRES_PASSWORD, RAILWAY_PRIVATE_DOMAIN, POSTGRES_DB")
     else:
         # Development - check for DATABASE_URL_DEV first (backward compat)
         dev_url = os.getenv('DATABASE_URL_DEV') or os.getenv('DATABASE_URL_LOCAL')
