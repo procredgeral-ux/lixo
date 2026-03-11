@@ -87,7 +87,7 @@ def init_database():
     
     if pg_host and pg_user and pg_password and pg_database:
         # Construir URL completa
-        db_url = f"postgresql+psycopg2://{pg_user}:{pg_password}@{pg_host}:5432/{pg_database}"
+        db_url = f"postgresql+asyncpg://{pg_user}:{pg_password}@{pg_host}:5432/{pg_database}"
         os.environ["DATABASE_URL"] = db_url
         logger.info(f"✅ DATABASE_URL construída: postgresql://{pg_user}:***@{pg_host}:5432/{pg_database}")
     else:
