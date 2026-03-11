@@ -5,20 +5,65 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator, model_validator
 from functools import lru_cache
 
+# Load .env file explicitly
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed, pydantic will handle it
+
 
 def get_database_url():
-    """Get DATABASE_URL from environment (required)"""
-    # Debug: listar todas as vars de ambiente do Railway
+    """Get DATABASE_URL based on environment (production or development)"""
     import os
-    railway_vars = {k: v[:20] + '...' if v and len(v) > 20 else v for k, v in os.environ.items() if 'DATABASE' in k or 'POSTGRES' in k or 'RAILWAY' in k}
-    print(f"[DEBUG] Railway DB vars: {railway_vars}")
     
-    url = os.getenv('DATABASE_URL')
-    if url:
-        print(f"[DEBUG] DATABASE_URL encontrada: {url[:30]}...")
+    env = os.getenv('ENVIRONMENT', 'development').lower()
+    print(f"[CONFIG] Environment detected: {env.upper()}")
+    
+    # Debug: print actual env values
+    print(f"[CONFIG] DB_DEV_USER='{os.getenv('DB_DEV_USER', 'NOT SET')}'")
+    
+    # If DATABASE_URL is explicitly set, use it (backward compatibility)
+    explicit_url = os.getenv('DATABASE_URL')
+    if explicit_url and not explicit_url.startswith('${'):
+        print(f"[CONFIG] Using explicit DATABASE_URL")
+        return explicit_url
+    
+    # Auto-select based on environment
+    if env == 'production':
+        # Try production URLs in order of preference
+        prod_url = os.getenv('DB_PROD_URL') or os.getenv('DATABASE_URL_PROD') or os.getenv('DATABASE_PUBLIC_URL')
+        if prod_url:
+            print(f"[CONFIG] Using PRODUCTION database (Railway)")
+            return prod_url
+        raise ValueError("ENVIRONMENT=production but DB_PROD_URL not set!")
+    else:
+        # Development - check for DATABASE_URL_DEV first (backward compat)
+        dev_url = os.getenv('DATABASE_URL_DEV') or os.getenv('DATABASE_URL_LOCAL')
+        if dev_url:
+            print(f"[CONFIG] Using DEVELOPMENT database (Local - from DATABASE_URL_DEV)")
+            return dev_url
+        
+        # Build URL from individual DB_DEV_* variables - read directly from os.environ
+        # These should be loaded from .env by the parent process
+        db_host = os.environ.get('DB_DEV_HOST', 'localhost')
+        db_port = os.environ.get('DB_DEV_PORT', '5432')
+        db_name = os.environ.get('DB_DEV_NAME', 'tunestrade')
+        db_user = os.environ.get('DB_DEV_USER', 'postgres')
+        db_password = os.environ.get('DB_DEV_PASSWORD', 'postgres')
+        db_ssl = os.environ.get('DB_DEV_SSL', 'false').lower() == 'true'
+        
+        print(f"[CONFIG] DB_DEV_USER from env: {db_user}")
+        
+        # Build connection string
+        if db_ssl:
+            url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?sslmode=require"
+        else:
+            url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        
+        print(f"[CONFIG] Using DEVELOPMENT database (Local - built from DB_DEV_* vars)")
+        print(f"[CONFIG] Database: {db_name} on {db_host}:{db_port}")
         return url
-    # Sem fallback SQLite - PostgreSQL é obrigatório
-    raise ValueError(f"DATABASE_URL não configurada! Vars encontradas: {list(os.environ.keys())[:20]}")
 
 
 def get_redis_url():
@@ -28,6 +73,32 @@ def get_redis_url():
     if url:
         return url
     return None
+
+
+def get_secret_key():
+    """Get SECRET_KEY based on environment (development or production)"""
+    import os
+    
+    env = os.getenv('ENVIRONMENT', 'development').lower()
+    
+    # If SECRET_KEY is explicitly set, use it
+    explicit_key = os.getenv('SECRET_KEY')
+    if explicit_key and not explicit_key.startswith('${'):
+        return explicit_key
+    
+    # Select based on environment
+    if env == 'production':
+        prod_key = os.getenv('SECRET_KEY_PROD')
+        if prod_key:
+            return prod_key
+        # Fallback for production
+        return 'production-secret-key-must-be-changed-min-32-chars'
+    else:
+        dev_key = os.getenv('SECRET_KEY_DEV')
+        if dev_key:
+            return dev_key
+        # Fallback for development
+        return 'dev-secret-key-local-development-only-not-for-production'
 
 
 class Settings(BaseSettings):
@@ -60,7 +131,7 @@ class Settings(BaseSettings):
     REDIS_CACHE_TTL: int = Field(default=300, env="REDIS_CACHE_TTL")
 
     # JWT
-    SECRET_KEY: str = Field(..., env="SECRET_KEY")
+    SECRET_KEY: str = Field(default_factory=get_secret_key, env="SECRET_KEY")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120  # 2 horas (era 30min)
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
