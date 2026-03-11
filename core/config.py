@@ -44,7 +44,13 @@ def get_database_url():
         )
         if prod_url:
             source = 'DATABASE_URL' if os.getenv('DATABASE_URL') else 'DATABASE_PUBLIC_URL'
+            # Debug: print the actual URL (masked)
+            masked = prod_url.replace('://', '://***:***@').split('@')[0] + '@...' if '@' in prod_url else '***'
             print(f"[CONFIG] Using PRODUCTION database (Railway via {source})")
+            print(f"[CONFIG] Database URL: {masked}")
+            # Check if URL contains template variables (not resolved)
+            if '${{' in prod_url:
+                print(f"[CONFIG] WARNING: URL contains unresolved template variables!")
             return prod_url
         raise ValueError("ENVIRONMENT=production but Railway DATABASE_URL or DATABASE_PUBLIC_URL not found!")
     else:
