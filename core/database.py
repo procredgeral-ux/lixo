@@ -190,29 +190,15 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db():
-    """Initialize database - test connection using asyncpg directly first"""
+    """Initialize database - test connection"""
     if not engine:
         raise RuntimeError("Database engine not initialized")
     try:
-        # Test with asyncpg directly first
-        import asyncpg
-        conn = await asyncpg.connect(
-            host='127.0.0.1',
-            port=5432,
-            database='tunestrade',
-            user='tunestrade',
-            password='tunestrade',
-            timeout=5
-        )
-        result = await conn.fetch("SELECT 1 as test")
-        await conn.close()
-        logger.info(f"[DB] Direct asyncpg connection OK: {result}")
-        
-        # Now test SQLAlchemy connection
+        # Test SQLAlchemy connection
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
             await conn.commit()
-        logger.info("[DB] SQLAlchemy connection OK")
+        logger.info("[DB] Database connection OK")
     except Exception as e:
         logger.error(f"[DB] Connection check failed: {e}")
         raise
