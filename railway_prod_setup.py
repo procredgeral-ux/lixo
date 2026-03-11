@@ -21,6 +21,17 @@ if 'sslmode=' in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.split('?')[0]
     logger.info("Removed sslmode from URL for asyncpg compatibility")
 
+async def table_exists(conn, table_name: str) -> bool:
+    """Check if a table exists in the database"""
+    result = await conn.execute(text("""
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = :table_name
+        )
+    """), {"table_name": table_name})
+    return result.scalar()
+
 async def setup_database():
     """Create tables and seed initial data"""
     logger.info("🚀 Setting up Railway production database...")
@@ -36,90 +47,127 @@ async def setup_database():
     
     try:
         async with engine.begin() as conn:
-            # Drop existing tables to ensure fresh structure
-            logger.info("🗑️ Dropping existing tables if any...")
-            await conn.execute(text("DROP TABLE IF EXISTS strategy_indicators CASCADE"))
-            await conn.execute(text("DROP TABLE IF EXISTS strategies CASCADE"))
-            await conn.execute(text("DROP TABLE IF EXISTS indicators CASCADE"))
-            await conn.execute(text("DROP TABLE IF EXISTS trades CASCADE"))
-            await conn.execute(text("DROP TABLE IF EXISTS monitoring_accounts CASCADE"))
-            await conn.execute(text("DROP TABLE IF EXISTS users CASCADE"))
-            logger.info("✅ Old tables dropped")
+            # Check which tables exist
+            tables_to_check = ['users', 'monitoring_accounts', 'trades', 'indicators', 'strategy_indicators', 'strategies']
+            existing_tables = []
+            for table in tables_to_check:
+                if await table_exists(conn, table):
+                    existing_tables.append(table)
             
-            # Create users table
-            logger.info("📦 Creating users table...")
-            await conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS users (
-                    id SERIAL PRIMARY KEY,
-                    username VARCHAR(50) UNIQUE NOT NULL,
-                    email VARCHAR(255) UNIQUE NOT NULL,
-                    password_hash VARCHAR(255) NOT NULL,
-                    is_active BOOLEAN DEFAULT TRUE,
-                    is_superuser BOOLEAN DEFAULT FALSE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """))
+            if existing_tables:
+                logger.info(f"📋 Existing tables found: {', '.join(existing_tables)}")
             
-            # Create monitoring_accounts table
-            logger.info("📦 Creating monitoring_accounts table...")
-            await conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS monitoring_accounts (
-                    id SERIAL PRIMARY KEY,
-                    ssid VARCHAR(255) NOT NULL,
-                    account_type VARCHAR(50) NOT NULL,
-                    is_active BOOLEAN DEFAULT TRUE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """))
+            # Create users table if not exists
+            if not await table_exists(conn, 'users'):
+                logger.info("📦 Creating users table...")
+                await conn.execute(text("""
+                    CREATE TABLE users (
+                        id SERIAL PRIMARY KEY,
+                        username VARCHAR(50) UNIQUE NOT NULL,
+                        email VARCHAR(255) UNIQUE NOT NULL,
+                        password_hash VARCHAR(255) NOT NULL,
+                        is_active BOOLEAN DEFAULT TRUE,
+                        is_superuser BOOLEAN DEFAULT FALSE,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """))
+                logger.info("✅ users table created")
+            else:
+                logger.info("📋 users table already exists")
             
-            # Create trades table
-            logger.info("📦 Creating trades table...")
-            await conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS trades (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER REFERENCES users(id),
-                    asset VARCHAR(50) NOT NULL,
-                    amount DECIMAL(10,2) NOT NULL,
-                    direction VARCHAR(10) NOT NULL,
-                    status VARCHAR(20) DEFAULT 'pending',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    closed_at TIMESTAMP
-                )
-            """))
+            # Create monitoring_accounts table if not exists
+            if not await table_exists(conn, 'monitoring_accounts'):
+                logger.info("📦 Creating monitoring_accounts table...")
+                await conn.execute(text("""
+                    CREATE TABLE monitoring_accounts (
+                        id SERIAL PRIMARY KEY,
+                        ssid VARCHAR(255) NOT NULL,
+                        account_type VARCHAR(50) NOT NULL,
+                        is_active BOOLEAN DEFAULT TRUE,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """))
+                logger.info("✅ monitoring_accounts table created")
+            else:
+                logger.info("📋 monitoring_accounts table already exists")
             
-            # Create indicators table
-            logger.info("📦 Creating indicators table...")
-            await conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS indicators (
-                    id SERIAL PRIMARY KEY,
-                    name VARCHAR(100) UNIQUE NOT NULL,
-                    type VARCHAR(50) NOT NULL,
-                    description TEXT,
-                    parameters JSONB DEFAULT '{}',
-                    is_active BOOLEAN DEFAULT TRUE,
-                    is_default BOOLEAN DEFAULT FALSE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """))
+            # Create trades table if not exists
+            if not await table_exists(conn, 'trades'):
+                logger.info("📦 Creating trades table...")
+                await conn.execute(text("""
+                    CREATE TABLE trades (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER REFERENCES users(id),
+                        asset VARCHAR(50) NOT NULL,
+                        amount DECIMAL(10,2) NOT NULL,
+                        direction VARCHAR(10) NOT NULL,
+                        status VARCHAR(20) DEFAULT 'pending',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        closed_at TIMESTAMP
+                    )
+                """))
+                logger.info("✅ trades table created")
+            else:
+                logger.info("📋 trades table already exists")
             
-            # Create strategy_indicators table
-            logger.info("📦 Creating strategy_indicators table...")
-            await conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS strategy_indicators (
-                    id SERIAL PRIMARY KEY,
-                    strategy_id INTEGER REFERENCES strategies(id) ON DELETE CASCADE,
-                    indicator_id INTEGER REFERENCES indicators(id) ON DELETE CASCADE,
-                    parameters JSONB DEFAULT '{}',
-                    weight FLOAT DEFAULT 1.0,
-                    is_active BOOLEAN DEFAULT TRUE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """))
+            # Create indicators table if not exists
+            if not await table_exists(conn, 'indicators'):
+                logger.info("📦 Creating indicators table...")
+                await conn.execute(text("""
+                    CREATE TABLE indicators (
+                        id SERIAL PRIMARY KEY,
+                        name VARCHAR(100) UNIQUE NOT NULL,
+                        type VARCHAR(50) NOT NULL,
+                        description TEXT,
+                        parameters JSONB DEFAULT '{}',
+                        is_active BOOLEAN DEFAULT TRUE,
+                        is_default BOOLEAN DEFAULT FALSE,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """))
+                logger.info("✅ indicators table created")
+            else:
+                logger.info("📋 indicators table already exists")
             
-            logger.info("✅ Tables created successfully")
+            # Create strategies table if not exists (needed for FK)
+            if not await table_exists(conn, 'strategies'):
+                logger.info("📦 Creating strategies table...")
+                await conn.execute(text("""
+                    CREATE TABLE strategies (
+                        id SERIAL PRIMARY KEY,
+                        name VARCHAR(100) UNIQUE NOT NULL,
+                        description TEXT,
+                        is_active BOOLEAN DEFAULT TRUE,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """))
+                logger.info("✅ strategies table created")
+            else:
+                logger.info("📋 strategies table already exists")
+            
+            # Create strategy_indicators table if not exists
+            if not await table_exists(conn, 'strategy_indicators'):
+                logger.info("📦 Creating strategy_indicators table...")
+                await conn.execute(text("""
+                    CREATE TABLE strategy_indicators (
+                        id SERIAL PRIMARY KEY,
+                        strategy_id INTEGER REFERENCES strategies(id) ON DELETE CASCADE,
+                        indicator_id INTEGER REFERENCES indicators(id) ON DELETE CASCADE,
+                        parameters JSONB DEFAULT '{}',
+                        weight FLOAT DEFAULT 1.0,
+                        is_active BOOLEAN DEFAULT TRUE,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """))
+                logger.info("✅ strategy_indicators table created")
+            else:
+                logger.info("📋 strategy_indicators table already exists")
+            
             await conn.commit()
+            logger.info("✅ All tables created/verified successfully")
         
         # Seed initial data
         logger.info("🌱 Starting seed process...")
