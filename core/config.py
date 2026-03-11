@@ -31,12 +31,19 @@ def get_database_url():
     
     # Auto-select based on environment
     if env == 'production':
-        # Try production URLs in order of preference
-        prod_url = os.getenv('DB_PROD_URL') or os.getenv('DATABASE_URL_PROD') or os.getenv('DATABASE_PUBLIC_URL')
+        # Railway provides DATABASE_URL or DATABASE_PUBLIC_URL automatically
+        # Priority: DATABASE_URL (private) > DATABASE_PUBLIC_URL > DB_PROD_URL (fallback)
+        prod_url = (
+            os.getenv('DATABASE_URL') or 
+            os.getenv('DATABASE_PUBLIC_URL') or 
+            os.getenv('DB_PROD_URL') or 
+            os.getenv('DATABASE_URL_PROD')
+        )
         if prod_url:
             print(f"[CONFIG] Using PRODUCTION database (Railway)")
+            print(f"[CONFIG] DB Source: {'DATABASE_URL' if os.getenv('DATABASE_URL') else 'DATABASE_PUBLIC_URL' if os.getenv('DATABASE_PUBLIC_URL') else 'DB_PROD_URL'}")
             return prod_url
-        raise ValueError("ENVIRONMENT=production but DB_PROD_URL not set!")
+        raise ValueError("ENVIRONMENT=production but no database URL found! Check DATABASE_URL or DATABASE_PUBLIC_URL")
     else:
         # Development - check for DATABASE_URL_DEV first (backward compat)
         dev_url = os.getenv('DATABASE_URL_DEV') or os.getenv('DATABASE_URL_LOCAL')
