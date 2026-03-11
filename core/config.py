@@ -31,19 +31,20 @@ def get_database_url():
     
     # Auto-select based on environment
     if env == 'production':
-        # Railway provides DATABASE_URL or DATABASE_PUBLIC_URL automatically
-        # Priority: DATABASE_URL (private) > DATABASE_PUBLIC_URL > DB_PROD_URL (fallback)
+        # Railway provides DATABASE_URL (private/internal) or DATABASE_PUBLIC_URL (proxy)
+        # For external connections, DATABASE_PUBLIC_URL is needed
+        # Priority: DATABASE_PUBLIC_URL > DATABASE_URL > DB_PROD_URL
         prod_url = (
-            os.getenv('DATABASE_URL') or 
-            os.getenv('DATABASE_PUBLIC_URL') or 
-            os.getenv('DB_PROD_URL') or 
+            os.getenv('DATABASE_PUBLIC_URL') or  # Railway public proxy (works from anywhere)
+            os.getenv('DATABASE_URL') or          # Railway private (only works within Railway network)
+            os.getenv('DB_PROD_URL') or           # Manual fallback
             os.getenv('DATABASE_URL_PROD')
         )
         if prod_url:
-            print(f"[CONFIG] Using PRODUCTION database (Railway)")
-            print(f"[CONFIG] DB Source: {'DATABASE_URL' if os.getenv('DATABASE_URL') else 'DATABASE_PUBLIC_URL' if os.getenv('DATABASE_PUBLIC_URL') else 'DB_PROD_URL'}")
+            source = 'DATABASE_PUBLIC_URL' if os.getenv('DATABASE_PUBLIC_URL') else 'DATABASE_URL' if os.getenv('DATABASE_URL') else 'DB_PROD_URL'
+            print(f"[CONFIG] Using PRODUCTION database (Railway via {source})")
             return prod_url
-        raise ValueError("ENVIRONMENT=production but no database URL found! Check DATABASE_URL or DATABASE_PUBLIC_URL")
+        raise ValueError("ENVIRONMENT=production but no database URL found! Set DATABASE_PUBLIC_URL or DATABASE_URL")
     else:
         # Development - check for DATABASE_URL_DEV first (backward compat)
         dev_url = os.getenv('DATABASE_URL_DEV') or os.getenv('DATABASE_URL_LOCAL')
