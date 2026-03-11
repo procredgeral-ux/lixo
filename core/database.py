@@ -95,7 +95,13 @@ try:
             max_overflow=10
         )
     else:
-        logger.info("[DB] Using production pool settings")
+        logger.info("[DB] Using production pool settings (Railway)")
+        # Railway uses self-signed certificates, disable verification
+        import ssl
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
         engine = create_async_engine(
             database_url,
             echo=settings.DB_ECHO,
@@ -105,7 +111,7 @@ try:
             pool_recycle=300,
             pool_timeout=30,
             connect_args={
-                'ssl': use_ssl,
+                'ssl': ssl_context,
                 'server_settings': {'application_name': 'tunestrade_app'}
             }
         )
