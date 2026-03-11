@@ -72,6 +72,36 @@ async def setup_database():
                 )
             """))
             
+            # Create indicators table
+            logger.info("📦 Creating indicators table...")
+            await conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS indicators (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(100) UNIQUE NOT NULL,
+                    type VARCHAR(50) NOT NULL,
+                    description TEXT,
+                    parameters JSONB DEFAULT '{}',
+                    is_active BOOLEAN DEFAULT TRUE,
+                    is_default BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            
+            # Create strategy_indicators table
+            logger.info("📦 Creating strategy_indicators table...")
+            await conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS strategy_indicators (
+                    id SERIAL PRIMARY KEY,
+                    strategy_id INTEGER REFERENCES strategies(id) ON DELETE CASCADE,
+                    indicator_id INTEGER REFERENCES indicators(id) ON DELETE CASCADE,
+                    parameters JSONB DEFAULT '{}',
+                    weight FLOAT DEFAULT 1.0,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            
             logger.info("✅ Tables created successfully")
         
         # Seed initial data
@@ -116,8 +146,29 @@ async def setup_database():
             else:
                 logger.info(f"📡 {count} monitoring accounts already exist")
             
-            await session.commit()
-            logger.info("✅ Data seeded successfully")
+            # Seed default indicators
+            result = await session.execute(text("SELECT COUNT(*) FROM indicators WHERE is_default = TRUE"))
+            ind_count = result.scalar()
+            
+            if ind_count == 0:
+                logger.info("📊 Seeding default indicators...")
+                default_indicators = [
+                    ('RSI', 'oscillator', 'Relative Strength Index', {'period': 14, 'overbought': 70, 'oversold': 30}, True),
+                    ('MACD', 'trend', 'Moving Average Convergence Divergence', {'fast': 12, 'slow': 26, 'signal': 9}, True),
+                    ('Bollinger Bands', 'volatility', 'Bollinger Bands', {'period': 20, 'std_dev': 2}, True),
+                    ('Moving Average', 'trend', 'Simple Moving Average', {'period': 20}, True),
+                    ('Stochastic', 'oscillator', 'Stochastic Oscillator', {'k_period': 14, 'd_period': 3}, True),
+                    ('ATR', 'volatility', 'Average True Range', {'period': 14}, True),
+                    ('ADX', 'trend', 'Average Directional Index', {'period': 14}, True),
+                ]
+                for name, type_, desc, params, is_def in default_indicators:
+                    await session.execute(text("""
+                        INSERT INTO indicators (name, type, description, parameters, is_active, is_default)
+                        VALUES (:name, :type, :desc, :params, TRUE, :is_def)
+                    """), {'name': name, 'type': type_, 'desc': desc, 'params': str(params), 'is_def': is_def})
+                logger.info(f"✅ {len(default_indicators)} default indicators created")
+            else:
+                logger.info(f"📊 {ind_count} indicators already exist")
         
         logger.info("🎉 Railway production database setup complete!")
         logger.info("📝 You can now login with: admin / admin123")
