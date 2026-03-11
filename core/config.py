@@ -239,11 +239,18 @@ class Settings(BaseSettings):
     LOG_RETENTION: str = "7 days"
     LOG_FORMAT: str = "{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} | {message}"
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        case_sensitive=True,
-        extra="ignore"
-    )
+    # Conditionally load .env only in development
+    def __init__(self, **kwargs):
+        # Check environment before calling parent init
+        env = os.getenv('ENVIRONMENT', 'development').lower()
+        if env == 'production':
+            # In production, don't load .env - use Railway vars
+            self.model_config = SettingsConfigDict(
+                env_file=None,  # Don't load .env
+                case_sensitive=True,
+                extra="ignore"
+            )
+        super().__init__(**kwargs)
 
     @field_validator('SECRET_KEY')
     @classmethod
