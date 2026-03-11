@@ -5,12 +5,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator, model_validator
 from functools import lru_cache
 
-# Load .env file explicitly
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass  # python-dotenv not installed, pydantic will handle it
+# Load .env file explicitly ONLY for development
+# In production (Railway), variables are provided by the platform
+if os.getenv('ENVIRONMENT', 'development').lower() != 'production':
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+        print("[CONFIG] Loaded .env file for development")
+    except ImportError:
+        pass  # python-dotenv not installed
+else:
+    print("[CONFIG] Running in production - using Railway environment variables")
 
 
 def get_database_url():
