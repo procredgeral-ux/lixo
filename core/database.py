@@ -96,25 +96,46 @@ try:
         )
     else:
         logger.info("[DB] Using production pool settings (Railway)")
-        # Railway uses self-signed certificates, disable verification
-        import ssl
-        ssl_context = ssl.create_default_context()
-        ssl_context.check_hostname = False
-        ssl_context.verify_mode = ssl.CERT_NONE
         
-        engine = create_async_engine(
-            database_url,
-            echo=settings.DB_ECHO,
-            pool_size=5,
-            max_overflow=10,
-            pool_pre_ping=True,
-            pool_recycle=300,
-            pool_timeout=30,
-            connect_args={
-                'ssl': ssl_context,
-                'server_settings': {'application_name': 'tunestrade_app'}
-            }
-        )
+        # Detect if using Railway internal network (private domain)
+        is_railway_internal = 'railway.internal' in database_url or 'postgres-' in database_url
+        
+        if is_railway_internal:
+            # Internal Railway network - no SSL needed
+            logger.info("[DB] Railway internal network detected - SSL disabled")
+            engine = create_async_engine(
+                database_url,
+                echo=settings.DB_ECHO,
+                pool_size=5,
+                max_overflow=10,
+                pool_pre_ping=True,
+                pool_recycle=300,
+                pool_timeout=30,
+                connect_args={
+                    'server_settings': {'application_name': 'tunestrade_app'}
+                }
+            )
+        else:
+            # External connection (public proxy) - use SSL with disabled verification
+            logger.info("[DB] External connection - SSL enabled with cert verification disabled")
+            import ssl
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+            
+            engine = create_async_engine(
+                database_url,
+                echo=settings.DB_ECHO,
+                pool_size=5,
+                max_overflow=10,
+                pool_pre_ping=True,
+                pool_recycle=300,
+                pool_timeout=30,
+                connect_args={
+                    'ssl': ssl_context,
+                    'server_settings': {'application_name': 'tunestrade_app'}
+                }
+            )
     logger.success("[DB] Engine PostgreSQL criada")
 except Exception as e:
     logger.error(f"[DB] Erro ao criar engine: {e}")
