@@ -36,6 +36,15 @@ async def setup_database():
     
     try:
         async with engine.begin() as conn:
+            # Drop existing tables to ensure fresh structure
+            logger.info("🗑️ Dropping existing tables if any...")
+            await conn.execute(text("DROP TABLE IF EXISTS strategy_indicators CASCADE"))
+            await conn.execute(text("DROP TABLE IF EXISTS indicators CASCADE"))
+            await conn.execute(text("DROP TABLE IF EXISTS trades CASCADE"))
+            await conn.execute(text("DROP TABLE IF EXISTS monitoring_accounts CASCADE"))
+            await conn.execute(text("DROP TABLE IF EXISTS users CASCADE"))
+            logger.info("✅ Old tables dropped")
+            
             # Create users table
             logger.info("📦 Creating users table...")
             await conn.execute(text("""
