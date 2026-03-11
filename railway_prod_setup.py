@@ -26,7 +26,13 @@ async def setup_database():
     logger.info("🚀 Setting up Railway production database...")
     logger.info(f"📍 Using database: {DATABASE_URL.split('@')[0]}@...")
     
-    engine = create_async_engine(DATABASE_URL, echo=False)
+    # Ensure we're using asyncpg driver
+    db_url = DATABASE_URL
+    if db_url.startswith('postgresql://') and not db_url.startswith('postgresql+asyncpg://'):
+        db_url = db_url.replace('postgresql://', 'postgresql+asyncpg://')
+        logger.info("🔄 Converted URL to use asyncpg driver")
+    
+    engine = create_async_engine(db_url, echo=False)
     
     try:
         async with engine.begin() as conn:
@@ -103,8 +109,10 @@ async def setup_database():
             """))
             
             logger.info("✅ Tables created successfully")
+            await conn.commit()
         
         # Seed initial data
+        logger.info("🌱 Starting seed process...")
         async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
         async with async_session() as session:
             logger.info("🌱 Seeding initial data...")
@@ -124,6 +132,9 @@ async def setup_database():
                 logger.info("👤 Admin user created (username: admin, password: admin123)")
             else:
                 logger.info("👤 Admin user already exists")
+            
+            await session.commit()
+            logger.info("✅ Session committed after admin")
             
             # Check if monitoring accounts exist
             result = await session.execute(text("SELECT COUNT(*) FROM monitoring_accounts WHERE is_active = TRUE"))
@@ -145,6 +156,9 @@ async def setup_database():
                 logger.info("📡 Sample ATIVOS monitoring account created")
             else:
                 logger.info(f"📡 {count} monitoring accounts already exist")
+            
+            await session.commit()
+            logger.info("✅ Session committed after monitoring accounts")
             
             # Seed default indicators
             result = await session.execute(text("SELECT COUNT(*) FROM indicators WHERE is_default = TRUE"))
@@ -169,6 +183,9 @@ async def setup_database():
                 logger.info(f"✅ {len(default_indicators)} default indicators created")
             else:
                 logger.info(f"📊 {ind_count} indicators already exist")
+            
+            await session.commit()
+            logger.info("✅ Session committed after indicators")
         
         logger.info("🎉 Railway production database setup complete!")
         logger.info("📝 You can now login with: admin / admin123")
