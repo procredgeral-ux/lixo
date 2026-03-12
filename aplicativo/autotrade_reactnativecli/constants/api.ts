@@ -4,13 +4,27 @@ const SERVER_URL_KEY = '@autotrade:serverUrl';
 
 // URL padrão embutido no código
 const DEFAULT_BASE_URL = '' as string;
+const DEFAULT_PORT = 8000;
+
+// Função para garantir que a URL tenha porta
+function ensurePort(url: string): string {
+  if (!url) return url;
+  url = url.trim().replace(/\/$/, '');
+  // Verificar se já tem porta
+  const hasPort = /:\d+$/.test(url);
+  if (!hasPort && !url.includes('/')) {
+    // Adicionar porta padrão se não tiver
+    return `${url}:${DEFAULT_PORT}`;
+  }
+  return url;
+}
 
 // Função assíncrona para obter URL efetivo
 export async function getEffectiveBaseUrl(): Promise<string> {
   try {
     const savedUrl = await AsyncStorage.getItem(SERVER_URL_KEY);
     if (savedUrl && savedUrl.trim() !== '') {
-      return savedUrl.trim().replace(/\/$/, '');
+      return ensurePort(savedUrl.trim());
     }
   } catch (error) {
     console.error('Erro ao obter URL do servidor:', error);
@@ -25,16 +39,26 @@ export function getDefaultBaseUrl(): string {
 
 // API Configuration
 export const API_CONFIG = {
-  // Backend URL - Railway Production
-  BASE_URL: 'https://lixo-production.up.railway.app' as string,
+  // Backend URL - Deixe vazio para detecção automática (desenvolvimento)
+  // Produção: https://lixo-production.up.railway.app
+  BASE_URL: '' as string,
   API_PREFIX: '/api/v1',
 
   // URLs locais para detecção automática (fallback)
   LOCAL_URLS: [
-    'http://localhost:8000',
-    'http://10.0.2.2:8000', // Android emulator
-    'http://192.168.1.100:8000', // Rede local
+    'http://10.234.170.209:8000',
   ] as string[],
+
+  // Ngrok discovery (Google Sheets)
+  // OBS: Para leitura pública funcionar, a planilha deve estar publicada/compartilhada.
+  NGROK_SHEET_ID: '1Jd2Hyriq_L5g7G4jaT4bFIvkwi56JoBXuScM-BOoIbo',
+  NGROK_SHEET_PUBLIC_URL:
+    'https://docs.google.com/spreadsheets/d/1Jd2Hyriq_L5g7G4jaT4bFIvkwi56JoBXuScM-BOoIbo/export?format=tsv',
+  // Opcional: URLs locais para buscar /connection/ngrok-url quando a detecção local estiver habilitada
+  NGROK_DISCOVERY_URLS: [] as string[],
+
+  // Simular manutenção para testes (set to true para ativar modo manutenção manual)
+  SIMULATE_MAINTENANCE: false,
 
   // Endpoints API
   ENDPOINTS: {
