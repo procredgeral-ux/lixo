@@ -4,8 +4,8 @@ from sqlalchemy import select, func, text, delete
 from sqlalchemy.orm import selectinload
 from loguru import logger
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
-from pydantic import BaseModel
+from typing import List, Dict, Any, Literal
+from pydantic import BaseModel, Field
 from zoneinfo import ZoneInfo
 import psutil
 import time
@@ -27,6 +27,19 @@ from services.unified_metrics import get_unified_metrics
 from api.cache import cache, cached, invalidate_cache_pattern
 
 router = APIRouter(tags=["admin"])
+
+# Cache de disponibilidade de telas (screen availability)
+_screen_availability_cache = {
+    "screens": {
+        "dashboard": True,
+        "estrategias": True,
+        "sinais": True,
+        "historico": True,
+        "configuracoes": True,
+    },
+    "updated_at": None,
+    "updated_by": None
+}
 
 # Instância unificada de métricas (mesma lógica do dashboard.log)
 metrics = get_unified_metrics()
@@ -1556,12 +1569,25 @@ async def restart_application(
         import asyncio
         import os
         import signal
+        import sys
         
         async def delayed_restart():
-            await asyncio.sleep(2)  # Aguardar 2 segundos para enviar resposta
-            logger.critical("[ADMIN RESTART] Executando reinicialização...")
-            # Enviar SIGTERM para iniciar graceful shutdown
-            os.kill(os.getpid(), signal.SIGTERM)
+            """Função simples de reinício"""
+            try:
+                logger.info("[ADMIN RESTART] Aguardando 2 segundos antes de reiniciar...")
+                await asyncio.sleep(2)
+                logger.critical("[ADMIN RESTART] Reiniciando aplicação...")
+                
+                # Método simples e confiável
+                if sys.platform == "win32":
+                    # Windows: usar taskkill
+                    os.system(f"taskkill /F /PID {os.getpid()}")
+                else:
+                    # Unix/Linux: usar kill
+                    os.system(f"kill -TERM {os.getpid()}")
+                    
+            except Exception as e:
+                logger.error(f"[ADMIN RESTART] Erro ao reiniciar: {e}")
         
         # Iniciar reinício em background
         asyncio.create_task(delayed_restart())
@@ -1574,3 +1600,188 @@ async def restart_application(
             status_code=500,
             detail=f"Erro ao reiniciar aplicação: {str(e)}"
         )
+
+
+# ============================================
+# SCREEN AVAILABILITY - Gerenciamento de Telas
+# ============================================
+
+class ScreenAvailabilityState(BaseModel):
+    """Estado de disponibilidade de uma tela"""
+    dashboard: bool = Field(default=True, description="Tela Dashboard habilitada")
+    estrategias: bool = Field(default=True, description="Tela Estratégias habilitada")
+    sinais: bool = Field(default=True, description="Tela Sinais habilitada")
+    historico: bool = Field(default=True, description="Tela Histórico habilitada")
+    configuracoes: bool = Field(default=True, description="Tela Configurações habilitada")
+
+
+class ScreenAvailabilityResponse(BaseModel):
+    """Response com estado de disponibilidade das telas"""
+    screens: ScreenAvailabilityState
+    updated_at: str
+    updated_by: str | None = None
+
+
+class ScreenAvailabilityUpdateRequest(BaseModel):
+    """Request para atualizar disponibilidade de uma tela"""
+    screen_id: Literal["dashboard", "estrategias", "sinais", "historico", "configuracoes"] = Field(
+        ..., description="ID da tela"
+    )
+    enabled: bool = Field(..., description="True para habilitar, False para desabilitar")
+
+
+class ScreenAvailabilityUpdateResponse(BaseModel):
+    """Response da atualização de disponibilidade"""
+    success: bool
+    screen_id: str
+    enabled: bool
+    message: str
+
+
+# Cache em memória para screen availability (persiste até reiniciar)
+_screen_availability_cache: Dict[str, Any] = {
+    "screens": {
+        "dashboard": True,
+        "estrategias": True,
+        "sinais": True,
+        "historico": True,
+        "configuracoes": True,
+    },
+    "updated_at": datetime.now(BRASILIA_TZ).isoformat(),
+    "updated_by": None,
+}
+
+
+@router.get("/screens/availability", response_model=ScreenAvailabilityResponse)
+async def get_screen_availability(
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    Obter estado de disponibilidade de todas as telas.
+    
+    Retorna quais telas estão habilitadas ou desabilitadas para os usuários.
+    """
+    try:
+        global _screen_availability_cache
+        
+        logger.info(f"[ADMIN SCREENS] Estado consultado por {current_user.email}")
+        
+        return ScreenAvailabilityResponse(
+            screens=ScreenAvailabilityState(**_screen_availability_cache["screens"]),
+            updated_at=_screen_availability_cache["updated_at"],
+            updated_by=_screen_availability_cache["updated_by"]
+        )
+        
+    except Exception as e:
+        logger.error(f"[ADMIN SCREENS] Erro ao obter estado: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao obter estado das telas: {str(e)}"
+        )
+
+
+@router.post("/screens/availability/toggle", response_model=ScreenAvailabilityUpdateResponse)
+async def toggle_screen_availability(
+    request: ScreenAvailabilityUpdateRequest,
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    Alternar disponibilidade de uma tela específica.
+    
+    Quando desabilitada, a tela ficará cinza no app e mostrará
+    mensagem de manutenção ao tentar acessar.
+    """
+    try:
+        global _screen_availability_cache
+        
+        # Atualizar estado
+        _screen_availability_cache["screens"][request.screen_id] = request.enabled
+        _screen_availability_cache["updated_at"] = datetime.now(BRASILIA_TZ).isoformat()
+        _screen_availability_cache["updated_by"] = current_user.email
+        
+        action = "HABILITADA" if request.enabled else "DESABILITADA"
+        logger.warning(
+            f"[ADMIN SCREENS] Tela {request.screen_id} {action} por {current_user.email}"
+        )
+        
+        return ScreenAvailabilityUpdateResponse(
+            success=True,
+            screen_id=request.screen_id,
+            enabled=request.enabled,
+            message=f"Tela {request.screen_id} {action.lower()} com sucesso"
+        )
+        
+    except Exception as e:
+        logger.error(f"[ADMIN SCREENS] Erro ao alternar tela: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao alternar disponibilidade da tela: {str(e)}"
+        )
+
+
+@router.post("/screens/availability/update-all")
+async def update_all_screen_availability(
+    screens: ScreenAvailabilityState,
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    Atualizar disponibilidade de todas as telas de uma vez.
+    
+    Útil para sincronizar estado completo do frontend.
+    """
+    try:
+        global _screen_availability_cache
+        
+        # Atualizar todas as telas
+        _screen_availability_cache["screens"] = screens.model_dump()
+        _screen_availability_cache["updated_at"] = datetime.now(BRASILIA_TZ).isoformat()
+        _screen_availability_cache["updated_by"] = current_user.email
+        
+        logger.warning(
+            f"[ADMIN SCREENS] Todas as telas atualizadas por {current_user.email}: {screens.model_dump()}"
+        )
+        
+        return {
+            "success": True,
+            "screens": screens.model_dump(),
+            "message": "Estado de todas as telas atualizado com sucesso"
+        }
+        
+    except Exception as e:
+        logger.error(f"[ADMIN SCREENS] Erro ao atualizar telas: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao atualizar disponibilidade das telas: {str(e)}"
+        )
+
+
+@router.get("/screens/availability/public")
+async def get_public_screen_availability():
+    """
+    Endpoint público para verificar disponibilidade das telas.
+    
+    Usado pelo app mobile para saber quais telas estão disponíveis.
+    Não requer autenticação.
+    """
+    try:
+        global _screen_availability_cache
+        
+        return {
+            "screens": _screen_availability_cache["screens"],
+            "updated_at": _screen_availability_cache["updated_at"]
+        }
+        
+    except Exception as e:
+        logger.error(f"[ADMIN SCREENS] Erro no endpoint público: {e}")
+        # Em caso de erro, retornar todas habilitadas (fail-safe)
+        return {
+            "screens": {
+                "dashboard": True,
+                "estrategias": True,
+                "sinais": True,
+                "historico": True,
+                "configuracoes": True,
+            },
+            "updated_at": datetime.now(BRASILIA_TZ).isoformat(),
+            "error": str(e)
+        }
