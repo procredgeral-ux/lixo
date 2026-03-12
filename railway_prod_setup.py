@@ -32,6 +32,18 @@ async def table_exists(conn, table_name: str) -> bool:
     """), {"table_name": table_name})
     return result.scalar()
 
+async def column_exists(conn, table_name: str, column_name: str) -> bool:
+    """Check if a column exists in a table"""
+    result = await conn.execute(text("""
+        SELECT EXISTS (
+            SELECT FROM information_schema.columns 
+            WHERE table_schema = 'public' 
+            AND table_name = :table_name
+            AND column_name = :column_name
+        )
+    """), {"table_name": table_name, "column_name": column_name})
+    return result.scalar()
+
 async def setup_database():
     """Create tables and seed initial data"""
     logger.info("🚀 Setting up Railway production database...")
@@ -57,8 +69,12 @@ async def setup_database():
             if existing_tables:
                 logger.info(f"📋 Existing tables found: {', '.join(existing_tables)}")
             
-            # Create users table if not exists
-            if not await table_exists(conn, 'users'):
+            # Create users table if not exists (or recreate if missing columns)
+            users_ok = await table_exists(conn, 'users') and await column_exists(conn, 'users', 'username')
+            if not users_ok:
+                if await table_exists(conn, 'users'):
+                    logger.warning("⚠️ users table missing username column, dropping...")
+                    await conn.execute(text("DROP TABLE users CASCADE"))
                 logger.info("📦 Creating users table...")
                 await conn.execute(text("""
                     CREATE TABLE users (
@@ -74,7 +90,7 @@ async def setup_database():
                 """))
                 logger.info("✅ users table created")
             else:
-                logger.info("📋 users table already exists")
+                logger.info("📋 users table already exists with correct schema")
             
             # Create monitoring_accounts table if not exists
             if not await table_exists(conn, 'monitoring_accounts'):
