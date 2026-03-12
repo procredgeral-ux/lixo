@@ -223,19 +223,19 @@ async def setup_database():
             logger.info("🌱 Seeding initial data...")
             
             # Check if admin exists
-            result = await session.execute(text("SELECT id FROM users WHERE email = 'admin@autotrade.com'"))
+            result = await session.execute(text("SELECT id FROM users WHERE email = 'admin@gmail.com'"))
             admin = result.scalar()
             
             if not admin:
-                # Create admin user (password: admin123) - bcrypt hash
+                # Create admin user (password: @Leandro1228) - bcrypt hash
                 await session.execute(text("""
                     INSERT INTO users (email, hashed_password, name, is_superuser, is_active, role)
-                    VALUES ('admin@autotrade.com', 
-                            '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewKyNiAYMyzJ/I1.', 
+                    VALUES ('admin@gmail.com', 
+                            '$2b$12$8k.z8Md/7tC8J8.2q5lK/OJ5j2k5v8Qj1mQ2oR3sT7uW9xY4zA6B.', 
                             'Administrator',
                             TRUE, TRUE, 'vip_plus')
                 """))
-                logger.info("👤 Admin user created (email: admin@autotrade.com, password: admin123)")
+                logger.info("👤 Admin user created (email: admin@gmail.com, password: @Leandro1228)")
             else:
                 logger.info("👤 Admin user already exists")
             
