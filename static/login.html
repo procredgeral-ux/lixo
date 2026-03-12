@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoTrade - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo h1 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .logo p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .form-container {
+            display: none;
+        }
+        
+        .form-container.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .links {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .links a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .links a:hover {
+            text-decoration: underline;
+        }
+        
+        .api-info {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .api-info code {
+            background: #e9ecef;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🚀 AutoTrade</h1>
+            <p>Sistema Profissional de Trading Automatizado</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('login')">Login</div>
+            <div class="tab" onclick="switchTab('register')">Registro</div>
+        </div>
+        
+        <div id="login-form" class="form-container active">
+            <div id="login-error" class="error" style="display: none;"></div>
+            <div id="login-success" class="success" style="display: none;"></div>
+            
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required placeholder="seu@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="login-password">Senha</label>
+                    <input type="password" id="login-password" required placeholder="••••••••">
+                </div>
+                
+                <button type="submit" class="btn" id="login-btn">Entrar</button>
+            </form>
+            
+            <div class="links">
+                <a href="#" onclick="showAdminLogin()">Acesso Admin</a>
+            </div>
+        </div>
+        
+        <div id="register-form" class="form-container">
+            <div id="register-error" class="error" style="display: none;"></div>
+            <div id="register-success" class="success" style="display: none;"></div>
+            
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="register-name">Nome</label>
+                    <input type="text" id="register-name" required placeholder="Seu Nome">
+                </div>
+                
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+                    <input type="email" id="register-email" required placeholder="seu@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="register-password">Senha</label>
+                    <input type="password" id="register-password" required placeholder="••••••••" minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="register-confirm">Confirmar Senha</label>
+                    <input type="password" id="register-confirm" required placeholder="••••••••" minlength="6">
+                </div>
+                
+                <button type="submit" class="btn" id="register-btn">Registrar</button>
+            </form>
+        </div>
+        
+        <div class="api-info">
+            <strong>API Endpoints:</strong><br>
+            • Login: <code>POST /api/v1/auth/login</code><br>
+            • Register: <code>POST /api/v1/auth/register</code><br>
+            • Docs: <a href="/docs" target="_blank">/docs</a> | <a href="/redoc" target="_blank">/redoc</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        
+        function switchTab(tab) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab:nth-child(${tab === 'login' ? 1 : 2})`).classList.add('active');
+            
+            // Update forms
+            document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+            document.getElementById(`${tab}-form`).classList.add('active');
+            
+            // Clear messages
+            hideAllMessages();
+        }
+        
+        function hideAllMessages() {
+            document.querySelectorAll('.error, .success').forEach(el => el.style.display = 'none');
+        }
+        
+        function showError(formId, message) {
+            const errorEl = document.getElementById(`${formId}-error`);
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+        
+        function showSuccess(formId, message) {
+            const successEl = document.getElementById(`${formId}-success`);
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+        }
+        
+        async function handleLogin(event) {
+            event.preventDefault();
+            hideAllMessages();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('login-btn');
+            
+            btn.disabled = true;
+            btn.textContent = 'Entrando...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                    showSuccess('login', 'Login realizado com sucesso!');
+                    setTimeout(() => {
+                        window.location.href = '/docs';
+                    }, 1000);
+                } else {
+                    showError('login', data.detail || 'Erro ao fazer login');
+                }
+            } catch (error) {
+                showError('login', 'Erro de conexão com o servidor');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
+            }
+        }
+        
+        async function handleRegister(event) {
+            event.preventDefault();
+            hideAllMessages();
+            
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirm = document.getElementById('register-confirm').value;
+            const btn = document.getElementById('register-btn');
+            
+            if (password !== confirm) {
+                showError('register', 'As senhas não coincidem');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Registrando...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('register', 'Registro realizado com sucesso! Faça login.');
+                    setTimeout(() => switchTab('login'), 2000);
+                } else {
+                    showError('register', data.detail || 'Erro ao registrar');
+                }
+            } catch (error) {
+                showError('register', 'Erro de conexão com o servidor');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Registrar';
+            }
+        }
+        
+        function showAdminLogin() {
+            document.getElementById('login-email').value = 'admin@autotrade.com';
+            document.getElementById('login-password').value = 'admin123';
+        }
+    </script>
+</body>
+</html>
