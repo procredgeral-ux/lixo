@@ -44,6 +44,22 @@ async def column_exists(conn, table_name: str, column_name: str) -> bool:
     """), {"table_name": table_name, "column_name": column_name})
     return result.scalar()
 
+async def column_is_serial(conn, table_name: str, column_name: str) -> bool:
+    """Check if a column is auto-increment (SERIAL)"""
+    result = await conn.execute(text("""
+        SELECT EXISTS (
+            SELECT 1 
+            FROM information_schema.columns c
+            JOIN information_schema.table_constraints tc ON c.table_name = tc.table_name
+            WHERE c.table_schema = 'public' 
+            AND c.table_name = :table_name
+            AND c.column_name = :column_name
+            AND c.is_nullable = 'NO'
+            AND c.column_default LIKE 'nextval%'
+        )
+    """), {"table_name": table_name, "column_name": column_name})
+    return result.scalar()
+
 async def setup_database():
     """Create tables and seed initial data"""
     logger.info("🚀 Setting up Railway production database...")
@@ -92,11 +108,11 @@ async def setup_database():
             else:
                 logger.info("📋 users table already exists with correct schema")
             
-            # Create monitoring_accounts table if not exists (or recreate if missing id column)
-            mon_acc_ok = await table_exists(conn, 'monitoring_accounts') and await column_exists(conn, 'monitoring_accounts', 'id')
+            # Create monitoring_accounts table if not exists (or recreate if id column is not SERIAL)
+            mon_acc_ok = await table_exists(conn, 'monitoring_accounts') and await column_is_serial(conn, 'monitoring_accounts', 'id')
             if not mon_acc_ok:
                 if await table_exists(conn, 'monitoring_accounts'):
-                    logger.warning("⚠️ monitoring_accounts table missing id column, dropping...")
+                    logger.warning("⚠️ monitoring_accounts table id column not auto-increment, dropping...")
                     await conn.execute(text("DROP TABLE monitoring_accounts CASCADE"))
                 logger.info("📦 Creating monitoring_accounts table...")
                 await conn.execute(text("""
