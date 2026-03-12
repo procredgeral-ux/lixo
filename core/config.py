@@ -57,8 +57,19 @@ def get_database_url():
             masked = prod_url.replace('://', '://***:***@').split('@')[0] + '@...' if '@' in prod_url else '***'
             print(f"[CONFIG] Using PRODUCTION database: {masked}")
             return prod_url
-            
-        raise ValueError("ENVIRONMENT=production but no Railway database variables found! Check POSTGRES_USER, POSTGRES_PASSWORD, RAILWAY_PRIVATE_DOMAIN, POSTGRES_DB")
+        
+        # Fallback: if no Railway variables, use development database (for local testing)
+        print("[CONFIG] WARNING: No Railway database variables found, falling back to development database")
+        dev_url = os.getenv('DATABASE_URL_DEV') or os.getenv('DATABASE_URL_LOCAL')
+        if dev_url:
+            return dev_url
+        # Build from DB_DEV_* vars
+        db_host = os.environ.get('DB_DEV_HOST', 'localhost')
+        db_port = os.environ.get('DB_DEV_PORT', '5432')
+        db_name = os.environ.get('DB_DEV_NAME', 'tunestrade')
+        db_user = os.environ.get('DB_DEV_USER', 'postgres')
+        db_password = os.environ.get('DB_DEV_PASSWORD', 'postgres')
+        return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
     else:
         # Development - check for DATABASE_URL_DEV first (backward compat)
         dev_url = os.getenv('DATABASE_URL_DEV') or os.getenv('DATABASE_URL_LOCAL')
