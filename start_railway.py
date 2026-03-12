@@ -43,7 +43,7 @@ def main():
         port=port,
         reload=False,  # Railway não usa reload
         access_log=False,  # Desabilitar access log no Railway
-        log_level="debug",  # Logs detalhados para debug
+        log_level="debug",  # Mostrar todos os logs no Railway
     )
 
 if __name__ == '__main__':
