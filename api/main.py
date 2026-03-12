@@ -2,8 +2,7 @@
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -359,11 +358,6 @@ app = FastAPI(
     redirect_slashes=False
 )
 
-# Mount static files
-static_dir = Path(__file__).parent.parent / "static"
-if static_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
-
 # Configure rate limiter
 app.state.limiter = limiter
 
@@ -454,29 +448,24 @@ async def health_check():
     )
 
 
+@app.get("/login")
+async def login_page_disabled():
+    """Disable web login page - mobile app only"""
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Web interface disabled. Use the mobile app."
+    )
+
+
 @app.get("/", tags=["Root"])
 async def root():
-    """Root endpoint - redirect to login"""
-    return HTMLResponse("""
-    <script>
-        window.location.href = '/login';
-    </script>
-    <p><a href="/login">Redirecting to login...</a></p>
-    """)
-
-
-@app.get("/login", response_class=HTMLResponse, tags=["Root"])
-async def login_page():
-    """Login page"""
-    login_file = Path(__file__).parent.parent / "static" / "login.html"
-    if login_file.exists():
-        with open(login_file, 'r', encoding='utf-8') as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse("""
-    <h1>Login Page Not Found</h1>
-    <p>Please check the static files configuration.</p>
-    <p><a href="/docs">Go to API Documentation</a></p>
-    """)
+    """Root endpoint"""
+    return {
+        "status": "ok",
+        "service": "autotrade-api",
+        "version": "1.0.0",
+        "message": "Mobile app only - web interface disabled"
+    }
 
 
 # ==================== ROUTERS ====================
