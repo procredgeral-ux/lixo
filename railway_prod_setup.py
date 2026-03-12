@@ -1,4 +1,4 @@
-"""Railway production database setup - Creates tables and seeds data"""
+"""Railway production database setup - Creates tables and seeds data v3"""
 import asyncio
 import os
 import sys
