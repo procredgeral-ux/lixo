@@ -15,5 +15,5 @@ restartPolicyMaxRetries = 3
 RAILWAY_ENVIRONMENT = "production"
 ENVIRONMENT = "production"
 DEBUG = "false"
-LOG_LEVEL = "INFO"
+LOG_LEVEL = "WARNING"
 REDIS_ENABLED = "true"
