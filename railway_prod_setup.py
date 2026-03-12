@@ -2,6 +2,7 @@
 import asyncio
 import os
 import sys
+import json
 
 # Ensure production environment
 os.environ['ENVIRONMENT'] = 'production'
@@ -273,7 +274,7 @@ async def setup_database():
                     await session.execute(text("""
                         INSERT INTO indicators (name, type, description, parameters, is_active, is_default)
                         VALUES (:name, :type, :desc, :params, TRUE, :is_def)
-                    """), {'name': name, 'type': type_, 'desc': desc, 'params': str(params), 'is_def': is_def})
+                    """), {'name': name, 'type': type_, 'desc': desc, 'params': json.dumps(params), 'is_def': is_def})
                 logger.info(f"✅ {len(default_indicators)} default indicators created")
             else:
                 logger.info(f"📊 {ind_count} indicators already exist")
