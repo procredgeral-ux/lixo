@@ -86,26 +86,32 @@ async def setup_database():
             if existing_tables:
                 logger.info(f"📋 Existing tables found: {', '.join(existing_tables)}")
             
-            # Create users table if not exists (or recreate if missing columns)
-            users_ok = await table_exists(conn, 'users') and await column_exists(conn, 'users', 'username')
+            # Create users table with correct schema matching the User model
+            users_ok = await table_exists(conn, 'users') and await column_exists(conn, 'users', 'hashed_password')
             if not users_ok:
                 if await table_exists(conn, 'users'):
-                    logger.warning("⚠️ users table missing username column, dropping...")
+                    logger.warning("⚠️ users table missing hashed_password column, dropping...")
                     await conn.execute(text("DROP TABLE users CASCADE"))
-                logger.info("📦 Creating users table...")
+                logger.info("📦 Creating users table with correct schema...")
                 await conn.execute(text("""
                     CREATE TABLE users (
-                        id SERIAL PRIMARY KEY,
-                        username VARCHAR(50) UNIQUE NOT NULL,
+                        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
                         email VARCHAR(255) UNIQUE NOT NULL,
-                        password_hash VARCHAR(255) NOT NULL,
+                        hashed_password VARCHAR(255) NOT NULL,
+                        name VARCHAR(255) NOT NULL,
+                        telegram_chat_id VARCHAR(255),
+                        telegram_username VARCHAR(255),
                         is_active BOOLEAN DEFAULT TRUE,
                         is_superuser BOOLEAN DEFAULT FALSE,
+                        role VARCHAR(50) DEFAULT 'free',
+                        vip_start_date TIMESTAMP,
+                        vip_end_date TIMESTAMP,
+                        maintenance_logout_at TIMESTAMP,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """))
-                logger.info("✅ users table created")
+                logger.info("✅ users table created with correct schema")
             else:
                 logger.info("📋 users table already exists with correct schema")
             
@@ -217,18 +223,19 @@ async def setup_database():
             logger.info("🌱 Seeding initial data...")
             
             # Check if admin exists
-            result = await session.execute(text("SELECT id FROM users WHERE username = 'admin'"))
+            result = await session.execute(text("SELECT id FROM users WHERE email = 'admin@autotrade.com'"))
             admin = result.scalar()
             
             if not admin:
                 # Create admin user (password: admin123) - bcrypt hash
                 await session.execute(text("""
-                    INSERT INTO users (username, email, password_hash, is_superuser, is_active)
-                    VALUES ('admin', 'admin@autotrade.com', 
+                    INSERT INTO users (email, hashed_password, name, is_superuser, is_active, role)
+                    VALUES ('admin@autotrade.com', 
                             '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewKyNiAYMyzJ/I1.', 
-                            TRUE, TRUE)
+                            'Administrator',
+                            TRUE, TRUE, 'vip_plus')
                 """))
-                logger.info("👤 Admin user created (username: admin, password: admin123)")
+                logger.info("👤 Admin user created (email: admin@autotrade.com, password: admin123)")
             else:
                 logger.info("👤 Admin user already exists")
             
