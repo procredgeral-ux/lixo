@@ -3,7 +3,7 @@
 # Executa: 1) init_database.py, 2) start_railway.py
 
 echo "🚀 Iniciando setup do banco de dados..."
-python init_database.py
+python railway_prod_setup.py
 
 if [ $? -eq 0 ]; then
     echo "✅ Banco configurado, iniciando servidor..."
