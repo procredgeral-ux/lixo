@@ -92,8 +92,12 @@ async def setup_database():
             else:
                 logger.info("📋 users table already exists with correct schema")
             
-            # Create monitoring_accounts table if not exists
-            if not await table_exists(conn, 'monitoring_accounts'):
+            # Create monitoring_accounts table if not exists (or recreate if missing id column)
+            mon_acc_ok = await table_exists(conn, 'monitoring_accounts') and await column_exists(conn, 'monitoring_accounts', 'id')
+            if not mon_acc_ok:
+                if await table_exists(conn, 'monitoring_accounts'):
+                    logger.warning("⚠️ monitoring_accounts table missing id column, dropping...")
+                    await conn.execute(text("DROP TABLE monitoring_accounts CASCADE"))
                 logger.info("📦 Creating monitoring_accounts table...")
                 await conn.execute(text("""
                     CREATE TABLE monitoring_accounts (
@@ -106,7 +110,7 @@ async def setup_database():
                 """))
                 logger.info("✅ monitoring_accounts table created")
             else:
-                logger.info("📋 monitoring_accounts table already exists")
+                logger.info("📋 monitoring_accounts table already exists with correct schema")
             
             # Create trades table if not exists
             if not await table_exists(conn, 'trades'):
