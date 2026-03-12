@@ -148,8 +148,12 @@ async def setup_database():
             else:
                 logger.info("📋 trades table already exists")
             
-            # Create indicators table if not exists
-            if not await table_exists(conn, 'indicators'):
+            # Create indicators table if not exists (or recreate if id column is not SERIAL)
+            indicators_ok = await table_exists(conn, 'indicators') and await column_is_serial(conn, 'indicators', 'id')
+            if not indicators_ok:
+                if await table_exists(conn, 'indicators'):
+                    logger.warning("⚠️ indicators table id column not auto-increment, dropping...")
+                    await conn.execute(text("DROP TABLE indicators CASCADE"))
                 logger.info("📦 Creating indicators table...")
                 await conn.execute(text("""
                     CREATE TABLE indicators (
@@ -166,7 +170,7 @@ async def setup_database():
                 """))
                 logger.info("✅ indicators table created")
             else:
-                logger.info("📋 indicators table already exists")
+                logger.info("📋 indicators table already exists with correct schema")
             
             # Create strategies table if not exists (needed for FK)
             if not await table_exists(conn, 'strategies'):
