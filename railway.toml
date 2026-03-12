@@ -14,6 +14,6 @@ restartPolicyMaxRetries = 3
 [deploy.envs]
 RAILWAY_ENVIRONMENT = "production"
 ENVIRONMENT = "production"
-DEBUG = "false"
-LOG_LEVEL = "WARNING"
+DEBUG = "true"
+LOG_LEVEL = "INFO"
 REDIS_ENABLED = "true"
